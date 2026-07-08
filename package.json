@@ -1,0 +1,16 @@
+{
+  "name": "maps-ecommerce",
+  "version": "0.0.0",
+  "private": true,
+  "description": "E-commerce de seguros enlatados para MAPS Organizacion de Seguros.",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "prepare": "git config core.hooksPath .githooks"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
