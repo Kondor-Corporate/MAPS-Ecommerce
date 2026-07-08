@@ -24,13 +24,14 @@ maps-ecommerce/
 │   └── seed.ts
 │
 ├── docs/
-    ├──tdd/    
-    │   ├── 00-proyecto/
-    │   ├── 01-producto/
-    │   ├── 02-diseno/
-    │   ├── 03-tecnico/
-    │   ├── 04-operacion/
-    │   └── 05-comercial/
+│   ├── 00-proyecto/
+│   ├── 01-producto/
+│   ├── 02-diseno/
+│   ├── 03-tecnico/
+│   ├── 04-operacion/
+│   ├── 05-comercial/
+│   └── tdd/
+│       └── tdd-example.md
 │
 ├── infra/
 │   ├── docker/
@@ -754,12 +755,17 @@ docs/
 │   ├── gestion-pagos.md
 │   └── runbook-errores.md
 │
-└── 05-comercial/
-    ├── potenciales-clientes.md
-    ├── productores.md
-    ├── estados-comerciales.md
-    └── metricas.md
+├── 05-comercial/
+│   ├── potenciales-clientes.md
+│   ├── productores.md
+│   ├── estados-comerciales.md
+│   └── metricas.md
+│
+└── tdd/
+    └── tdd-example.md
 ```
+
+La carpeta `tdd/` contendrá los Technical Design Documents: uno por cada feature o decisión técnica relevante que requiera diseño previo antes de implementarse.
 
 ---
 
