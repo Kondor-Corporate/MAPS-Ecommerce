@@ -11,7 +11,7 @@ jira: MAPS-55
 
 ## Seguimiento en Jira
 
-* Tarjeta principal: [`MAPS-55`](https://kondor-corporate.atlassian.net/browse/MAPS-55)
+* Tarjeta principal: [`MAPS-55`](https://santitalavera.atlassian.net/browse/MAPS-55)
 * Épica/Principal: `MAPS-9` — Gestión de catálogo
 * El estado del frontmatter (`Propuesto` / `En revisión` / `Aprobado` / `Implementado`) debe reflejar el estado real de la tarjeta en el tablero (actualmente **Por hacer**).
 
