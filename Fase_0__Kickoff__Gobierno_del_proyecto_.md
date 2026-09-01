@@ -7,7 +7,7 @@ Documento fundacional de Fase 0 para definir la visión objetivo del producto, e
 | Cliente | MAPS - Organización de seguros |
 | Equipo de desarrollo | Kondor |
 | Proyecto | Portal de Seguros MAPS |
-| Versión | Fase 0 reformulada - Baseline funcional v5 |
+| Versión | Fase 0 reformulada - Baseline funcional v6 |
 | Fecha | 1 de septiembre de 2026 |
 
 ## 0.1 Redefinición del producto
@@ -68,7 +68,7 @@ MAPS es el propietario funcional del producto y de la información comercial pub
 Roles mínimos:
 
 - **Responsable comercial:** define los productos, precios, coberturas, exclusiones, requisitos y contenido comercial.
-- **Administrador del portal:** administra productos y formularios, revisa las solicitudes recibidas, selecciona al productor y ejecuta o supervisa la asignación. La gestión de solicitudes formales deberá permanecer separada de la gestión de potenciales clientes en la Intranet.
+- **Administrador del portal:** administra productos y formularios, revisa las solicitudes recibidas, selecciona al productor y ejecuta o supervisa la asignación. La gestión de solicitudes formales deberá permanecer separada de la gestión de potenciales clientes en la Intranet. MAPS todavía debe confirmar quién controlará diariamente cada bandeja y sus SLA.
 - **Productor de seguros:** recibe la derivación por el canal habilitado —WhatsApp como canal inicial del MVP—, consulta la solicitud mediante el enlace seguro, contacta al cliente y gestiona el proceso comercial por fuera de la plataforma.
 - **Responsable de aprobación:** valida las decisiones finales de alcance, contenido, operación y cumplimiento legal.
 
@@ -323,17 +323,17 @@ Interés no convertido o borrador elegible
 → cierre del lead como oportunidad activa
 ```
 
-### Estados mínimos de una solicitud
+### Estados funcionales mínimos de una solicitud
 
 - **BORRADOR:** el cliente comenzó la carga y todavía puede editarla.
 - **ENVIADA:** el cliente confirmó el envío y la solicitud espera revisión o asignación.
 - **ASIGNADA:** el administrador seleccionó al productor responsable.
-- **DERIVACIÓN_PENDIENTE:** la asignación existe y el mensaje todavía no fue confirmado por la integración.
-- **DERIVADA:** la integración registró un envío satisfactorio al productor.
-- **ERROR_DE_DERIVACIÓN:** el envío falló y requiere reintento o intervención administrativa.
+- **DERIVADA:** el sistema registró una entrega satisfactoria al productor por el canal habilitado.
 - **CANCELADA:** MAPS anuló la solicitud antes de una derivación válida, dejando motivo y auditoría.
 
-El MVP no utilizará estados como aprobada, rechazada, vendida, pagada, emitida o póliza asignada, porque representan actividades posteriores realizadas fuera de la plataforma.
+Los estados técnicos de cada intento de derivación no formarán parte del estado principal de `InsuranceRequest`. Mientras la entrega no sea satisfactoria, la solicitud permanecerá **ASIGNADA** y la operación deberá poder conocer si el intento está pendiente o falló, recibir una alerta y reintentar cuando corresponda. La nomenclatura, persistencia y transición de esos estados técnicos se definirán en Fase 3.
+
+El MVP no utilizará estados funcionales como aprobada, rechazada, vendida, pagada, emitida o póliza asignada, porque representan actividades posteriores realizadas fuera de la plataforma.
 
 ## 0.7 Modelo conceptual inicial
 
@@ -362,6 +362,8 @@ Sin fijar todavía una arquitectura definitiva, el dominio deberá contemplar al
 - Canal de derivación.
 - Enlace seguro.
 - Evento de auditoría.
+
+El modelo técnico de intentos de derivación y sus estados se definirá en Fase 3, separado del estado funcional de la solicitud.
 
 La solicitud debe conservar una referencia inmutable a la versión del formulario utilizada. Una modificación posterior del producto o formulario no puede cambiar el contenido histórico de una solicitud enviada.
 
@@ -402,6 +404,9 @@ Estas capacidades sólo podrán incorporarse mediante una nueva definición de a
 - Las fotografías y documentos tendrán una permanencia corta; el plazo exacto debe ser definido por MAPS y validado legalmente.
 - Los textos legales, consentimientos y política de privacidad todavía requieren definición y aprobación.
 - La cuenta obligatoria mejora la trazabilidad y la recuperación de borradores, pero el momento de solicitarla puede generar fricción y deberá validarse en Fase 2.
+- MAPS posee una base PostgreSQL propia, mantenida por la organización, con numerosas tablas y documentación insuficiente. El acceso previsto para el relevamiento será de sólo lectura.
+- La PostgreSQL existente se registra como dependencia y posible fuente de clientes, pólizas, identificadores externos y datos provenientes de Federación Patronal; no constituye todavía la base elegida para la solución.
+- En Fase 1 se inspeccionarán esquema, relaciones, calidad, origen, responsables y frecuencia de actualización. En Fase 3 se decidirá si corresponde consultarla directamente, importar, sincronizar, replicar o no utilizar sus datos.
 - La consulta contractual depende de relevar la fuente, calidad, disponibilidad y actualización de los datos de clientes, servicios y pólizas.
 - La generación o transferencia de potenciales clientes depende de consentimiento válido, reglas de abandono, prevención de duplicados y coordinación con la Intranet.
 - La disponibilidad del PDF de la póliza depende de las capacidades de Federación Patronal o de la fuente correspondiente.
@@ -415,6 +420,7 @@ Estas capacidades sólo podrán incorporarse mediante una nueva definición de a
 - Verificación de email y recuperación segura de contraseña.
 - Roles y permisos diferenciados.
 - Separación estricta entre datos de distintos clientes.
+- El relevamiento inicial de la PostgreSQL de MAPS deberá respetar el acceso de sólo lectura y el principio de mínimo privilegio.
 - Validación de formularios tanto en frontend como en backend.
 - Restricciones de formato, cantidad y tamaño para archivos.
 - Análisis y tratamiento seguro de archivos cargados.
@@ -486,6 +492,7 @@ El MVP no podrá medir ventas cerradas ni conversión final a póliza, porque el
 | Datos o formularios incompletos por producto | Reimplementaciones y solicitudes inválidas | Exigir ficha funcional aprobada antes de publicar |
 | Fricción por registro obligatorio | Abandono durante el proceso | Prototipar y validar en Fase 2 el momento de autenticación |
 | Datos contractuales incompletos o desactualizados | Información incorrecta para el asegurado | Relevar fuente, calidad, responsables y frecuencia de actualización en Fase 1 |
+| PostgreSQL MAPS sin documentación suficiente | Integración incorrecta, dependencia frágil o interpretación errónea de datos | Inspección read-only en Fase 1 y decisión de estrategia de uso recién en Fase 3 |
 | Leads sin consentimiento o duplicados | Riesgo legal, mala experiencia y datos comerciales inconsistentes | Exigir consentimiento, reglas de abandono, deduplicación y trazabilidad antes de activar la integración |
 | PDF de póliza no disponible | El cliente no puede visualizarlo ni descargarlo | Mantener la consulta de datos básicos y no comprometer el PDF hasta validar la fuente |
 | Exposición de datos mediante la notificación o el enlace | Incidente de privacidad | Resumen mínimo, enlace temporal, revocación y auditoría |
@@ -539,6 +546,8 @@ Etiquetas funcionales sugeridas:
 - MIS PÓLIZAS.
 - LEADS.
 - POTENCIALES CLIENTES.
+- DATOS.
+- INTEGRACIONES.
 - DERIVACIONES.
 - WHATSAPP.
 - NOTIFICACIONES.
@@ -592,6 +601,8 @@ Los criterios de terminado específicos para formularios se definirán después 
 - Logo, colores, tipografías, imágenes y tono de comunicación.
 - Dominio, DNS y accesos de infraestructura necesarios.
 - Dirección de correo desde la cual se enviarán notificaciones a clientes.
+- Acceso de sólo lectura a la PostgreSQL existente de MAPS para el relevamiento de Fase 1.
+- Contacto técnico y funcional responsable de la PostgreSQL, junto con toda documentación, diccionario de datos o información de actualización disponible.
 - Fuente disponible de clientes, seguros contratados y pólizas existentes.
 - Campos contractuales disponibles, calidad conocida, frecuencia de actualización y responsable de mantenimiento.
 - Procedimiento para dar de alta o asociar clientes con servicios o pólizas existentes.
@@ -620,7 +631,7 @@ Estas preguntas no invalidan la baseline funcional, pero deben resolverse antes 
 14. ¿Cómo se tratarán solicitudes duplicadas del mismo cliente para el mismo producto?
 15. ¿Se permitirá que un cliente cancele una solicitud enviada antes de su derivación?
 16. ¿En qué punto del recorrido se solicitará el registro o la autenticación?
-17. ¿Cuál es la fuente de los datos de clientes, servicios contratados y pólizas, y con qué frecuencia se actualiza?
+17. ¿Qué tablas, relaciones y campos de la PostgreSQL de MAPS contienen clientes, servicios contratados, pólizas e identificadores externos, y con qué frecuencia se actualizan?
 18. ¿Federación Patronal u otra fuente permite obtener el PDF de las pólizas para su visualización o descarga?
 19. ¿La selección del canal de derivación debe formar parte del MVP o quedar como evolución posterior?
 20. ¿Cuándo se considera que un borrador fue abandonado?
@@ -628,6 +639,8 @@ Estas preguntas no invalidan la baseline funcional, pero deben resolverse antes 
 22. ¿Cómo se detectarán y evitarán leads duplicados?
 23. ¿Qué datos se transferirán a Potenciales clientes y quién será responsable de su gestión?
 24. ¿Cómo se cerrará o actualizará el lead cuando se convierta en una solicitud formal?
+25. ¿Quiénes son los responsables técnico y funcional de la PostgreSQL y qué documentación pueden proporcionar?
+26. ¿Quién controlará diariamente la bandeja de solicitudes, quién gestionará Potenciales clientes y qué SLA tendrá cada proceso?
 
 ## 0.18 Resultado esperado de la Fase 0
 
@@ -648,6 +661,9 @@ La Fase 0 se considerará aprobada cuando Kondor y MAPS hayan aceptado formalmen
 - la capacidad de configurar formularios diferentes por producto sin modificar código, dejando su alcance detallado para las Fases 1, 2 y 3;
 - los módulos incluidos y excluidos;
 - los roles y responsabilidades;
+- la PostgreSQL existente de MAPS como dependencia a relevar en modo de sólo lectura, sin fijar todavía la estrategia de integración;
+- la separación entre estados funcionales de `InsuranceRequest` y estados técnicos de los intentos de derivación;
+- la separación operativa entre asignación de solicitudes y gestión de potenciales clientes, manteniendo pendientes sus responsables y SLA;
 - los riesgos y dependencias principales;
 - la lista de decisiones pendientes;
 - los insumos necesarios para iniciar análisis detallado, diseño y backlog.
