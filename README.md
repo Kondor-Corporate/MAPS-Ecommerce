@@ -20,6 +20,8 @@ La estructura actual del monorepo es una base inicial y no constituye por sí so
 - **Fase 2:** journeys, navegación, wireframes, wireflows y momento exacto de autenticación.
 - **Fase 3:** arquitectura de frontend y backend, autenticación y autorización detalladas, persistencia, almacenamiento, formularios configurables e integraciones.
 
+MAPS posee una PostgreSQL propia que podrá contener datos relevantes de clientes, pólizas e identificadores externos. Se considera una dependencia para relevar con acceso de sólo lectura en Fase 1, no una decisión de arquitectura. En Fase 3 se definirá si corresponde consultarla, importar, sincronizar, replicar o no utilizarla.
+
 El archivo [`docs/estructura.md`](./docs/estructura.md) conserva una propuesta técnica anterior y no debe considerarse vigente hasta su realineación en Fase 3.
 
 ## Estructura del repositorio
