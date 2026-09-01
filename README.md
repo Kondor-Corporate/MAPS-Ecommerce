@@ -1,27 +1,26 @@
-# MAPS - Portal de Solicitudes de Seguros
+# MAPS - Portal de Seguros
 
-Portal para **MAPS Organización de Seguros** orientado a publicar productos aseguradores y recibir solicitudes mediante formularios particulares. El cliente crea una cuenta, completa el formulario, guarda borradores y envía la solicitud. Luego, un administrador asigna manualmente un productor y el sistema la deriva mediante la API oficial de WhatsApp. La venta y su cierre se realizan fuera de la plataforma.
+Portal para **MAPS Organización de Seguros** con dos capacidades principales: recibir y derivar solicitudes de seguros, y permitir que el asegurado consulte los seguros o servicios que tiene contratados y la información básica disponible de sus pólizas.
 
-La plataforma no incluye carrito, checkout, pagos, contratación automática ni emisión de pólizas.
+Para las solicitudes, el cliente dispone de una cuenta mediante email y contraseña, puede conservar borradores y debe autenticarse antes del envío definitivo; el momento exacto del registro se definirá en Fase 2. Luego, un administrador asigna manualmente un productor y el sistema deriva la solicitud para que la gestión comercial continúe fuera de la plataforma.
+
+La plataforma no incluye carrito, checkout, pagos, contratación automática ni emisión de pólizas. La visualización o descarga del PDF de una póliza no queda comprometida hasta confirmar que Federación Patronal o la fuente correspondiente permita obtenerlo.
 
 Baseline funcional completa: [`Fase_0__Kickoff__Gobierno_del_proyecto_.md`](./Fase_0__Kickoff__Gobierno_del_proyecto_.md).
 
 ## Estado actual
 
-Este repositorio está en su **estructura inicial** (HU-000): las carpetas del monorepo están creadas, pero las apps (`apps/web`, `apps/api`) todavía no tienen código ni `package.json` propio. La Fase 0 redefine el producto como portal de solicitudes; la arquitectura técnica y el backlog anteriores deberán realinearse con esta nueva baseline antes de implementar módulos funcionales.
+Este repositorio está en su **estructura inicial** (HU-000): las carpetas del monorepo están creadas, pero las apps (`apps/web`, `apps/api`) todavía no tienen código ni `package.json` propio. La Fase 0 redefine el producto como Portal de Seguros, separa la visión objetivo del MVP y reserva para las Fases 1–3 el discovery detallado, las decisiones de UX y la arquitectura. La documentación técnica y el backlog anteriores deberán realinearse antes de implementar módulos funcionales.
 
-## Arquitectura objetivo
+## Definiciones técnicas pendientes
 
-- **Monorepo** con `npm` workspaces (`apps/*`, `packages/*`).
-- **Frontend** (`apps/web`): React + Vite para catálogo, autenticación, formularios dinámicos, borradores, área del cliente y panel administrador.
-- **Backend** (`apps/api`): Node.js + Express + TypeScript, con módulos de autenticación, productos, formularios y versiones, solicitudes, productores, archivos, derivaciones por WhatsApp y auditoría.
-- **Base de datos**: PostgreSQL con Prisma ORM (`prisma/`).
-- **Paquetes compartidos** (`packages/`): tipos, validadores, configuración y componentes UI reutilizados entre frontend y backend.
-- **Autenticación** propia mediante email y contraseña, con JWT de acceso y renovación.
-- **Integración externa principal**: API oficial de WhatsApp para enviar al productor un resumen y un enlace seguro de la solicitud.
-- **Pagos**: explícitamente excluidos del MVP.
+La estructura actual del monorepo es una base inicial y no constituye por sí sola una arquitectura aprobada. Las decisiones se cerrarán de forma progresiva:
 
-El archivo [`docs/estructura.md`](./docs/estructura.md) conserva la arquitectura técnica inicial y deberá actualizarse para reflejar la Fase 0 vigente.
+- **Fase 1:** procesos, requerimientos, datos disponibles, productos, reglas y modelo de dominio inicial.
+- **Fase 2:** journeys, navegación, wireframes, wireflows y momento exacto de autenticación.
+- **Fase 3:** arquitectura de frontend y backend, autenticación y autorización detalladas, persistencia, almacenamiento, formularios configurables e integraciones.
+
+El archivo [`docs/estructura.md`](./docs/estructura.md) conserva una propuesta técnica anterior y no debe considerarse vigente hasta su realineación en Fase 3.
 
 ## Estructura del repositorio
 
