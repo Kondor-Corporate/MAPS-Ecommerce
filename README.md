@@ -2,7 +2,7 @@
 
 Portal para **MAPS Organización de Seguros** con dos capacidades principales: recibir y derivar solicitudes de seguros, y permitir que el asegurado consulte los seguros o servicios que tiene contratados y la información básica disponible de sus pólizas.
 
-Para las solicitudes, el cliente dispone de una cuenta mediante email y contraseña, puede conservar borradores y debe autenticarse antes del envío definitivo; el momento exacto del registro se definirá en Fase 2. Luego, un administrador asigna manualmente un productor y el sistema deriva la solicitud para que la gestión comercial continúe fuera de la plataforma.
+Para las solicitudes, el cliente dispone de una cuenta mediante email y contraseña, puede conservar borradores y debe autenticarse antes del envío definitivo; el momento exacto del registro se definirá en Fase 2. Luego, un administrador asigna manualmente un productor y el sistema deriva la solicitud mediante WhatsApp como canal inicial del MVP, manteniendo la capacidad preparada para incorporar otros canales en su evolución. La gestión comercial continúa fuera de la plataforma.
 
 La plataforma no incluye carrito, checkout, pagos, contratación automática ni emisión de pólizas. La visualización o descarga del PDF de una póliza no queda comprometida hasta confirmar que Federación Patronal o la fuente correspondiente permita obtenerlo.
 
