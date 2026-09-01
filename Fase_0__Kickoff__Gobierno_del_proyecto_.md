@@ -7,7 +7,7 @@ Documento fundacional de Fase 0 para definir la visión objetivo del producto, e
 | Cliente | MAPS - Organización de seguros |
 | Equipo de desarrollo | Kondor |
 | Proyecto | Portal de Seguros MAPS |
-| Versión | Fase 0 reformulada - Baseline funcional v3 |
+| Versión | Fase 0 reformulada - Baseline funcional v4 |
 | Fecha | 1 de septiembre de 2026 |
 
 ## 0.1 Redefinición del producto
@@ -31,12 +31,13 @@ El MVP también incluye la consulta de los seguros o servicios contratados y de 
 
 - El portal diferencia el ciclo de solicitud del ciclo de consulta de seguros o servicios contratados.
 - El sistema gestiona solicitudes, pero no realiza ventas, contrataciones, cobros ni emisiones automáticas.
-- Cada producto puede requerir un formulario diferente.
+- Cada producto puede requerir un formulario diferente y MAPS debe poder configurarlo sin modificar código, preservando la versión respondida por cada cliente.
 - El cliente debe tener una cuenta para enviar una solicitud y recuperar sus borradores; el momento exacto de autenticación se definirá en Fase 2.
 - Toda solicitud puede permanecer como borrador hasta que el cliente decida enviarla.
 - La asignación del productor es manual y responsabilidad de un administrador.
-- La derivación al productor se realiza automáticamente por la API oficial de WhatsApp.
-- WhatsApp recibe un resumen mínimo y un enlace seguro; la información completa y las fotografías no deben exponerse directamente en el mensaje.
+- La derivación al productor debe ser automática, segura y trazable.
+- WhatsApp será el canal inicial y preferente del MVP, sin impedir que el producto incorpore email u otros canales en su evolución.
+- La notificación al productor debe contener un resumen mínimo y un enlace seguro; la información completa y las fotografías no deben exponerse directamente en el mensaje.
 - Después de la derivación, el contacto y el cierre de la venta se realizan fuera del sistema.
 - El asegurado puede consultar, como mínimo, qué seguros o servicios tiene contratados y los datos básicos disponibles de sus pólizas.
 - La visualización o descarga del PDF de la póliza queda condicionada a la disponibilidad de una fuente técnica válida.
@@ -64,7 +65,7 @@ Roles mínimos:
 
 - **Responsable comercial:** define los productos, precios, coberturas, exclusiones, requisitos y contenido comercial.
 - **Administrador del portal:** administra productos y formularios, revisa las solicitudes recibidas, selecciona al productor y ejecuta o supervisa la asignación.
-- **Productor de seguros:** recibe la derivación por WhatsApp, consulta la solicitud mediante el enlace seguro, contacta al cliente y gestiona el proceso comercial por fuera de la plataforma.
+- **Productor de seguros:** recibe la derivación por el canal habilitado —WhatsApp como canal inicial del MVP—, consulta la solicitud mediante el enlace seguro, contacta al cliente y gestiona el proceso comercial por fuera de la plataforma.
 - **Responsable de aprobación:** valida las decisiones finales de alcance, contenido, operación y cumplimiento legal.
 
 En organizaciones pequeñas, una persona puede desempeñar más de un rol, pero cada decisión o actividad debe tener un responsable identificable.
@@ -74,7 +75,7 @@ En organizaciones pequeñas, una persona puede desempeñar más de un rol, pero 
 - **PM / BA:** releva necesidades, mantiene la Fase 0, ordena el backlog, documenta decisiones y coordina las validaciones con MAPS.
 - **Tech Lead:** define la arquitectura, las políticas técnicas y de seguridad, y revisa la calidad de la implementación.
 - **Desarrollo frontend:** implementa catálogo, autenticación, experiencia de formularios, borradores, área del cliente y panel administrativo.
-- **Desarrollo backend / infraestructura:** implementa autenticación, persistencia, formularios dinámicos, archivos, asignaciones, integración con WhatsApp, auditoría, despliegue y observabilidad.
+- **Desarrollo backend / infraestructura:** implementa autenticación, persistencia, formularios configurables, archivos, asignaciones, canales de derivación, auditoría, despliegue y observabilidad según las decisiones de Fase 3.
 
 Los roles de Kondor pueden rotar o superponerse. Cada tarea debe conservar un responsable y un criterio de aceptación.
 
@@ -99,7 +100,7 @@ La visión objetivo podrá incorporar capacidades posteriores al MVP, pero cada 
 | Catálogo público de seguros | Incluida. |
 | Solicitudes, archivos y borradores recuperables | Incluidos. |
 | Cuenta mediante email y contraseña | Obligatoria para enviar y recuperar; el momento exacto de autenticación se define en Fase 2. |
-| Asignación manual y derivación al productor | Incluidas. |
+| Asignación manual y derivación al productor | Incluidas; WhatsApp será el canal inicial del MVP y los canales adicionales quedarán como evolución. |
 | Consulta de seguros o servicios contratados | Incluida con la información básica disponible. |
 | Gestión administrativa de clientes y asociación de pólizas existentes | Incluida en el nivel necesario para alimentar la consulta del asegurado. |
 | Visualización o descarga del PDF de la póliza | No comprometida hasta confirmar disponibilidad técnica. |
@@ -114,7 +115,7 @@ La primera versión será exitosa cuando MAPS pueda completar el siguiente ciclo
 5. El cliente recupera el borrador, completa la información y envía la solicitud.
 6. MAPS recibe la solicitud en una bandeja de administración.
 7. Un administrador selecciona manualmente un productor.
-8. El sistema envía automáticamente por WhatsApp un resumen y un enlace seguro.
+8. El sistema deriva automáticamente la solicitud mediante WhatsApp como canal inicial, enviando un resumen y un enlace seguro.
 9. La plataforma registra el resultado conocido de la derivación.
 10. El productor accede a una vista segura de la solicitud y continúa el contacto por fuera del portal.
 
@@ -126,11 +127,11 @@ El éxito del MVP no depende de que una nueva venta se cierre, ya que ese result
 
 - Los formularios genéricos no contemplan los datos particulares de cada seguro.
 - El asegurado no dispone de un espacio unificado para consultar qué seguros o servicios tiene contratados y los datos básicos de sus pólizas.
-- La información puede quedar dispersa entre planillas, correos, fotografías y conversaciones de WhatsApp.
+- La información puede quedar dispersa entre planillas, correos, fotografías y distintos canales de comunicación.
 - El cliente puede perder su progreso si no completa el trámite en una sola sesión.
 - MAPS necesita conocer qué solicitudes están nuevas y cuáles esperan asignación.
 - La distribución manual de información puede generar demoras, omisiones o envíos al productor equivocado.
-- El productor necesita recibir la información suficiente para iniciar el contacto sin exponer datos sensibles en el mensaje de WhatsApp.
+- El productor necesita recibir la información suficiente para iniciar el contacto sin exponer datos sensibles en la notificación.
 - MAPS necesita poder actualizar los formularios sin requerir un despliegue de software por cada cambio.
 - Debe existir trazabilidad sobre qué versión del formulario respondió el cliente, cuándo envió la solicitud, quién asignó al productor y si la derivación fue realizada.
 
@@ -165,34 +166,19 @@ El precio mostrado es informativo y no habilita el pago dentro del sistema.
 
 La cuenta es obligatoria para enviar una solicitud y recuperar borradores. Los datos y borradores deberán quedar asociados de forma segura a una identidad. El momento exacto en que se solicitará el registro o la autenticación se definirá en Fase 2, comparando la fricción de acceso con la trazabilidad y la recuperación del progreso.
 
-### C. Constructor dinámico completo de formularios
+### C. Formularios configurables por producto
 
-El constructor será una función administrativa central. Para que el concepto de “completo” tenga un límite verificable dentro del MVP, deberá incluir como mínimo:
+El MVP deberá permitir que MAPS configure y publique formularios diferentes para cada producto sin requerir modificaciones de código.
 
-- Creación de formularios sin modificar código.
-- Asociación de un formulario a uno o más productos, según la decisión de MAPS.
-- Organización por páginas, pasos o secciones.
-- Reordenamiento de secciones y campos.
-- Campos de texto corto y largo.
-- Email, teléfono, número, moneda y porcentaje.
-- Fecha y hora.
-- Selección simple y múltiple.
-- Casillas de verificación.
-- Opciones de tipo sí/no.
-- Carga de archivos y fotografías.
-- Textos informativos, títulos y ayudas contextuales.
-- Configuración de campos obligatorios u opcionales.
-- Reglas de longitud, rango, formato y tipos de archivo.
-- Lógica condicional para mostrar, ocultar o requerir campos según respuestas anteriores.
-- Mensajes de validación configurables.
-- Previsualización antes de publicar.
-- Estados de formulario: borrador, publicado y archivado.
-- Duplicación de formularios y secciones.
-- Versionado: toda modificación publicada crea una nueva versión.
-- Conservación de la versión exacta contestada por cada cliente.
-- Imposibilidad de alterar retrospectivamente una solicitud enviada.
+Como principios funcionales de Fase 0:
 
-No se incluye un lenguaje de programación visual ilimitado ni integraciones externas arbitrarias dentro del constructor. Las reglas deberán pertenecer al conjunto soportado y documentado por el sistema.
+- cada producto podrá utilizar un formulario particular;
+- MAPS contará con autonomía administrativa para configurar y publicar formularios dentro del alcance que se confirme;
+- las respuestas conservarán la versión exacta del formulario utilizado;
+- una modificación posterior no podrá alterar retrospectivamente una solicitud enviada;
+- los formularios podrán solicitar datos y archivos de acuerdo con las necesidades de cada producto.
+
+La Fase 0 no fija todavía un catálogo cerrado de tipos de campo, reglas condicionales, páginas, duplicación, previsualización ni otras funciones del constructor. En Fase 1 se relevarán los formularios, campos, validaciones y reglas reales; en Fase 2 se definirá la experiencia y el grado de autonomía administrativa; y en Fase 3 se decidirá si la solución será basada en esquemas, un constructor parcial o un constructor completo.
 
 ### D. Solicitudes y borradores recuperables
 
@@ -219,7 +205,7 @@ La falta de fotografías o documentación no necesariamente debe impedir el env�
 - Búsqueda por email, DNI u otros campos habilitados.
 - Selección manual del productor.
 - Confirmación de la asignación.
-- Consulta del estado de la derivación por WhatsApp.
+- Consulta del estado funcional de la derivación.
 - Reintento ante errores de envío.
 - Registro mínimo de auditoría.
 
@@ -227,38 +213,31 @@ La falta de fotografías o documentación no necesariamente debe impedir el env�
 
 - Alta, edición, activación y desactivación de productores.
 - Nombre y datos identificatorios mínimos.
-- Número de WhatsApp validado.
+- Datos de contacto necesarios para el canal de derivación habilitado; para el MVP, número de WhatsApp validado.
 - Productos o ramos relacionados, con carácter informativo.
 - Estado habilitado o inhabilitado para recibir derivaciones.
 
 La relación entre productos y productores no produce una asignación automática. El administrador siempre seleccionará manualmente al destinatario.
 
-### G. Derivación automática mediante WhatsApp
+### G. Derivación automática y trazable
 
-La derivación se ejecutará después de la confirmación de la asignación administrativa.
+La derivación se ejecutará después de la confirmación de la asignación administrativa. WhatsApp será el canal inicial y preferente confirmado para el MVP, pero la capacidad funcional se define de forma general para no acoplar permanentemente el producto a un único canal.
 
-El mensaje deberá contener únicamente un resumen mínimo:
+La notificación al productor deberá contener únicamente un resumen mínimo:
 
-- Identificador de la solicitud.
-- Producto solicitado.
-- Nombre del cliente, si la política de privacidad aprobada lo permite.
-- Fecha de recepción.
-- Enlace seguro para consultar el expediente.
+- identificador de la solicitud;
+- producto solicitado;
+- nombre del cliente, cuando la política de privacidad aprobada lo permita;
+- fecha de recepción;
+- enlace seguro para consultar el expediente.
 
-El envío se realizará mediante la API oficial de WhatsApp y una plantilla previamente habilitada cuando la plataforma lo requiera. La implementación dependerá de que MAPS proporcione la cuenta, el número, las credenciales, las plantillas y las aprobaciones necesarias.
+Para WhatsApp sólo podrá utilizarse una integración oficial y autorizada. La definición de proveedor, plantillas, credenciales, reintentos, estados técnicos y arquitectura de adaptadores se realizará en Fase 3.
 
-El sistema deberá registrar, como mínimo:
-
-- Fecha y hora del intento.
-- Productor y número destinatario.
-- Identificador devuelto por el proveedor.
-- Resultado conocido del envío.
-- Error recibido, cuando exista.
-- Reintentos efectuados.
+El sistema deberá conservar trazabilidad funcional del destinatario, el canal utilizado, el momento de la derivación y el resultado conocido. Email u otros canales se contemplan como evolución. La selección de canal por parte del administrador sólo se incorporará al MVP si MAPS confirma expresamente esa necesidad.
 
 ### H. Acceso seguro del productor
 
-El enlace de WhatsApp abrirá una vista de sólo lectura con la solicitud completa y sus archivos. No constituye un panel general de productores.
+El enlace enviado al productor abrirá una vista de sólo lectura con la solicitud completa y sus archivos. No constituye un panel general de productores.
 
 Como controles mínimos, el enlace deberá:
 
@@ -299,7 +278,7 @@ Catálogo de seguros
 → confirmación al cliente
 → bandeja de solicitudes de MAPS
 → asignación manual por administrador
-→ envío automático por WhatsApp
+→ derivación automática mediante WhatsApp como canal inicial
 → acceso del productor mediante enlace seguro
 → contacto y cierre comercial fuera del sistema
 
@@ -344,7 +323,8 @@ Sin fijar todavía una arquitectura definitiva, el dominio deberá contemplar al
 - Archivo o fotografía.
 - Consentimiento.
 - Asignación.
-- Derivación por WhatsApp.
+- Derivación.
+- Canal de derivación.
 - Enlace seguro.
 - Evento de auditoría.
 
@@ -383,14 +363,14 @@ Estas capacidades sólo podrán incorporarse mediante una nueva definición de a
 - El sistema no puede afirmar que una solicitud equivale a una contratación.
 - Los paquetes tendrán precios fijos visibles, pero el precio debe poder actualizarse y conservar historial cuando sea necesario.
 - MAPS debe proporcionar la información completa de cada producto y formulario.
-- La integración de WhatsApp depende de una cuenta oficial, un número habilitado, credenciales válidas, plantillas y condiciones del proveedor.
+- WhatsApp, como canal inicial del MVP, depende de una integración oficial y autorizada; sus credenciales, plantillas, proveedor y comportamiento técnico se definirán en Fase 3.
 - Las fotografías y documentos tendrán una permanencia corta; el plazo exacto debe ser definido por MAPS y validado legalmente.
 - Los textos legales, consentimientos y política de privacidad todavía requieren definición y aprobación.
 - La cuenta obligatoria mejora la trazabilidad y la recuperación de borradores, pero el momento de solicitarla puede generar fricción y deberá validarse en Fase 2.
 - La consulta contractual depende de relevar la fuente, calidad, disponibilidad y actualización de los datos de clientes, servicios y pólizas.
 - La disponibilidad del PDF de la póliza depende de las capacidades de Federación Patronal o de la fuente correspondiente.
 - La asignación manual puede convertirse en un cuello de botella si no se establece un responsable y un tiempo de atención.
-- El constructor dinámico es el módulo de mayor complejidad y debe desarrollarse con criterios de aceptación cerrados.
+- El grado de autonomía de los formularios configurables puede modificar significativamente el costo y deberá cerrarse progresivamente en las Fases 1, 2 y 3.
 
 ## 0.10 Seguridad y protección de datos
 
@@ -411,7 +391,7 @@ Estas capacidades sólo podrán incorporarse mediante una nueva definición de a
 - Política de retención y eliminación de borradores, solicitudes y archivos.
 - Backups y procedimiento de recuperación.
 - Entornos separados de desarrollo, prueba y producción.
-- Gestión segura de secretos y credenciales de WhatsApp.
+- Gestión segura de secretos y credenciales de los canales de derivación.
 - Logs sin exposición innecesaria de datos personales.
 
 ## 0.11 Notificaciones del MVP
@@ -425,11 +405,11 @@ Estas capacidades sólo podrán incorporarse mediante una nueva definición de a
 ### Administrador
 
 - Nueva solicitud enviada, si MAPS decide habilitar el aviso.
-- Error de derivación por WhatsApp.
+- Error de derivación.
 
 ### Productor
 
-- Nueva solicitud asignada, mediante WhatsApp automático con resumen y enlace seguro.
+- Nueva solicitud asignada, mediante WhatsApp como canal inicial automático con resumen y enlace seguro.
 
 No se incluyen recordatorios comerciales, cambios posteriores de estado, aprobación, rechazo, emisión ni renovación.
 
@@ -462,13 +442,13 @@ El MVP no podrá medir ventas cerradas ni conversión final a póliza, porque el
 
 | Riesgo | Consecuencia | Tratamiento inicial |
 | --- | --- | --- |
-| Alcance ilimitado del constructor | Demoras y crecimiento no controlado | Cerrar tipos de campo, reglas y criterios antes del desarrollo |
+| Alcance ilimitado de los formularios configurables | Demoras y crecimiento no controlado | Relevar necesidades reales en Fase 1, validar autonomía en Fase 2 y decidir la solución en Fase 3 |
 | Datos o formularios incompletos por producto | Reimplementaciones y solicitudes inválidas | Exigir ficha funcional aprobada antes de publicar |
 | Fricción por registro obligatorio | Abandono durante el proceso | Prototipar y validar en Fase 2 el momento de autenticación |
 | Datos contractuales incompletos o desactualizados | Información incorrecta para el asegurado | Relevar fuente, calidad, responsables y frecuencia de actualización en Fase 1 |
 | PDF de póliza no disponible | El cliente no puede visualizarlo ni descargarlo | Mantener la consulta de datos básicos y no comprometer el PDF hasta validar la fuente |
-| Exposición de datos mediante WhatsApp o enlaces | Incidente de privacidad | Resumen mínimo, enlace temporal, revocación y auditoría |
-| Fallas o restricciones de la API de WhatsApp | Solicitudes no derivadas | Estado de error, reintentos y bandeja administrativa |
+| Exposición de datos mediante la notificación o el enlace | Incidente de privacidad | Resumen mínimo, enlace temporal, revocación y auditoría |
+| Fallas o restricciones del canal inicial de derivación | Solicitudes no derivadas | Trazabilidad, procedimiento alternativo y definición de reintentos/adaptadores en Fase 3 |
 | Productor con número incorrecto o inactivo | Derivación al destinatario equivocado | Validación administrativa y posibilidad de desactivar productores |
 | Asignación manual demorada | Pérdida de oportunidades | Responsable definido y métrica de tiempo hasta asignación |
 | Fotografías pesadas o inseguras | Costos, lentitud o riesgo técnico | Límites, compresión, validación, almacenamiento privado y retención |
@@ -506,7 +486,7 @@ Etiquetas funcionales sugeridas:
 - AUTH.
 - CATÁLOGO.
 - PRODUCTOS.
-- FORM BUILDER.
+- FORMULARIOS.
 - SOLICITUDES.
 - BORRADORES.
 - ARCHIVOS.
@@ -516,6 +496,7 @@ Etiquetas funcionales sugeridas:
 - CLIENTES.
 - PÓLIZAS.
 - MIS PÓLIZAS.
+- DERIVACIONES.
 - WHATSAPP.
 - NOTIFICACIONES.
 - AUDITORÍA.
@@ -532,7 +513,7 @@ Las etiquetas CARRITO, CHECKOUT y PAGOS dejan de pertenecer al MVP. MIS PÓLIZAS
 - Ninguna funcionalidad crítica se desarrolla sin definición mínima y criterio de aceptación.
 - Todo cambio de alcance debe analizar su impacto en tiempo, costo, seguridad y cronograma.
 - Los formularios de productos deben ser aprobados por MAPS antes de implementarse o publicarse.
-- Las decisiones relacionadas con datos personales, archivos, consentimientos o WhatsApp deben quedar documentadas.
+- Las decisiones relacionadas con datos personales, archivos, consentimientos o canales de derivación deben quedar documentadas.
 
 ## 0.15 Definición de terminado
 
@@ -551,7 +532,7 @@ Una funcionalidad se considera terminada cuando:
 - posee documentación de uso o técnica cuando corresponde;
 - está lista para staging o producción.
 
-Para un formulario publicado, “terminado” implica además que fue previsualizado, probado, versionado y asociado correctamente al producto.
+Los criterios de terminado específicos para formularios se definirán después de relevar sus necesidades reales, conservando como condición mínima el versionado y la asociación correcta con el producto.
 
 ## 0.16 Información y accesos que MAPS debe proporcionar
 
@@ -562,10 +543,9 @@ Para un formulario publicado, “terminado” implica además que fue previsuali
 - Definición de qué archivos son obligatorios y cuáles puede pedir luego el productor.
 - Textos legales, política de privacidad y consentimientos aprobados.
 - Lista inicial de administradores.
-- Lista inicial de productores y números de WhatsApp verificados.
+- Lista inicial de productores y datos de contacto requeridos; para el MVP, números de WhatsApp verificados.
 - Responsable de mantener productos, formularios y productores.
-- Cuenta oficial, número y credenciales para la integración de WhatsApp.
-- Plantilla de mensaje aprobada o contenido que deberá presentarse para aprobación.
+- Para la definición de Fase 3, disponibilidad de cuenta oficial, número, credenciales y plantillas requeridas por la integración autorizada de WhatsApp.
 - Logo, colores, tipografías, imágenes y tono de comunicación.
 - Dominio, DNS y accesos de infraestructura necesarios.
 - Dirección de correo desde la cual se enviarán notificaciones a clientes.
@@ -584,9 +564,9 @@ Estas preguntas no invalidan la baseline funcional, pero deben resolverse antes 
 4. ¿Durante cuánto tiempo se conservarán los borradores sin actividad?
 5. ¿Durante cuánto tiempo se conservarán las solicitudes y fotografías después de la derivación?
 6. ¿Qué textos y consentimientos debe aceptar el cliente y quién los aprueba?
-7. ¿Qué datos puede incluir el resumen de WhatsApp sin incumplir las políticas de privacidad?
+7. ¿Qué datos puede incluir la notificación al productor sin incumplir las políticas de privacidad?
 8. ¿Cuánto tiempo será válido el enlace seguro y qué validación adicional deberá utilizar?
-9. ¿Cuál será el procedimiento alternativo cuando WhatsApp no pueda entregar la solicitud?
+9. ¿Cuál será el procedimiento alternativo cuando el canal inicial de derivación no pueda entregar la solicitud?
 10. ¿Quién controla diariamente la bandeja de solicitudes sin asignar?
 11. ¿En cuánto tiempo máximo debería realizarse la asignación manual?
 12. ¿Puede un administrador reasignar una solicitud ya derivada y qué auditoría requiere?
@@ -596,6 +576,7 @@ Estas preguntas no invalidan la baseline funcional, pero deben resolverse antes 
 16. ¿En qué punto del recorrido se solicitará el registro o la autenticación?
 17. ¿Cuál es la fuente de los datos de clientes, servicios contratados y pólizas, y con qué frecuencia se actualiza?
 18. ¿Federación Patronal u otra fuente permite obtener el PDF de las pólizas para su visualización o descarga?
+19. ¿La selección del canal de derivación debe formar parte del MVP o quedar como evolución posterior?
 
 ## 0.18 Resultado esperado de la Fase 0
 
@@ -610,9 +591,9 @@ La Fase 0 se considerará aprobada cuando Kondor y MAPS hayan aceptado formalmen
 - la cuenta obligatoria para enviar y recuperar solicitudes, dejando su momento exacto para Fase 2;
 - la consulta básica de servicios contratados y pólizas, sin comprometer todavía el PDF;
 - la asignación manual del productor;
-- el uso de la API oficial de WhatsApp;
-- el contenido mínimo del mensaje y el acceso mediante enlace seguro;
-- el alcance verificable del constructor dinámico;
+- WhatsApp como canal inicial y preferente del MVP, dentro de una capacidad de derivación automática y trazable;
+- el contenido funcional mínimo de la notificación y el acceso mediante enlace seguro, dejando la implementación detallada para Fase 3;
+- la capacidad de configurar formularios diferentes por producto sin modificar código, dejando su alcance detallado para las Fases 1, 2 y 3;
 - los módulos incluidos y excluidos;
 - los roles y responsabilidades;
 - los riesgos y dependencias principales;
