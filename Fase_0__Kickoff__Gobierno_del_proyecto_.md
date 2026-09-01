@@ -1,41 +1,58 @@
-# Portal de Solicitudes de Seguros MAPS
+# Portal de Seguros MAPS
 
-Documento fundacional para definir el alcance, las responsabilidades, los flujos, las reglas de trabajo y los criterios de aceptación de la nueva versión del proyecto.
+Documento fundacional de Fase 0 para definir la visión objetivo del producto, el problema, los actores generales, el mapa de capacidades, el alcance del MVP frente a su evolución, las restricciones, los riesgos y el gobierno del proyecto.
 
 | Dato | Definición |
 | --- | --- |
 | Cliente | MAPS - Organización de seguros |
 | Equipo de desarrollo | Kondor |
-| Proyecto | Portal de Solicitudes de Seguros MAPS |
-| Versión | Fase 0 reformulada - Baseline funcional v2 |
-| Fecha | 26 de agosto de 2026 |
+| Proyecto | Portal de Seguros MAPS |
+| Versión | Fase 0 reformulada - Baseline funcional v3 |
+| Fecha | 1 de septiembre de 2026 |
 
 ## 0.1 Redefinición del producto
 
-El proyecto deja de concebirse como un e-commerce de seguros. La plataforma no realizará ventas directas, no cobrará primas, no confirmará contrataciones y no emitirá pólizas automáticamente.
+El proyecto deja de concebirse como un e-commerce transaccional de seguros. La plataforma no realizará ventas directas, no cobrará primas, no confirmará contrataciones y no emitirá pólizas automáticamente.
 
-La nueva solución será un **Portal de Solicitudes de Seguros**. Su propósito será presentar los productos aseguradores ofrecidos por MAPS, permitir que cada cliente cree una cuenta, complete un formulario específico para el seguro elegido, adjunte la información requerida, guarde el trámite como borrador y envíe una solicitud formal.
+La visión objetivo es un **Portal de Seguros MAPS** con dos ciclos funcionales complementarios:
 
-Una vez recibida la solicitud, un administrador de MAPS seleccionará manualmente al productor responsable. El sistema derivará la solicitud de manera automática mediante la API oficial de WhatsApp, enviando un resumen y un enlace seguro. El productor consultará la información recibida, se pondrá en contacto con el cliente y continuará el proceso de venta por fuera de la plataforma.
+1. **Ciclo de solicitud:** presenta los productos aseguradores, permite completar formularios particulares, conservar borradores y enviar solicitudes formales. MAPS asigna manualmente un productor y la solicitud se deriva de forma segura y trazable para que el proceso comercial continúe fuera de la plataforma.
+2. **Ciclo del asegurado:** permite que MAPS registre o asocie clientes con los seguros o servicios que ya tienen contratados y que cada asegurado consulte la información básica disponible de sus pólizas.
 
-La responsabilidad funcional del MVP termina cuando la solicitud fue entregada correctamente al productor. La negociación, la validación aseguradora, la solicitud posterior de documentación, el cierre comercial, el cobro, la emisión y la entrega de la póliza quedan a cargo del productor y de los sistemas externos correspondientes.
+En el ciclo de solicitud, la responsabilidad funcional del MVP termina cuando la solicitud fue entregada correctamente al productor. La negociación, la validación aseguradora, la solicitud posterior de documentación, el cierre comercial, el cobro y la emisión quedan a cargo del productor y de los sistemas externos correspondientes.
+
+El MVP también incluye la consulta de los seguros o servicios contratados y de los datos básicos disponibles de las pólizas. La visualización o descarga del PDF no queda comprometida en esta etapa, porque depende de que Federación Patronal o la fuente correspondiente permita obtenerlo.
 
 ### Definición breve del producto
 
-> Plataforma para publicar productos aseguradores, construir formularios particulares para cada seguro, recibir solicitudes con datos y fotografías, conservar borradores recuperables y derivar cada solicitud al productor asignado mediante WhatsApp, de forma segura y trazable.
+> Portal para publicar productos aseguradores, recibir y derivar solicitudes de forma segura y trazable, y permitir que cada asegurado consulte los seguros o servicios que tiene contratados y la información básica disponible de sus pólizas.
 
 ### Principios fundacionales
 
-- El sistema gestiona solicitudes, no ventas ni contrataciones.
+- El portal diferencia el ciclo de solicitud del ciclo de consulta de seguros o servicios contratados.
+- El sistema gestiona solicitudes, pero no realiza ventas, contrataciones, cobros ni emisiones automáticas.
 - Cada producto puede requerir un formulario diferente.
-- El cliente debe tener una cuenta para iniciar y recuperar una solicitud.
+- El cliente debe tener una cuenta para enviar una solicitud y recuperar sus borradores; el momento exacto de autenticación se definirá en Fase 2.
 - Toda solicitud puede permanecer como borrador hasta que el cliente decida enviarla.
 - La asignación del productor es manual y responsabilidad de un administrador.
 - La derivación al productor se realiza automáticamente por la API oficial de WhatsApp.
 - WhatsApp recibe un resumen mínimo y un enlace seguro; la información completa y las fotografías no deben exponerse directamente en el mensaje.
 - Después de la derivación, el contacto y el cierre de la venta se realizan fuera del sistema.
+- El asegurado puede consultar, como mínimo, qué seguros o servicios tiene contratados y los datos básicos disponibles de sus pólizas.
+- La visualización o descarga del PDF de la póliza queda condicionada a la disponibilidad de una fuente técnica válida.
 - Los precios de los paquetes son fijos y pueden mostrarse en el catálogo, aunque no representan un importe que se cobre desde la plataforma.
 - Las decisiones sobre formularios, datos personales, archivos y consentimientos deben quedar versionadas y ser auditables.
+
+### Frontera de responsabilidad entre fases
+
+| Fase | Responsabilidad principal |
+| --- | --- |
+| **Fase 0** | Visión completa del producto, problema, actores generales, mapa de capacidades, principios confirmados, alcance del MVP frente a la evolución, restricciones, dependencias, riesgos y gobierno. |
+| **Fase 1** | Discovery detallado de procesos, datos, productos, reglas, requerimientos, responsabilidades operativas y modelo de dominio inicial. |
+| **Fase 2** | Journeys, arquitectura de información, navegación, wireframes, wireflows y decisiones de UX, incluido el momento exacto de autenticación. |
+| **Fase 3** | Arquitectura, autenticación y autorización detalladas, persistencia, integraciones, adaptadores, almacenamiento, estados técnicos y contratos de API. |
+
+Las decisiones funcionales ya confirmadas se conservan en Fase 0 como principios y capacidades. Su especificación detallada y su mecanismo de implementación deberán cerrarse en la fase correspondiente.
 
 ## 0.2 Participantes y responsabilidades
 
@@ -61,26 +78,54 @@ En organizaciones pequeñas, una persona puede desempeñar más de un rol, pero 
 
 Los roles de Kondor pueden rotar o superponerse. Cada tarea debe conservar un responsable y un criterio de aceptación.
 
-## 0.3 Visión y definición de éxito
+## 0.3 Visión objetivo y definición de éxito
 
-La primera versión será exitosa cuando MAPS pueda completar el siguiente ciclo sin depender de modificaciones de código para cada nuevo formulario:
+### Visión objetivo del producto completo
+
+El producto completo busca concentrar en un mismo portal la captación de solicitudes y la consulta de la relación vigente del asegurado con MAPS, sin convertir la plataforma en un sistema de cobro o emisión.
+
+Los dos ciclos de negocio son:
+
+`Solicitud → MAPS → productor → gestión comercial externa`
+
+`Administrador → cliente/servicio o póliza → Portal del Asegurado → consulta`
+
+La visión objetivo podrá incorporar capacidades posteriores al MVP, pero cada una requerirá priorización y análisis de impacto. La definición del producto completo no implica que todas sus capacidades deban implementarse en la primera entrega.
+
+### Delimitación del MVP
+
+| Capacidad | Decisión para el MVP |
+| --- | --- |
+| Catálogo público de seguros | Incluida. |
+| Solicitudes, archivos y borradores recuperables | Incluidos. |
+| Cuenta mediante email y contraseña | Obligatoria para enviar y recuperar; el momento exacto de autenticación se define en Fase 2. |
+| Asignación manual y derivación al productor | Incluidas. |
+| Consulta de seguros o servicios contratados | Incluida con la información básica disponible. |
+| Gestión administrativa de clientes y asociación de pólizas existentes | Incluida en el nivel necesario para alimentar la consulta del asegurado. |
+| Visualización o descarga del PDF de la póliza | No comprometida hasta confirmar disponibilidad técnica. |
+| Cobro, contratación y emisión automática | Excluidos. |
+
+La primera versión será exitosa cuando MAPS pueda completar el siguiente ciclo de solicitud:
 
 1. Un administrador publica un producto con precio fijo, coberturas, exclusiones y requisitos.
-2. El administrador crea y publica el formulario específico del producto mediante el constructor dinámico.
-3. Un cliente crea una cuenta con email y contraseña e inicia una solicitud.
-4. El sistema guarda automáticamente el progreso como borrador.
-5. El cliente vuelve a ingresar, recupera el borrador, completa la información y envía la solicitud.
+2. MAPS configura y publica el formulario particular del producto.
+3. Un cliente inicia una solicitud y dispone de una cuenta antes del envío definitivo, en el punto de autenticación que se defina durante Fase 2.
+4. El sistema conserva el progreso como borrador asociado de forma segura a su identidad.
+5. El cliente recupera el borrador, completa la información y envía la solicitud.
 6. MAPS recibe la solicitud en una bandeja de administración.
 7. Un administrador selecciona manualmente un productor.
 8. El sistema envía automáticamente por WhatsApp un resumen y un enlace seguro.
-9. La plataforma registra si la derivación fue aceptada o falló y permite reintentar cuando corresponda.
+9. La plataforma registra el resultado conocido de la derivación.
 10. El productor accede a una vista segura de la solicitud y continúa el contacto por fuera del portal.
 
-El éxito del MVP no depende de que la venta se cierre, ya que ese resultado ocurre fuera del sistema. Los indicadores principales serán la finalización de solicitudes, el tiempo hasta la asignación y la entrega correcta al productor.
+En paralelo, MAPS debe poder registrar o asociar un cliente con sus seguros o servicios contratados, y el asegurado debe poder consultar la información básica disponible de sus pólizas.
+
+El éxito del MVP no depende de que una nueva venta se cierre, ya que ese resultado ocurre fuera del sistema. Los indicadores principales serán la finalización de solicitudes, el tiempo hasta la asignación, la entrega correcta al productor y la disponibilidad coherente de la información contractual mostrada al asegurado.
 
 ## 0.4 Problemas que el proyecto busca resolver
 
 - Los formularios genéricos no contemplan los datos particulares de cada seguro.
+- El asegurado no dispone de un espacio unificado para consultar qué seguros o servicios tiene contratados y los datos básicos de sus pólizas.
 - La información puede quedar dispersa entre planillas, correos, fotografías y conversaciones de WhatsApp.
 - El cliente puede perder su progreso si no completa el trámite en una sola sesión.
 - MAPS necesita conocer qué solicitudes están nuevas y cuáles esperan asignación.
@@ -90,6 +135,8 @@ El éxito del MVP no depende de que la venta se cierre, ya que ese resultado ocu
 - Debe existir trazabilidad sobre qué versión del formulario respondió el cliente, cuándo envió la solicitud, quién asignó al productor y si la derivación fue realizada.
 
 ## 0.5 Alcance funcional del MVP
+
+Esta sección identifica capacidades funcionales del MVP. Los procesos y datos detallados se relevarán en Fase 1, las decisiones de interacción y navegación se resolverán en Fase 2 y los mecanismos técnicos se definirán en Fase 3.
 
 ### A. Catálogo público de seguros
 
@@ -116,7 +163,7 @@ El precio mostrado es informativo y no habilita el pago dentro del sistema.
 - Acceso a borradores propios.
 - Acceso a solicitudes ya enviadas y a su estado limitado dentro del portal.
 
-El cliente debe autenticarse antes de comenzar el formulario. Los datos y borradores siempre deben quedar asociados a su cuenta.
+La cuenta es obligatoria para enviar una solicitud y recuperar borradores. Los datos y borradores deberán quedar asociados de forma segura a una identidad. El momento exacto en que se solicitará el registro o la autenticación se definirá en Fase 2, comparando la fricción de acceso con la trazabilidad y la recuperación del progreso.
 
 ### C. Constructor dinámico completo de formularios
 
@@ -227,14 +274,26 @@ Como controles mínimos, el enlace deberá:
 
 La modalidad exacta de validación adicional se definirá durante el diseño técnico, considerando el equilibrio entre seguridad y facilidad de acceso del productor.
 
-## 0.6 Flujo funcional aprobado
+### I. Portal del Asegurado y gestión de información contractual
+
+- Consulta de los seguros o servicios que el cliente tiene contratados.
+- Visualización de los datos básicos disponibles, como producto o ramo, número de póliza, estado y vigencia, cuando la fuente los proporcione.
+- Gestión administrativa mínima para registrar clientes o asegurados y asociarles servicios contratados o pólizas existentes.
+- Separación entre la identidad utilizada para autenticarse y el registro comercial del cliente o asegurado.
+- Acceso restringido de cada cliente exclusivamente a su propia información.
+
+En Fase 1 deberán relevarse la fuente de los datos, los campos disponibles, su calidad, su frecuencia de actualización y el procedimiento administrativo de alta o asociación. La visualización y descarga del PDF sólo se incorporarán si existe una fuente técnica válida; su ausencia no impedirá mostrar la información básica disponible.
+
+Esta capacidad no permite emitir, modificar, renovar ni cobrar pólizas desde el portal.
+
+## 0.6 Flujos funcionales de referencia
 
 ```text
+Ciclo de solicitud:
 Catálogo de seguros
 → selección del producto
-→ registro o inicio de sesión
-→ inicio del formulario particular
-→ guardado automático como borrador
+→ inicio del formulario e identificación/autenticación en el punto definido durante Fase 2
+→ guardado como borrador asociado de forma segura
 → recuperación y continuación
 → validación y envío de la solicitud
 → confirmación al cliente
@@ -243,6 +302,13 @@ Catálogo de seguros
 → envío automático por WhatsApp
 → acceso del productor mediante enlace seguro
 → contacto y cierre comercial fuera del sistema
+
+Ciclo del asegurado:
+Administrador
+→ registro o asociación de cliente con servicio contratado o póliza
+→ Portal del Asegurado
+→ consulta de información básica disponible
+→ visualización o descarga del PDF sólo si la fuente técnica lo permite
 ```
 
 ### Estados mínimos de una solicitud
@@ -261,10 +327,13 @@ El MVP no utilizará estados como aprobada, rechazada, vendida, pagada, emitida 
 
 Sin fijar todavía una arquitectura definitiva, el dominio deberá contemplar al menos:
 
-- Usuario cliente.
+- Usuario de autenticación.
+- Cliente o asegurado.
+- Relación entre usuario y cliente o asegurado.
 - Administrador.
 - Productor.
 - Producto asegurador.
+- Servicio contratado o póliza y sus datos básicos disponibles.
 - Formulario.
 - Versión de formulario.
 - Sección.
@@ -292,8 +361,8 @@ La solicitud debe conservar una referencia inmutable a la versión del formulari
 - Conciliación.
 - Confirmación automática de contratación.
 - Emisión automática de pólizas.
-- Carga o consulta de pólizas.
-- Portal de pólizas del asegurado.
+- Modificación, renovación o cobro de pólizas desde el portal.
+- Visualización o descarga del PDF de la póliza mientras no exista una fuente técnica confirmada.
 - Seguimiento del proceso comercial después de la derivación.
 - Registro del resultado final de la venta.
 - CRM de productores.
@@ -317,7 +386,9 @@ Estas capacidades sólo podrán incorporarse mediante una nueva definición de a
 - La integración de WhatsApp depende de una cuenta oficial, un número habilitado, credenciales válidas, plantillas y condiciones del proveedor.
 - Las fotografías y documentos tendrán una permanencia corta; el plazo exacto debe ser definido por MAPS y validado legalmente.
 - Los textos legales, consentimientos y política de privacidad todavía requieren definición y aprobación.
-- El uso obligatorio de una cuenta mejora la recuperación de borradores, pero agrega fricción al inicio del proceso.
+- La cuenta obligatoria mejora la trazabilidad y la recuperación de borradores, pero el momento de solicitarla puede generar fricción y deberá validarse en Fase 2.
+- La consulta contractual depende de relevar la fuente, calidad, disponibilidad y actualización de los datos de clientes, servicios y pólizas.
+- La disponibilidad del PDF de la póliza depende de las capacidades de Federación Patronal o de la fuente correspondiente.
 - La asignación manual puede convertirse en un cuello de botella si no se establece un responsable y un tiempo de atención.
 - El constructor dinámico es el módulo de mayor complejidad y debe desarrollarse con criterios de aceptación cerrados.
 
@@ -393,7 +464,9 @@ El MVP no podrá medir ventas cerradas ni conversión final a póliza, porque el
 | --- | --- | --- |
 | Alcance ilimitado del constructor | Demoras y crecimiento no controlado | Cerrar tipos de campo, reglas y criterios antes del desarrollo |
 | Datos o formularios incompletos por producto | Reimplementaciones y solicitudes inválidas | Exigir ficha funcional aprobada antes de publicar |
-| Fricción por registro obligatorio | Abandono antes de iniciar | Alta breve, verificación clara y continuidad inmediata |
+| Fricción por registro obligatorio | Abandono durante el proceso | Prototipar y validar en Fase 2 el momento de autenticación |
+| Datos contractuales incompletos o desactualizados | Información incorrecta para el asegurado | Relevar fuente, calidad, responsables y frecuencia de actualización en Fase 1 |
+| PDF de póliza no disponible | El cliente no puede visualizarlo ni descargarlo | Mantener la consulta de datos básicos y no comprometer el PDF hasta validar la fuente |
 | Exposición de datos mediante WhatsApp o enlaces | Incidente de privacidad | Resumen mínimo, enlace temporal, revocación y auditoría |
 | Fallas o restricciones de la API de WhatsApp | Solicitudes no derivadas | Estado de error, reintentos y bandeja administrativa |
 | Productor con número incorrecto o inactivo | Derivación al destinatario equivocado | Validación administrativa y posibilidad de desactivar productores |
@@ -440,6 +513,9 @@ Etiquetas funcionales sugeridas:
 - ADMIN.
 - PRODUCTORES.
 - ASIGNACIONES.
+- CLIENTES.
+- PÓLIZAS.
+- MIS PÓLIZAS.
 - WHATSAPP.
 - NOTIFICACIONES.
 - AUDITORÍA.
@@ -447,7 +523,7 @@ Etiquetas funcionales sugeridas:
 - INFRA.
 - UX/UI.
 
-Las etiquetas CARRITO, CHECKOUT, PAGOS y MIS PÓLIZAS dejan de pertenecer al MVP.
+Las etiquetas CARRITO, CHECKOUT y PAGOS dejan de pertenecer al MVP. MIS PÓLIZAS identifica la consulta básica de seguros o servicios contratados incluida en la primera versión.
 
 ### Reglas de decisión
 
@@ -493,6 +569,10 @@ Para un formulario publicado, “terminado” implica además que fue previsuali
 - Logo, colores, tipografías, imágenes y tono de comunicación.
 - Dominio, DNS y accesos de infraestructura necesarios.
 - Dirección de correo desde la cual se enviarán notificaciones a clientes.
+- Fuente disponible de clientes, seguros contratados y pólizas existentes.
+- Campos contractuales disponibles, calidad conocida, frecuencia de actualización y responsable de mantenimiento.
+- Procedimiento para dar de alta o asociar clientes con servicios o pólizas existentes.
+- Confirmación técnica sobre la disponibilidad del PDF de las pólizas y la forma autorizada de obtenerlo.
 
 ## 0.17 Decisiones todavía pendientes
 
@@ -513,15 +593,22 @@ Estas preguntas no invalidan la baseline funcional, pero deben resolverse antes 
 13. ¿Cuándo se elimina o anonimiza una cuenta de cliente?
 14. ¿Cómo se tratarán solicitudes duplicadas del mismo cliente para el mismo producto?
 15. ¿Se permitirá que un cliente cancele una solicitud enviada antes de su derivación?
+16. ¿En qué punto del recorrido se solicitará el registro o la autenticación?
+17. ¿Cuál es la fuente de los datos de clientes, servicios contratados y pólizas, y con qué frecuencia se actualiza?
+18. ¿Federación Patronal u otra fuente permite obtener el PDF de las pólizas para su visualización o descarga?
 
 ## 0.18 Resultado esperado de la Fase 0
 
 La Fase 0 se considerará aprobada cuando Kondor y MAPS hayan aceptado formalmente:
 
-- la redefinición de e-commerce a Portal de Solicitudes de Seguros;
-- el límite del sistema en la derivación al productor;
-- el flujo funcional del cliente y del administrador;
-- el registro obligatorio y los borradores recuperables;
+- la redefinición de e-commerce a Portal de Seguros MAPS;
+- la visión objetivo del producto completo y la delimitación del MVP frente a su evolución;
+- la frontera de responsabilidades entre las Fases 0, 1, 2 y 3;
+- el límite del ciclo de solicitud en la derivación al productor;
+- la coexistencia del ciclo de solicitud con la consulta de seguros o servicios contratados;
+- los flujos funcionales de referencia del cliente, el administrador y el asegurado;
+- la cuenta obligatoria para enviar y recuperar solicitudes, dejando su momento exacto para Fase 2;
+- la consulta básica de servicios contratados y pólizas, sin comprometer todavía el PDF;
 - la asignación manual del productor;
 - el uso de la API oficial de WhatsApp;
 - el contenido mínimo del mensaje y el acceso mediante enlace seguro;
@@ -532,4 +619,4 @@ La Fase 0 se considerará aprobada cuando Kondor y MAPS hayan aceptado formalmen
 - la lista de decisiones pendientes;
 - los insumos necesarios para iniciar análisis detallado, diseño y backlog.
 
-La aprobación de esta baseline habilitará la reescritura del modelo de dominio, la arquitectura, la EAP, las épicas, las historias de usuario y los TDD. El backlog anterior no debe utilizarse como fuente vigente para módulos de pago, checkout, contratación o pólizas.
+La aprobación de esta baseline habilitará el discovery detallado, la definición de journeys, la arquitectura, la EAP, las épicas, las historias de usuario y los TDD. El backlog anterior no debe utilizarse como fuente vigente para módulos de pago, checkout, contratación automática o emisión.
