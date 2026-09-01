@@ -7,17 +7,18 @@ Documento fundacional de Fase 0 para definir la visión objetivo del producto, e
 | Cliente | MAPS - Organización de seguros |
 | Equipo de desarrollo | Kondor |
 | Proyecto | Portal de Seguros MAPS |
-| Versión | Fase 0 reformulada - Baseline funcional v4 |
+| Versión | Fase 0 reformulada - Baseline funcional v5 |
 | Fecha | 1 de septiembre de 2026 |
 
 ## 0.1 Redefinición del producto
 
 El proyecto deja de concebirse como un e-commerce transaccional de seguros. La plataforma no realizará ventas directas, no cobrará primas, no confirmará contrataciones y no emitirá pólizas automáticamente.
 
-La visión objetivo es un **Portal de Seguros MAPS** con dos ciclos funcionales complementarios:
+La visión objetivo es un **Portal de Seguros MAPS** con tres ciclos funcionales complementarios:
 
 1. **Ciclo de solicitud:** presenta los productos aseguradores, permite completar formularios particulares, conservar borradores y enviar solicitudes formales. MAPS asigna manualmente un productor y la solicitud se deriva de forma segura y trazable para que el proceso comercial continúe fuera de la plataforma.
 2. **Ciclo del asegurado:** permite que MAPS registre o asocie clientes con los seguros o servicios que ya tienen contratados y que cada asegurado consulte la información básica disponible de sus pólizas.
+3. **Ciclo de potenciales clientes:** permite identificar oportunidades comerciales todavía no convertidas en solicitudes formales y conservar la trazabilidad cuando una oportunidad se recupera y se convierte en una solicitud.
 
 En el ciclo de solicitud, la responsabilidad funcional del MVP termina cuando la solicitud fue entregada correctamente al productor. La negociación, la validación aseguradora, la solicitud posterior de documentación, el cierre comercial, el cobro y la emisión quedan a cargo del productor y de los sistemas externos correspondientes.
 
@@ -25,7 +26,7 @@ El MVP también incluye la consulta de los seguros o servicios contratados y de 
 
 ### Definición breve del producto
 
-> Portal para publicar productos aseguradores, recibir y derivar solicitudes de forma segura y trazable, y permitir que cada asegurado consulte los seguros o servicios que tiene contratados y la información básica disponible de sus pólizas.
+> Portal para publicar productos aseguradores, recibir y derivar solicitudes de forma segura y trazable, recuperar oportunidades comerciales no convertidas y permitir que cada asegurado consulte los seguros o servicios que tiene contratados y la información básica disponible de sus pólizas.
 
 ### Principios fundacionales
 
@@ -34,6 +35,9 @@ El MVP también incluye la consulta de los seguros o servicios contratados y de 
 - Cada producto puede requerir un formulario diferente y MAPS debe poder configurarlo sin modificar código, preservando la versión respondida por cada cliente.
 - El cliente debe tener una cuenta para enviar una solicitud y recuperar sus borradores; el momento exacto de autenticación se definirá en Fase 2.
 - Toda solicitud puede permanecer como borrador hasta que el cliente decida enviarla.
+- Una solicitud formal y un potencial cliente representan conceptos distintos y no deben duplicarse automáticamente.
+- Un borrador abandonado sólo podrá originar un potencial cliente cuando existan datos de contacto suficientes, consentimiento válido y reglas previamente aprobadas.
+- Cuando un potencial cliente se convierta en solicitud formal, deberá conservarse la trazabilidad `Lead → InsuranceRequest` y la oportunidad dejará de permanecer activa.
 - La asignación del productor es manual y responsabilidad de un administrador.
 - La derivación al productor debe ser automática, segura y trazable.
 - WhatsApp será el canal inicial y preferente del MVP, sin impedir que el producto incorpore email u otros canales en su evolución.
@@ -64,7 +68,7 @@ MAPS es el propietario funcional del producto y de la información comercial pub
 Roles mínimos:
 
 - **Responsable comercial:** define los productos, precios, coberturas, exclusiones, requisitos y contenido comercial.
-- **Administrador del portal:** administra productos y formularios, revisa las solicitudes recibidas, selecciona al productor y ejecuta o supervisa la asignación.
+- **Administrador del portal:** administra productos y formularios, revisa las solicitudes recibidas, selecciona al productor y ejecuta o supervisa la asignación. La gestión de solicitudes formales deberá permanecer separada de la gestión de potenciales clientes en la Intranet.
 - **Productor de seguros:** recibe la derivación por el canal habilitado —WhatsApp como canal inicial del MVP—, consulta la solicitud mediante el enlace seguro, contacta al cliente y gestiona el proceso comercial por fuera de la plataforma.
 - **Responsable de aprobación:** valida las decisiones finales de alcance, contenido, operación y cumplimiento legal.
 
@@ -85,11 +89,13 @@ Los roles de Kondor pueden rotar o superponerse. Cada tarea debe conservar un re
 
 El producto completo busca concentrar en un mismo portal la captación de solicitudes y la consulta de la relación vigente del asegurado con MAPS, sin convertir la plataforma en un sistema de cobro o emisión.
 
-Los dos ciclos de negocio son:
+Los tres ciclos de negocio son:
 
 `Solicitud → MAPS → productor → gestión comercial externa`
 
 `Administrador → cliente/servicio o póliza → Portal del Asegurado → consulta`
+
+`Interés no convertido → Lead/Potencial cliente → recuperación → InsuranceRequest`
 
 La visión objetivo podrá incorporar capacidades posteriores al MVP, pero cada una requerirá priorización y análisis de impacto. La definición del producto completo no implica que todas sus capacidades deban implementarse en la primera entrega.
 
@@ -103,6 +109,7 @@ La visión objetivo podrá incorporar capacidades posteriores al MVP, pero cada 
 | Asignación manual y derivación al productor | Incluidas; WhatsApp será el canal inicial del MVP y los canales adicionales quedarán como evolución. |
 | Consulta de seguros o servicios contratados | Incluida con la información básica disponible. |
 | Gestión administrativa de clientes y asociación de pólizas existentes | Incluida en el nivel necesario para alimentar la consulta del asegurado. |
+| Integración con Potenciales clientes de la Intranet | Incluida con alcance mínimo, consentimiento, prevención de duplicados y trazabilidad de conversión. |
 | Visualización o descarga del PDF de la póliza | No comprometida hasta confirmar disponibilidad técnica. |
 | Cobro, contratación y emisión automática | Excluidos. |
 
@@ -121,6 +128,8 @@ La primera versión será exitosa cuando MAPS pueda completar el siguiente ciclo
 
 En paralelo, MAPS debe poder registrar o asociar un cliente con sus seguros o servicios contratados, y el asegurado debe poder consultar la información básica disponible de sus pólizas.
 
+El MVP también deberá integrar las oportunidades elegibles con Potenciales clientes de la Intranet sin duplicar las solicitudes formales y conservando la trazabilidad cuando un lead se convierta en una solicitud.
+
 El éxito del MVP no depende de que una nueva venta se cierre, ya que ese resultado ocurre fuera del sistema. Los indicadores principales serán la finalización de solicitudes, el tiempo hasta la asignación, la entrega correcta al productor y la disponibilidad coherente de la información contractual mostrada al asegurado.
 
 ## 0.4 Problemas que el proyecto busca resolver
@@ -129,6 +138,7 @@ El éxito del MVP no depende de que una nueva venta se cierre, ya que ese result
 - El asegurado no dispone de un espacio unificado para consultar qué seguros o servicios tiene contratados y los datos básicos de sus pólizas.
 - La información puede quedar dispersa entre planillas, correos, fotografías y distintos canales de comunicación.
 - El cliente puede perder su progreso si no completa el trámite en una sola sesión.
+- MAPS puede perder oportunidades comerciales cuando existe interés y datos de contacto, pero el usuario no llega a enviar una solicitud formal.
 - MAPS necesita conocer qué solicitudes están nuevas y cuáles esperan asignación.
 - La distribución manual de información puede generar demoras, omisiones o envíos al productor equivocado.
 - El productor necesita recibir la información suficiente para iniciar el contacto sin exponer datos sensibles en la notificación.
@@ -265,6 +275,20 @@ En Fase 1 deberán relevarse la fuente de los datos, los campos disponibles, su 
 
 Esta capacidad no permite emitir, modificar, renovar ni cobrar pólizas desde el portal.
 
+### J. Integración con Potenciales clientes
+
+El MVP deberá convivir con la sección **Potenciales clientes** de la Intranet, diferenciando expresamente:
+
+- **Solicitud formal (`InsuranceRequest`):** formulario que el cliente completó y envió.
+- **Potencial cliente (`Lead`):** oportunidad comercial todavía no convertida en una solicitud formal.
+- Una solicitud enviada no se duplicará automáticamente como potencial cliente.
+- Un borrador abandonado sólo podrá originar un lead si contiene datos de contacto suficientes y existe consentimiento válido para el tratamiento y contacto comercial.
+- Cuando un lead se recupere y el usuario envíe la solicitud, se conservará la relación `Lead → InsuranceRequest` y el lead dejará de estar activo como oportunidad.
+- La gestión y asignación de solicitudes formales permanecerá separada de la gestión y asignación de potenciales clientes.
+- El cotizador no forma parte de esta integración ni del MVP.
+
+En Fase 1 se definirán el momento de abandono, los datos mínimos, el consentimiento, las reglas de duplicación, la información transferida y los responsables operativos. En Fase 2 se diseñará el recorrido de recuperación. En Fase 3 se definirán relaciones, eventos, APIs y el mecanismo de integración con la Intranet.
+
 ## 0.6 Flujos funcionales de referencia
 
 ```text
@@ -288,6 +312,15 @@ Administrador
 → Portal del Asegurado
 → consulta de información básica disponible
 → visualización o descarga del PDF sólo si la fuente técnica lo permite
+
+Ciclo de potenciales clientes:
+Interés no convertido o borrador elegible
+→ validación de datos mínimos y consentimiento
+→ Lead/Potencial cliente en la Intranet
+→ recuperación comercial
+→ envío de solicitud formal
+→ trazabilidad Lead → InsuranceRequest
+→ cierre del lead como oportunidad activa
 ```
 
 ### Estados mínimos de una solicitud
@@ -313,6 +346,8 @@ Sin fijar todavía una arquitectura definitiva, el dominio deberá contemplar al
 - Productor.
 - Producto asegurador.
 - Servicio contratado o póliza y sus datos básicos disponibles.
+- Potencial cliente o `Lead`.
+- Relación de conversión entre `Lead` e `InsuranceRequest`.
 - Formulario.
 - Versión de formulario.
 - Sección.
@@ -350,7 +385,7 @@ La solicitud debe conservar una referencia inmutable a la versión del formulari
 - Conversaciones de WhatsApp dentro del portal.
 - Asignación automática de productores.
 - Integración profunda con Federación Patronal o SELF.
-- Cotización variable o simulación automática.
+- Cotizador, cotización variable o simulación automática.
 - Recomendaciones mediante inteligencia artificial.
 - Dashboards analíticos avanzados.
 - Aplicación móvil nativa.
@@ -368,6 +403,7 @@ Estas capacidades sólo podrán incorporarse mediante una nueva definición de a
 - Los textos legales, consentimientos y política de privacidad todavía requieren definición y aprobación.
 - La cuenta obligatoria mejora la trazabilidad y la recuperación de borradores, pero el momento de solicitarla puede generar fricción y deberá validarse en Fase 2.
 - La consulta contractual depende de relevar la fuente, calidad, disponibilidad y actualización de los datos de clientes, servicios y pólizas.
+- La generación o transferencia de potenciales clientes depende de consentimiento válido, reglas de abandono, prevención de duplicados y coordinación con la Intranet.
 - La disponibilidad del PDF de la póliza depende de las capacidades de Federación Patronal o de la fuente correspondiente.
 - La asignación manual puede convertirse en un cuello de botella si no se establece un responsable y un tiempo de atención.
 - El grado de autonomía de los formularios configurables puede modificar significativamente el costo y deberá cerrarse progresivamente en las Fases 1, 2 y 3.
@@ -387,6 +423,7 @@ Estas capacidades sólo podrán incorporarse mediante una nueva definición de a
 - Expiración y revocación de enlaces de productores.
 - Registro de altas, publicaciones de formularios, envíos, asignaciones, accesos y reintentos.
 - Consentimiento explícito para tratar datos y derivarlos al productor seleccionado.
+- Consentimiento específico y verificable antes de utilizar datos de un borrador para contacto comercial o generación de un potencial cliente.
 - Registro de versión, fecha, hora y usuario asociado a cada consentimiento.
 - Política de retención y eliminación de borradores, solicitudes y archivos.
 - Backups y procedimiento de recuperación.
@@ -427,6 +464,8 @@ Aunque no se implemente un dashboard avanzado, se registrarán eventos mínimos 
 - Derivación iniciada.
 - Derivación exitosa.
 - Error de derivación.
+- Potencial cliente creado.
+- Potencial cliente convertido en solicitud.
 
 Indicadores iniciales:
 
@@ -434,6 +473,7 @@ Indicadores iniciales:
 - Tiempo medio entre envío y asignación.
 - Porcentaje de derivaciones exitosas.
 - Productos con más solicitudes.
+- Porcentaje de potenciales clientes que se convierten en solicitudes formales.
 - Campos o pasos con mayor abandono, siempre que la instrumentación respete la privacidad aprobada.
 
 El MVP no podrá medir ventas cerradas ni conversión final a póliza, porque el resultado comercial no vuelve al sistema.
@@ -446,6 +486,7 @@ El MVP no podrá medir ventas cerradas ni conversión final a póliza, porque el
 | Datos o formularios incompletos por producto | Reimplementaciones y solicitudes inválidas | Exigir ficha funcional aprobada antes de publicar |
 | Fricción por registro obligatorio | Abandono durante el proceso | Prototipar y validar en Fase 2 el momento de autenticación |
 | Datos contractuales incompletos o desactualizados | Información incorrecta para el asegurado | Relevar fuente, calidad, responsables y frecuencia de actualización en Fase 1 |
+| Leads sin consentimiento o duplicados | Riesgo legal, mala experiencia y datos comerciales inconsistentes | Exigir consentimiento, reglas de abandono, deduplicación y trazabilidad antes de activar la integración |
 | PDF de póliza no disponible | El cliente no puede visualizarlo ni descargarlo | Mantener la consulta de datos básicos y no comprometer el PDF hasta validar la fuente |
 | Exposición de datos mediante la notificación o el enlace | Incidente de privacidad | Resumen mínimo, enlace temporal, revocación y auditoría |
 | Fallas o restricciones del canal inicial de derivación | Solicitudes no derivadas | Trazabilidad, procedimiento alternativo y definición de reintentos/adaptadores en Fase 3 |
@@ -496,6 +537,8 @@ Etiquetas funcionales sugeridas:
 - CLIENTES.
 - PÓLIZAS.
 - MIS PÓLIZAS.
+- LEADS.
+- POTENCIALES CLIENTES.
 - DERIVACIONES.
 - WHATSAPP.
 - NOTIFICACIONES.
@@ -552,6 +595,9 @@ Los criterios de terminado específicos para formularios se definirán después 
 - Fuente disponible de clientes, seguros contratados y pólizas existentes.
 - Campos contractuales disponibles, calidad conocida, frecuencia de actualización y responsable de mantenimiento.
 - Procedimiento para dar de alta o asociar clientes con servicios o pólizas existentes.
+- Reglas actuales de Potenciales clientes en la Intranet, responsables, datos requeridos y forma de asignación.
+- Definición legal y operativa del consentimiento para recuperar oportunidades comerciales.
+- Acceso o contrato de integración necesario con la sección Potenciales clientes.
 - Confirmación técnica sobre la disponibilidad del PDF de las pólizas y la forma autorizada de obtenerlo.
 
 ## 0.17 Decisiones todavía pendientes
@@ -577,6 +623,11 @@ Estas preguntas no invalidan la baseline funcional, pero deben resolverse antes 
 17. ¿Cuál es la fuente de los datos de clientes, servicios contratados y pólizas, y con qué frecuencia se actualiza?
 18. ¿Federación Patronal u otra fuente permite obtener el PDF de las pólizas para su visualización o descarga?
 19. ¿La selección del canal de derivación debe formar parte del MVP o quedar como evolución posterior?
+20. ¿Cuándo se considera que un borrador fue abandonado?
+21. ¿Qué datos mínimos y qué consentimiento permiten crear un potencial cliente?
+22. ¿Cómo se detectarán y evitarán leads duplicados?
+23. ¿Qué datos se transferirán a Potenciales clientes y quién será responsable de su gestión?
+24. ¿Cómo se cerrará o actualizará el lead cuando se convierta en una solicitud formal?
 
 ## 0.18 Resultado esperado de la Fase 0
 
@@ -587,7 +638,8 @@ La Fase 0 se considerará aprobada cuando Kondor y MAPS hayan aceptado formalmen
 - la frontera de responsabilidades entre las Fases 0, 1, 2 y 3;
 - el límite del ciclo de solicitud en la derivación al productor;
 - la coexistencia del ciclo de solicitud con la consulta de seguros o servicios contratados;
-- los flujos funcionales de referencia del cliente, el administrador y el asegurado;
+- la integración controlada con Potenciales clientes, diferenciando `Lead` de `InsuranceRequest` y conservando la trazabilidad de conversión;
+- los flujos funcionales de referencia del cliente, el administrador, el asegurado y la recuperación de oportunidades;
 - la cuenta obligatoria para enviar y recuperar solicitudes, dejando su momento exacto para Fase 2;
 - la consulta básica de servicios contratados y pólizas, sin comprometer todavía el PDF;
 - la asignación manual del productor;
