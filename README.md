@@ -1,10 +1,10 @@
 # MAPS - Portal de Seguros
 
-Portal para **MAPS Organización de Seguros** con dos capacidades principales: recibir y derivar solicitudes de seguros, y permitir que el asegurado consulte los seguros o servicios que tiene contratados y la información básica disponible de sus pólizas.
+Portal para **MAPS Organización de Seguros** con tres capacidades principales: recibir y derivar solicitudes de seguros, integrar oportunidades elegibles con Potenciales clientes de la Intranet y permitir que el asegurado consulte los seguros o servicios que tiene contratados y la información básica disponible de sus pólizas.
 
 Para las solicitudes, el cliente dispone de una cuenta mediante email y contraseña, puede conservar borradores y debe autenticarse antes del envío definitivo; el momento exacto del registro se definirá en Fase 2. Luego, un administrador asigna manualmente un productor y el sistema deriva la solicitud mediante WhatsApp como canal inicial del MVP, manteniendo la capacidad preparada para incorporar otros canales en su evolución. La gestión comercial continúa fuera de la plataforma.
 
-La plataforma no incluye carrito, checkout, pagos, contratación automática ni emisión de pólizas. La visualización o descarga del PDF de una póliza no queda comprometida hasta confirmar que Federación Patronal o la fuente correspondiente permita obtenerlo.
+La plataforma no incluye carrito, checkout, pagos, contratación automática, emisión de pólizas ni cotizador. La generación de potenciales clientes desde borradores requerirá datos mínimos, consentimiento y reglas de deduplicación. La visualización o descarga del PDF de una póliza no queda comprometida hasta confirmar que Federación Patronal o la fuente correspondiente permita obtenerlo.
 
 Baseline funcional completa: [`Fase_0__Kickoff__Gobierno_del_proyecto_.md`](./Fase_0__Kickoff__Gobierno_del_proyecto_.md).
 
