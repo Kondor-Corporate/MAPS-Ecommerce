@@ -1,32 +1,36 @@
-# MAPS E-commerce
+# MAPS - Portal de Seguros
 
-E-commerce de seguros enlatados para **MAPS Organización de Seguros**. Permite publicar productos con condiciones cerradas (precio, coberturas, exclusiones y requisitos ya definidos) para que un cliente pueda contratarlos y pagarlos directamente, sin cotización manual. Los procesos de contratación que se abandonan antes de pagar quedan registrados como potenciales clientes para que un productor los recupere comercialmente.
+Portal para **MAPS Organización de Seguros** con tres capacidades principales: recibir y derivar solicitudes de seguros, integrar oportunidades elegibles con Potenciales clientes de la Intranet y permitir que el asegurado consulte los seguros o servicios que tiene contratados y la información básica disponible de sus pólizas.
 
-Contexto funcional completo: [`Fase_0__Kickoff__Gobierno_del_proyecto_.md`](./Fase_0__Kickoff__Gobierno_del_proyecto_.md).
+Para las solicitudes, el cliente dispone de una cuenta mediante email y contraseña, puede conservar borradores y debe autenticarse antes del envío definitivo; el momento exacto del registro se definirá en Fase 2. Luego, un administrador asigna manualmente un productor y el sistema deriva la solicitud mediante WhatsApp como canal inicial del MVP, manteniendo la capacidad preparada para incorporar otros canales en su evolución. La gestión comercial continúa fuera de la plataforma.
+
+La plataforma no incluye carrito, checkout, pagos, contratación automática, emisión de pólizas ni cotizador. La generación de potenciales clientes desde borradores requerirá datos mínimos, consentimiento y reglas de deduplicación. La visualización o descarga del PDF de una póliza no queda comprometida hasta confirmar que Federación Patronal o la fuente correspondiente permita obtenerlo.
+
+Baseline funcional completa: [`Fase_0__Kickoff__Gobierno_del_proyecto_.md`](./Fase_0__Kickoff__Gobierno_del_proyecto_.md).
 
 ## Estado actual
 
-Este repositorio está en su **estructura inicial** (HU-000): las carpetas del monorepo están creadas, pero las apps (`apps/web`, `apps/api`) todavía no tienen código ni `package.json` propio. Los detalles de arquitectura, stack y modelo de datos se definen en `docs/estructura.md`.
+Este repositorio está en su **estructura inicial** (HU-000): las carpetas del monorepo están creadas, pero las apps (`apps/web`, `apps/api`) todavía no tienen código ni `package.json` propio. La Fase 0 redefine el producto como Portal de Seguros, separa la visión objetivo del MVP y reserva para las Fases 1–3 el discovery detallado, las decisiones de UX y la arquitectura. La documentación técnica y el backlog anteriores deberán realinearse antes de implementar módulos funcionales.
 
-## Arquitectura
+## Definiciones técnicas pendientes
 
-- **Monorepo** con `npm` workspaces (`apps/*`, `packages/*`).
-- **Frontend** (`apps/web`): React + Vite. Incluye la tienda pública y el panel administrador.
-- **Backend** (`apps/api`): Node.js + Express + TypeScript, exponiendo una API REST organizada por módulos (auth, products, checkout, payments, policies, leads, etc.).
-- **Base de datos**: PostgreSQL, modelada con Prisma ORM (`prisma/`).
-- **Paquetes compartidos** (`packages/`): tipos, validadores, configuración y componentes UI reutilizados entre frontend y backend.
-- **Autenticación** propia (email + contraseña) con JWT (access + refresh token).
-- **Pagos**: capa de integración desacoplada (`payment-gateway`), proveedor definitivo pendiente de definición por MAPS.
+La estructura actual del monorepo es una base inicial y no constituye por sí sola una arquitectura aprobada. Las decisiones se cerrarán de forma progresiva:
 
-Detalle completo de estructura, módulos, entidades de datos, rutas de API y decisiones técnicas: [`docs/estructura.md`](./docs/estructura.md).
+- **Fase 1:** procesos, requerimientos, datos disponibles, productos, reglas y modelo de dominio inicial.
+- **Fase 2:** journeys, navegación, wireframes, wireflows y momento exacto de autenticación.
+- **Fase 3:** arquitectura de frontend y backend, autenticación y autorización detalladas, persistencia, almacenamiento, formularios configurables e integraciones.
+
+MAPS posee una PostgreSQL propia que podrá contener datos relevantes de clientes, pólizas e identificadores externos. Se considera una dependencia para relevar con acceso de sólo lectura en Fase 1, no una decisión de arquitectura. En Fase 3 se definirá si corresponde consultarla, importar, sincronizar, replicar o no utilizarla.
+
+El archivo [`docs/estructura.md`](./docs/estructura.md) conserva una propuesta técnica anterior y no debe considerarse vigente hasta su realineación en Fase 3.
 
 ## Estructura del repositorio
 
 ```txt
 maps-ecommerce/
 ├── apps/
-│   ├── web/        # Frontend (React + Vite)
-│   └── api/         # Backend (Node.js + Express + TypeScript)
+│   ├── web/          # Frontend (React + Vite)
+│   └── api/          # Backend (Node.js + Express + TypeScript)
 ├── packages/         # Código compartido (ui, types, validators, config, emails)
 ├── prisma/           # Esquema, migraciones y seed de base de datos
 ├── docs/             # Documentación viva del proyecto
@@ -36,16 +40,17 @@ maps-ecommerce/
 
 ## Documentación
 
-- [`docs/estructura.md`](./docs/estructura.md): arquitectura técnica completa.
+- [`Fase_0__Kickoff__Gobierno_del_proyecto_.md`](./Fase_0__Kickoff__Gobierno_del_proyecto_.md): baseline funcional vigente.
+- [`docs/estructura.md`](./docs/estructura.md): arquitectura técnica inicial pendiente de realineación.
 - [`docs/00-proyecto/`](./docs/00-proyecto): alcance, decisiones, riesgos y minutas.
 - [`docs/03-tecnico/`](./docs/03-tecnico): arquitectura, API, modelo de datos, seguridad y deploy.
 - [`docs/tdd/`](./docs/tdd): Technical Design Documents por feature.
 
 ## Cómo correr el proyecto
 
-Todavía no hay código ejecutable en `apps/web` ni `apps/api` (ver "Estado actual"). Esta sección se completa cuando esas apps tengan su propio `package.json` y scripts de `dev`, `build`, `lint` y `test`.
+Todavía no hay código ejecutable en `apps/web` ni en `apps/api`. Esta sección se completará cuando esas apps tengan sus propios `package.json` y scripts de `dev`, `build`, `lint` y `test`.
 
 ## Convenciones
 
 - Commits y PRs siguen `tipo(scope): descripcion` (ver `.githooks/commit-msg` y `.github/pull_request_template.md`).
-- Ramas por historia de usuario: `feature/HU-XXX-descripcion`.
+- Ramas por historia de usuario o documentación: `feature/HU-XXX-descripcion` o `docs/descripcion`.
