@@ -7,8 +7,8 @@ Documento fundacional de Fase 0 para definir la visión objetivo del producto, e
 | Cliente | MAPS - Organización de seguros |
 | Equipo de desarrollo | Kondor |
 | Proyecto | Portal de Seguros MAPS |
-| Versión | Fase 0 reformulada - Baseline funcional v6 |
-| Fecha | 1 de septiembre de 2026 |
+| Versión | Fase 0 reformulada - Baseline funcional v7 + cambios controlados |
+| Fecha | 3 de septiembre de 2026 |
 
 ## 0.1 Redefinición del producto
 
@@ -33,19 +33,19 @@ El MVP también incluye la consulta de los seguros o servicios contratados y de 
 - El portal diferencia el ciclo de solicitud del ciclo de consulta de seguros o servicios contratados.
 - El sistema gestiona solicitudes, pero no realiza ventas, contrataciones, cobros ni emisiones automáticas.
 - Cada producto puede requerir un formulario diferente y MAPS debe poder configurarlo sin modificar código, preservando la versión respondida por cada cliente.
-- El cliente debe tener una cuenta para enviar una solicitud y recuperar sus borradores; el momento exacto de autenticación se definirá en Fase 2.
-- Toda solicitud puede permanecer como borrador hasta que el cliente decida enviarla.
+- El catálogo es público, pero el cliente debe registrarse o iniciar sesión antes de iniciar una solicitud. Desde su creación, el borrador pertenece a una cuenta autenticada.
+- Una `InsuranceRequest` en estado **BORRADOR** representa un trámite iniciado, pero no una solicitud formal presentada ante MAPS; la presentación formal ocurre al confirmar el envío y pasar a **ENVIADA**.
 - Una solicitud formal y un potencial cliente representan conceptos distintos y no deben duplicarse automáticamente.
 - Un borrador abandonado sólo podrá originar un potencial cliente cuando existan datos de contacto suficientes, consentimiento válido y reglas previamente aprobadas.
 - Cuando un potencial cliente se convierta en solicitud formal, deberá conservarse la trazabilidad `Lead → InsuranceRequest` y la oportunidad dejará de permanecer activa.
 - La asignación del productor es manual y responsabilidad de un administrador.
 - La derivación al productor debe ser automática, segura y trazable.
-- WhatsApp será el canal inicial y preferente del MVP, sin impedir que el producto incorpore email u otros canales en su evolución.
-- La notificación al productor debe contener un resumen mínimo y un enlace seguro; la información completa y las fotografías no deben exponerse directamente en el mensaje.
+- El email transaccional es el canal inicial del MVP para la derivación al productor; WhatsApp podrá evaluarse como evolución si su valor operativo justifica costo y API oficial.
+- Las notificaciones son mínimas, relevantes, no redundantes y preferentemente accionables. El email al productor contiene sólo identificador, producto, fecha, nombre autorizado y enlace seguro; nunca fotografías, archivos, respuestas completas ni información sensible innecesaria.
 - Después de la derivación, el contacto y el cierre de la venta se realizan fuera del sistema.
 - El asegurado puede consultar, como mínimo, qué seguros o servicios tiene contratados y los datos básicos disponibles de sus pólizas.
 - La visualización o descarga del PDF de la póliza queda condicionada a la disponibilidad de una fuente técnica válida.
-- Los precios de los paquetes son fijos y pueden mostrarse en el catálogo, aunque no representan un importe que se cobre desde la plataforma.
+- Un producto sólo muestra un precio fijo cuando MAPS provee un valor vigente, confiable y aplicable; en otro caso informa que está sujeto a evaluación/cotización externa. El Portal no calcula precios.
 - Las decisiones sobre formularios, datos personales, archivos y consentimientos deben quedar versionadas y ser auditables.
 
 ### Frontera de responsabilidad entre fases
@@ -54,10 +54,14 @@ El MVP también incluye la consulta de los seguros o servicios contratados y de 
 | --- | --- |
 | **Fase 0** | Visión completa del producto, problema, actores generales, mapa de capacidades, principios confirmados, alcance del MVP frente a la evolución, restricciones, dependencias, riesgos y gobierno. |
 | **Fase 1** | Discovery detallado de procesos, datos, productos, reglas, requerimientos, responsabilidades operativas y modelo de dominio inicial. |
-| **Fase 2** | Journeys, arquitectura de información, navegación, wireframes, wireflows y decisiones de UX, incluido el momento exacto de autenticación. |
+| **Fase 2** | Journeys, arquitectura de información, navegación, wireframes, wireflows y decisiones de UX para presentar el registro/login y el retorno al producto. |
 | **Fase 3** | Arquitectura, autenticación y autorización detalladas, persistencia, integraciones, adaptadores, almacenamiento, estados técnicos y contratos de API. |
 
 Las decisiones funcionales ya confirmadas se conservan en Fase 0 como principios y capacidades. Su especificación detallada y su mecanismo de implementación deberán cerrarse en la fase correspondiente.
+
+### Cambios controlados posteriores a la baseline aprobada
+
+Esta revisión modifica explícitamente la baseline original de Fase 0 mediante cambios controlados, sin reescribirlos como decisiones históricas: (1) autenticación obligatoria antes de crear/iniciar una solicitud, para simplificar ownership de borradores, recuperación, consentimiento, trazabilidad y relación con potenciales clientes; F2 conserva sólo la UX de registro/login; y (2) email transaccional como canal inicial del MVP, en reemplazo de WhatsApp, por menor costo, dependencia de terceros, complejidad operativa y riesgo de integración, manteniendo el mismo flujo de asignación, notificación y acceso seguro. WhatsApp queda como evolución posible.
 
 ## 0.2 Participantes y responsabilidades
 
@@ -69,7 +73,7 @@ Roles mínimos:
 
 - **Responsable comercial:** define los productos, precios, coberturas, exclusiones, requisitos y contenido comercial.
 - **Administrador del portal:** administra productos y formularios, revisa las solicitudes recibidas, selecciona al productor y ejecuta o supervisa la asignación. La gestión de solicitudes formales deberá permanecer separada de la gestión de potenciales clientes en la Intranet. MAPS todavía debe confirmar quién controlará diariamente cada bandeja y sus SLA.
-- **Productor de seguros:** recibe la derivación por el canal habilitado —WhatsApp como canal inicial del MVP—, consulta la solicitud mediante el enlace seguro, contacta al cliente y gestiona el proceso comercial por fuera de la plataforma.
+- **Productor de seguros:** recibe la derivación por email transaccional en su email verificado, consulta una única solicitud mediante el enlace seguro y gestiona el proceso comercial por fuera de la plataforma.
 - **Responsable de aprobación:** valida las decisiones finales de alcance, contenido, operación y cumplimiento legal.
 
 En organizaciones pequeñas, una persona puede desempeñar más de un rol, pero cada decisión o actividad debe tener un responsable identificable.
@@ -105,8 +109,8 @@ La visión objetivo podrá incorporar capacidades posteriores al MVP, pero cada 
 | --- | --- |
 | Catálogo público de seguros | Incluida. |
 | Solicitudes, archivos y borradores recuperables | Incluidos. |
-| Cuenta mediante email y contraseña | Obligatoria para enviar y recuperar; el momento exacto de autenticación se define en Fase 2. |
-| Asignación manual y derivación al productor | Incluidas; WhatsApp será el canal inicial del MVP y los canales adicionales quedarán como evolución. |
+| Cuenta mediante email y contraseña | Obligatoria antes de iniciar una solicitud; el borrador se crea asociado a una cuenta autenticada. F2 define sólo la UX para presentar esa exigencia. |
+| Asignación manual y derivación al productor | Incluidas; email transaccional es el canal inicial del MVP. WhatsApp queda como evolución sujeta a validación de necesidad, costo y API oficial. |
 | Consulta de seguros o servicios contratados | Incluida con la información básica disponible. |
 | Gestión administrativa de clientes y asociación de pólizas existentes | Incluida en el nivel necesario para alimentar la consulta del asegurado. |
 | Integración con Potenciales clientes de la Intranet | Incluida con alcance mínimo, consentimiento, prevención de duplicados y trazabilidad de conversión. |
@@ -115,14 +119,14 @@ La visión objetivo podrá incorporar capacidades posteriores al MVP, pero cada 
 
 La primera versión será exitosa cuando MAPS pueda completar el siguiente ciclo de solicitud:
 
-1. Un administrador publica un producto con precio fijo, coberturas, exclusiones y requisitos.
+1. Un administrador publica un producto con precio fijo sólo cuando exista un valor vigente, confiable y aplicable; si no, informa que está sujeto a evaluación externa.
 2. MAPS configura y publica el formulario particular del producto.
-3. Un cliente inicia una solicitud y dispone de una cuenta antes del envío definitivo, en el punto de autenticación que se defina durante Fase 2.
+3. Un visitante elige **Iniciar solicitud**, se registra o inicia sesión y recién entonces se crea una `InsuranceRequest` en **BORRADOR** asociada a su cuenta.
 4. El sistema conserva el progreso como borrador asociado de forma segura a su identidad.
 5. El cliente recupera el borrador, completa la información y envía la solicitud.
 6. MAPS recibe la solicitud en una bandeja de administración.
 7. Un administrador selecciona manualmente un productor.
-8. El sistema deriva automáticamente la solicitud mediante WhatsApp como canal inicial, enviando un resumen y un enlace seguro.
+8. El sistema deriva automáticamente la solicitud mediante email transaccional al email verificado del productor, enviando sólo el resumen autorizado y un enlace seguro.
 9. La plataforma registra el resultado conocido de la derivación.
 10. El productor accede a una vista segura de la solicitud y continúa el contacto por fuera del portal.
 
@@ -155,7 +159,7 @@ Esta sección identifica capacidades funcionales del MVP. Los procesos y datos d
 - Categorías y filtros básicos.
 - Página de detalle de cada producto.
 - Nombre comercial, descripción y beneficios.
-- Precio fijo visible.
+- Precio fijo visible sólo cuando sea vigente, confiable y aplicable; en caso contrario, indicación de evaluación/cotización externa.
 - Coberturas.
 - Exclusiones.
 - Requisitos.
@@ -174,7 +178,7 @@ El precio mostrado es informativo y no habilita el pago dentro del sistema.
 - Acceso a borradores propios.
 - Acceso a solicitudes ya enviadas y a su estado limitado dentro del portal.
 
-La cuenta es obligatoria para enviar una solicitud y recuperar borradores. Los datos y borradores deberán quedar asociados de forma segura a una identidad. El momento exacto en que se solicitará el registro o la autenticación se definirá en Fase 2, comparando la fricción de acceso con la trazabilidad y la recuperación del progreso.
+La cuenta es obligatoria antes de iniciar una solicitud. Los datos y borradores deberán quedar asociados de forma segura a una identidad desde su creación. Fase 2 define exclusivamente el copy, la transición, la pantalla o modal y el retorno al producto para presentar registro/login.
 
 ### C. Formularios configurables por producto
 
@@ -183,9 +187,9 @@ El MVP deberá permitir que MAPS configure y publique formularios diferentes par
 Como principios funcionales de Fase 0:
 
 - cada producto podrá utilizar un formulario particular;
-- MAPS contará con autonomía administrativa para configurar y publicar formularios dentro del alcance que se confirme;
+- MAPS contará con autonomía administrativa básica para configurar y publicar formularios sin cambios de código;
 - las respuestas conservarán la versión exacta del formulario utilizado;
-- una modificación posterior no podrá alterar retrospectivamente una solicitud enviada;
+- una versión **PUBLICADA** será inmutable, una modificación posterior creará una nueva versión y no podrá alterar retrospectivamente una solicitud enviada;
 - los formularios podrán solicitar datos y archivos de acuerdo con las necesidades de cada producto.
 
 La Fase 0 no fija todavía un catálogo cerrado de tipos de campo, reglas condicionales, páginas, duplicación, previsualización ni otras funciones del constructor. En Fase 1 se relevarán los formularios, campos, validaciones y reglas reales; en Fase 2 se definirá la experiencia y el grado de autonomía administrativa; y en Fase 3 se decidirá si la solución será basada en esquemas, un constructor parcial o un constructor completo.
@@ -200,7 +204,7 @@ La Fase 0 no fija todavía un catálogo cerrado de tipos de campo, reglas condic
 - Validaciones antes del envío definitivo.
 - Resumen previo al envío.
 - Registro de consentimientos y de la versión aceptada.
-- Confirmación de recepción al cliente por email.
+- Confirmación dentro del Portal al enviar; no se envía un email redundante de “solicitud recibida” salvo que aporte información o acción nueva.
 - Bloqueo de edición después del envío, salvo que una futura decisión de alcance disponga lo contrario.
 
 La falta de fotografías o documentación no necesariamente debe impedir el envío. Cada formulario determinará qué archivo es obligatorio y cuál puede ser solicitado posteriormente por el productor.
@@ -223,7 +227,7 @@ La falta de fotografías o documentación no necesariamente debe impedir el env�
 
 - Alta, edición, activación y desactivación de productores.
 - Nombre y datos identificatorios mínimos.
-- Datos de contacto necesarios para el canal de derivación habilitado; para el MVP, número de WhatsApp validado.
+- Datos de contacto necesarios para el canal de derivación habilitado; para el MVP, email verificado.
 - Productos o ramos relacionados, con carácter informativo.
 - Estado habilitado o inhabilitado para recibir derivaciones.
 
@@ -231,7 +235,7 @@ La relación entre productos y productores no produce una asignación automátic
 
 ### G. Derivación automática y trazable
 
-La derivación se ejecutará después de la confirmación de la asignación administrativa. WhatsApp será el canal inicial y preferente confirmado para el MVP, pero la capacidad funcional se define de forma general para no acoplar permanentemente el producto a un único canal.
+La derivación se ejecutará después de la confirmación de la asignación administrativa. El email transaccional al email verificado del productor es el canal inicial confirmado del MVP.
 
 La notificación al productor deberá contener únicamente un resumen mínimo:
 
@@ -241,9 +245,9 @@ La notificación al productor deberá contener únicamente un resumen mínimo:
 - fecha de recepción;
 - enlace seguro para consultar el expediente.
 
-Para WhatsApp sólo podrá utilizarse una integración oficial y autorizada. La definición de proveedor, plantillas, credenciales, reintentos, estados técnicos y arquitectura de adaptadores se realizará en Fase 3.
+El email podrá contener sólo identificador, producto, fecha, nombre del cliente cuando esté autorizado y enlace seguro. La definición de proveedor, plantillas, credenciales, reintentos, estados técnicos y arquitectura de adaptadores se realizará en Fase 3.
 
-El sistema deberá conservar trazabilidad funcional del destinatario, el canal utilizado, el momento de la derivación y el resultado conocido. Email u otros canales se contemplan como evolución. La selección de canal por parte del administrador sólo se incorporará al MVP si MAPS confirma expresamente esa necesidad.
+El sistema deberá conservar trazabilidad funcional del destinatario, fecha/hora, resultado conocido, fallas y reintentos. Los estados técnicos de entrega —por ejemplo pendiente, aceptado/enviado, entregado, rebotado o fallido— no integran el estado funcional de `InsuranceRequest`; su nomenclatura y persistencia se definen en Fase 3. WhatsApp u otros canales se contemplan como evolución.
 
 ### H. Acceso seguro del productor
 
@@ -279,15 +283,15 @@ Esta capacidad no permite emitir, modificar, renovar ni cobrar pólizas desde el
 
 El MVP deberá convivir con la sección **Potenciales clientes** de la Intranet, diferenciando expresamente:
 
-- **Solicitud formal (`InsuranceRequest`):** formulario que el cliente completó y envió.
+- **`InsuranceRequest`:** trámite del Portal que existe desde su inicio autenticado; en **BORRADOR** aún no es una presentación formal y al enviarse pasa a **ENVIADA**.
 - **Potencial cliente (`Lead`):** oportunidad comercial todavía no convertida en una solicitud formal.
 - Una solicitud enviada no se duplicará automáticamente como potencial cliente.
-- Un borrador abandonado sólo podrá originar un lead si contiene datos de contacto suficientes y existe consentimiento válido para el tratamiento y contacto comercial.
+- Un `InsuranceRequest` en **BORRADOR** podrá generar o actualizar un lead únicamente si contiene datos de contacto suficientes, consentimiento comercial válido y se cumple el plazo de inactividad/abandono que MAPS debe definir.
 - Cuando un lead se recupere y el usuario envíe la solicitud, se conservará la relación `Lead → InsuranceRequest` y el lead dejará de estar activo como oportunidad.
 - La gestión y asignación de solicitudes formales permanecerá separada de la gestión y asignación de potenciales clientes.
 - El cotizador no forma parte de esta integración ni del MVP.
 
-En Fase 1 se definirán el momento de abandono, los datos mínimos, el consentimiento, las reglas de duplicación, la información transferida y los responsables operativos. En Fase 2 se diseñará el recorrido de recuperación. En Fase 3 se definirán relaciones, eventos, APIs y el mecanismo de integración con la Intranet.
+En Fase 1 se definirán el momento de abandono, los datos mínimos, el consentimiento, la deduplicación, la información transferida, la trazabilidad `Lead → InsuranceRequest` y los responsables operativos. Al enviarse la solicitud, el lead se cerrará o convertirá según la regla aprobada. En Fase 2 se diseñará el recorrido de recuperación. En Fase 3 se definirán relaciones, eventos, APIs y el mecanismo de integración con la Intranet. El cotizador continúa fuera de esta integración y del MVP.
 
 ## 0.6 Flujos funcionales de referencia
 
@@ -295,14 +299,15 @@ En Fase 1 se definirán el momento de abandono, los datos mínimos, el consentim
 Ciclo de solicitud:
 Catálogo de seguros
 → selección del producto
-→ inicio del formulario e identificación/autenticación en el punto definido durante Fase 2
-→ guardado como borrador asociado de forma segura
+→ iniciar solicitud
+→ registro/login
+→ `InsuranceRequest` en BORRADOR asociada a cuenta autenticada
 → recuperación y continuación
 → validación y envío de la solicitud
 → confirmación al cliente
 → bandeja de solicitudes de MAPS
 → asignación manual por administrador
-→ derivación automática mediante WhatsApp como canal inicial
+→ email transaccional automático al productor asignado
 → acceso del productor mediante enlace seguro
 → contacto y cierre comercial fuera del sistema
 
@@ -325,7 +330,7 @@ Interés no convertido o borrador elegible
 
 ### Estados funcionales mínimos de una solicitud
 
-- **BORRADOR:** el cliente comenzó la carga y todavía puede editarla.
+- **BORRADOR:** `InsuranceRequest` iniciada por una cuenta autenticada; el trámite puede editarse, pero todavía no constituye presentación formal ante MAPS.
 - **ENVIADA:** el cliente confirmó el envío y la solicitud espera revisión o asignación.
 - **ASIGNADA:** el administrador seleccionó al productor responsable.
 - **DERIVADA:** el sistema registró una entrega satisfactoria al productor por el canal habilitado.
@@ -365,7 +370,9 @@ Sin fijar todavía una arquitectura definitiva, el dominio deberá contemplar al
 
 El modelo técnico de intentos de derivación y sus estados se definirá en Fase 3, separado del estado funcional de la solicitud.
 
-La solicitud debe conservar una referencia inmutable a la versión del formulario utilizada. Una modificación posterior del producto o formulario no puede cambiar el contenido histórico de una solicitud enviada.
+Una versión **PUBLICADA** de formulario es inmutable; una modificación posterior crea una nueva versión. Cada solicitud conserva la referencia exacta a la versión usada y una solicitud enviada no cambia retrospectivamente. Una `InsuranceRequest` en **BORRADOR** continúa con la `FormVersion` con la que fue creada: así se evitan cambios silenciosos de preguntas, obligatoriedad, validaciones o consentimientos al recuperar el trámite y se conserva una experiencia previsible y auditable. No habrá migración automática ni silenciosa de borradores en el MVP.
+
+La única excepción es el retiro expreso de esa versión por razones legales, de seguridad, comerciales o de vigencia del producto. En ese caso el borrador no podrá reutilizar la versión retirada; el usuario deberá ser informado y comenzar con la versión vigente. La UX y una eventual reutilización de datos compatibles se definirán en Fase 2 y Fase 3.
 
 ## 0.8 Alcance explícitamente excluido del MVP
 
@@ -398,12 +405,12 @@ Estas capacidades sólo podrán incorporarse mediante una nueva definición de a
 
 - La venta se cierra fuera del sistema y depende de la gestión del productor.
 - El sistema no puede afirmar que una solicitud equivale a una contratación.
-- Los paquetes tendrán precios fijos visibles, pero el precio debe poder actualizarse y conservar historial cuando sea necesario.
+- Un producto sólo puede mostrar precio fijo si MAPS provee un valor vigente, confiable y aplicable. Cuando dependa de perfil, riesgo o evaluación, el Portal debe indicar que está sujeto a evaluación/cotización externa; no calcula ni inventa precios.
 - MAPS debe proporcionar la información completa de cada producto y formulario.
-- WhatsApp, como canal inicial del MVP, depende de una integración oficial y autorizada; sus credenciales, plantillas, proveedor y comportamiento técnico se definirán en Fase 3.
+- Email transaccional es el canal inicial del MVP; proveedor, credenciales, plantillas y comportamiento técnico se definen en Fase 3. WhatsApp queda como posible evolución, condicionada a necesidad, costo y API oficial.
 - Las fotografías y documentos tendrán una permanencia corta; el plazo exacto debe ser definido por MAPS y validado legalmente.
 - Los textos legales, consentimientos y política de privacidad todavía requieren definición y aprobación.
-- La cuenta obligatoria mejora la trazabilidad y la recuperación de borradores, pero el momento de solicitarla puede generar fricción y deberá validarse en Fase 2.
+- La autenticación obligatoria antes de iniciar la solicitud simplifica ownership de borradores, recuperación, consentimiento, trazabilidad y relación con potenciales clientes; Fase 2 validará sólo cómo presentar la exigencia sin redefinirla.
 - MAPS posee una base PostgreSQL propia, mantenida por la organización, con numerosas tablas y documentación insuficiente. El acceso previsto para el relevamiento será de sólo lectura.
 - La PostgreSQL existente se registra como dependencia y posible fuente de clientes, pólizas, identificadores externos y datos provenientes de Federación Patronal; no constituye todavía la base elegida para la solución.
 - En Fase 1 se inspeccionarán esquema, relaciones, calidad, origen, responsables y frecuencia de actualización. En Fase 3 se decidirá si corresponde consultarla directamente, importar, sincronizar, replicar o no utilizar sus datos.
@@ -439,22 +446,24 @@ Estas capacidades sólo podrán incorporarse mediante una nueva definición de a
 
 ## 0.11 Notificaciones del MVP
 
+Las notificaciones del Portal deben ser mínimas, relevantes, no redundantes y preferentemente accionables. La definición técnica del sistema de notificaciones corresponde a Fase 3.
+
 ### Cliente
 
 - Verificación de email.
 - Recuperación de contraseña.
-- Confirmación de solicitud recibida.
+- Situaciones excepcionales en las que el cliente deba actuar.
 
 ### Administrador
 
-- Nueva solicitud enviada, si MAPS decide habilitar el aviso.
 - Error de derivación.
+- Errores relevantes cuando exista un destinatario operativo que deba intervenir.
 
 ### Productor
 
-- Nueva solicitud asignada, mediante WhatsApp como canal inicial automático con resumen y enlace seguro.
+- Nueva solicitud asignada, mediante email transaccional automático con resumen autorizado y enlace seguro.
 
-No se incluyen recordatorios comerciales, cambios posteriores de estado, aprobación, rechazo, emisión ni renovación.
+No se envían automáticamente emails por cada cambio de estado, eventos internos sin acción requerida ni confirmaciones redundantes que ya se muestran dentro del Portal. En particular, se excluye el correo obligatorio de “solicitud recibida” cuando la confirmación in-app no agrega información o acción nueva. Se evitarán múltiples notificaciones por el mismo evento.
 
 ## 0.12 Métricas e instrumentación mínima
 
@@ -490,14 +499,14 @@ El MVP no podrá medir ventas cerradas ni conversión final a póliza, porque el
 | --- | --- | --- |
 | Alcance ilimitado de los formularios configurables | Demoras y crecimiento no controlado | Relevar necesidades reales en Fase 1, validar autonomía en Fase 2 y decidir la solución en Fase 3 |
 | Datos o formularios incompletos por producto | Reimplementaciones y solicitudes inválidas | Exigir ficha funcional aprobada antes de publicar |
-| Fricción por registro obligatorio | Abandono durante el proceso | Prototipar y validar en Fase 2 el momento de autenticación |
+| Fricción por registro obligatorio | Abandono durante el proceso | Prototipar y validar en Fase 2 cómo presentar registro/login y retornar al producto, sin postergar la exigencia |
 | Datos contractuales incompletos o desactualizados | Información incorrecta para el asegurado | Relevar fuente, calidad, responsables y frecuencia de actualización en Fase 1 |
 | PostgreSQL MAPS sin documentación suficiente | Integración incorrecta, dependencia frágil o interpretación errónea de datos | Inspección read-only en Fase 1 y decisión de estrategia de uso recién en Fase 3 |
 | Leads sin consentimiento o duplicados | Riesgo legal, mala experiencia y datos comerciales inconsistentes | Exigir consentimiento, reglas de abandono, deduplicación y trazabilidad antes de activar la integración |
 | PDF de póliza no disponible | El cliente no puede visualizarlo ni descargarlo | Mantener la consulta de datos básicos y no comprometer el PDF hasta validar la fuente |
 | Exposición de datos mediante la notificación o el enlace | Incidente de privacidad | Resumen mínimo, enlace temporal, revocación y auditoría |
 | Fallas o restricciones del canal inicial de derivación | Solicitudes no derivadas | Trazabilidad, procedimiento alternativo y definición de reintentos/adaptadores en Fase 3 |
-| Productor con número incorrecto o inactivo | Derivación al destinatario equivocado | Validación administrativa y posibilidad de desactivar productores |
+| Productor con email incorrecto o inactivo | Derivación al destinatario equivocado | Validación administrativa del email verificado y posibilidad de desactivar productores |
 | Asignación manual demorada | Pérdida de oportunidades | Responsable definido y métrica de tiempo hasta asignación |
 | Fotografías pesadas o inseguras | Costos, lentitud o riesgo técnico | Límites, compresión, validación, almacenamiento privado y retención |
 | Cambios en un formulario publicado | Inconsistencia histórica | Versionado obligatorio e inmutabilidad de respuestas enviadas |
@@ -549,7 +558,7 @@ Etiquetas funcionales sugeridas:
 - DATOS.
 - INTEGRACIONES.
 - DERIVACIONES.
-- WHATSAPP.
+- EMAIL.
 - NOTIFICACIONES.
 - AUDITORÍA.
 - MÉTRICAS.
@@ -595,9 +604,9 @@ Los criterios de terminado específicos para formularios se definirán después 
 - Definición de qué archivos son obligatorios y cuáles puede pedir luego el productor.
 - Textos legales, política de privacidad y consentimientos aprobados.
 - Lista inicial de administradores.
-- Lista inicial de productores y datos de contacto requeridos; para el MVP, números de WhatsApp verificados.
+- Lista inicial de productores y datos de contacto requeridos; para el MVP, emails verificados.
 - Responsable de mantener productos, formularios y productores.
-- Para la definición de Fase 3, disponibilidad de cuenta oficial, número, credenciales y plantillas requeridas por la integración autorizada de WhatsApp.
+- Para la definición de Fase 3, proveedor, remitente, credenciales y plantillas de email transaccional.
 - Logo, colores, tipografías, imágenes y tono de comunicación.
 - Dominio, DNS y accesos de infraestructura necesarios.
 - Dirección de correo desde la cual se enviarán notificaciones a clientes.
@@ -630,7 +639,7 @@ Estas preguntas no invalidan la baseline funcional, pero deben resolverse antes 
 13. ¿Cuándo se elimina o anonimiza una cuenta de cliente?
 14. ¿Cómo se tratarán solicitudes duplicadas del mismo cliente para el mismo producto?
 15. ¿Se permitirá que un cliente cancele una solicitud enviada antes de su derivación?
-16. ¿En qué punto del recorrido se solicitará el registro o la autenticación?
+16. ¿Qué copy, transición, pantalla/modal y retorno al producto harán clara la autenticación obligatoria antes de iniciar la solicitud?
 17. ¿Qué tablas, relaciones y campos de la PostgreSQL de MAPS contienen clientes, servicios contratados, pólizas e identificadores externos, y con qué frecuencia se actualizan?
 18. ¿Federación Patronal u otra fuente permite obtener el PDF de las pólizas para su visualización o descarga?
 19. ¿La selección del canal de derivación debe formar parte del MVP o quedar como evolución posterior?
@@ -641,6 +650,7 @@ Estas preguntas no invalidan la baseline funcional, pero deben resolverse antes 
 24. ¿Cómo se cerrará o actualizará el lead cuando se convierta en una solicitud formal?
 25. ¿Quiénes son los responsables técnico y funcional de la PostgreSQL y qué documentación pueden proporcionar?
 26. ¿Quién controlará diariamente la bandeja de solicitudes, quién gestionará Potenciales clientes y qué SLA tendrá cada proceso?
+27. ¿Qué ocurre con una `InsuranceRequest` en **BORRADOR** cuando se publica una nueva versión de formulario: continúa con la versión original, migra bajo condiciones u otra política controlada?
 
 ## 0.18 Resultado esperado de la Fase 0
 
@@ -653,10 +663,10 @@ La Fase 0 se considerará aprobada cuando Kondor y MAPS hayan aceptado formalmen
 - la coexistencia del ciclo de solicitud con la consulta de seguros o servicios contratados;
 - la integración controlada con Potenciales clientes, diferenciando `Lead` de `InsuranceRequest` y conservando la trazabilidad de conversión;
 - los flujos funcionales de referencia del cliente, el administrador, el asegurado y la recuperación de oportunidades;
-- la cuenta obligatoria para enviar y recuperar solicitudes, dejando su momento exacto para Fase 2;
+- la autenticación obligatoria antes de crear una `InsuranceRequest` en **BORRADOR**, dejando a Fase 2 sólo su presentación UX;
 - la consulta básica de servicios contratados y pólizas, sin comprometer todavía el PDF;
 - la asignación manual del productor;
-- WhatsApp como canal inicial y preferente del MVP, dentro de una capacidad de derivación automática y trazable;
+- email transaccional como canal inicial del MVP, dentro de una capacidad de derivación automática y trazable, y WhatsApp como evolución posible;
 - el contenido funcional mínimo de la notificación y el acceso mediante enlace seguro, dejando la implementación detallada para Fase 3;
 - la capacidad de configurar formularios diferentes por producto sin modificar código, dejando su alcance detallado para las Fases 1, 2 y 3;
 - los módulos incluidos y excluidos;
