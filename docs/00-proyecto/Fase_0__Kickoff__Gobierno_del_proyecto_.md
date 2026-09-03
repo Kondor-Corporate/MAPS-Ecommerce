@@ -7,8 +7,8 @@ Documento fundacional de Fase 0 para definir la visión objetivo del producto, e
 | Cliente | MAPS - Organización de seguros |
 | Equipo de desarrollo | Kondor |
 | Proyecto | Portal de Seguros MAPS |
-| Versión | Fase 0 reformulada - Baseline funcional v6 + cambios controlados |
-| Fecha | 1 de septiembre de 2026 |
+| Versión | Fase 0 reformulada - Baseline funcional v7 + cambios controlados |
+| Fecha | 3 de septiembre de 2026 |
 
 ## 0.1 Redefinición del producto
 
@@ -370,7 +370,9 @@ Sin fijar todavía una arquitectura definitiva, el dominio deberá contemplar al
 
 El modelo técnico de intentos de derivación y sus estados se definirá en Fase 3, separado del estado funcional de la solicitud.
 
-Una versión **PUBLICADA** de formulario es inmutable; una modificación posterior crea una nueva versión. Cada solicitud conserva la referencia exacta a la versión usada y una solicitud enviada no cambia retrospectivamente. Permanece pendiente la política para una `InsuranceRequest` en **BORRADOR** cuando se publica una nueva versión: continuar con la original, migrar bajo condiciones u otra política controlada; deberá justificar consistencia, experiencia, cambios de requisitos y complejidad de migración.
+Una versión **PUBLICADA** de formulario es inmutable; una modificación posterior crea una nueva versión. Cada solicitud conserva la referencia exacta a la versión usada y una solicitud enviada no cambia retrospectivamente. Una `InsuranceRequest` en **BORRADOR** continúa con la `FormVersion` con la que fue creada: así se evitan cambios silenciosos de preguntas, obligatoriedad, validaciones o consentimientos al recuperar el trámite y se conserva una experiencia previsible y auditable. No habrá migración automática ni silenciosa de borradores en el MVP.
+
+La única excepción es el retiro expreso de esa versión por razones legales, de seguridad, comerciales o de vigencia del producto. En ese caso el borrador no podrá reutilizar la versión retirada; el usuario deberá ser informado y comenzar con la versión vigente. La UX y una eventual reutilización de datos compatibles se definirán en Fase 2 y Fase 3.
 
 ## 0.8 Alcance explícitamente excluido del MVP
 
