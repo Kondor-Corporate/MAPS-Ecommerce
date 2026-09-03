@@ -36,7 +36,7 @@ La fase no busca rediseñar la propuesta ni implementar funcionalidades. Busca r
 
 ### No incluye
 
-- Wireframes, journeys, arquitectura de información, decisiones de autenticación en pantalla o detalle de la experiencia: Fase 2.
+- Wireframes, journeys, arquitectura de información y detalle de la experiencia para presentar registro/login obligatorio: Fase 2.
 - Elección de stack, esquema físico, APIs, integración concreta, proveedor, colas, almacenamiento, estrategia de sincronización o seguridad técnica detallada: Fase 3.
 - Construcción, migración, escritura, modificación o limpieza de la base de datos MAPS.
 - Validación jurídica definitiva de textos, consentimientos, retenciones o políticas; F1 identifica la necesidad y el responsable de aprobación.
@@ -48,9 +48,10 @@ La Fase 1 toma como baseline el cambio de enfoque desde e-commerce hacia un port
 | Hallazgo de partida | Estado | Tratamiento en F1 |
 | --- | --- | --- |
 | El Portal gestiona solicitudes; no cobra, no hace checkout, no emite ni confirma contratación automática. | CONFIRMADO | Delimitar formularios, estados y frontera con la gestión comercial externa. |
-| Los productos requieren formularios particulares. Un trámite iniciado puede conservarse como borrador y solo se convierte en solicitud formal al confirmarse el envío. | CONFIRMADO | Relevar campos, reglas, adjuntos y versión funcional por producto. |
+| Los productos requieren formularios particulares. Una `InsuranceRequest` existe desde el inicio autenticado en **BORRADOR** y sólo se presenta formalmente al confirmarse el envío a **ENVIADA**. | CONFIRMADO | Relevar campos, reglas, adjuntos y versión funcional por producto. |
+| Registro/login es obligatorio antes de crear una solicitud; el borrador pertenece a una cuenta autenticada. | CONFIRMADO, cambio controlado respecto de F0 | F2 define sólo copy, transición, pantalla/modal y retorno al producto. |
 | La asignación del productor es manual. | CONFIRMADO | Precisar responsable, criterios, tiempos, reasignación y trazabilidad. |
-| Fase 0 estableció WhatsApp como canal inicial/preferente del MVP para la derivación trazable. | CONFIRMADO | Validar operativamente destinatario, información mínima, contingencia, necesidad real de otros canales y quién selecciona el canal. |
+| Email transaccional reemplaza a WhatsApp como canal inicial del MVP para la derivación trazable. | CONFIRMADO, cambio controlado respecto de F0 | Validar destinatario, resumen autorizado, contingencia y operación; proveedor, estados técnicos y reintentos son F3. |
 | `Lead`/Potencial Cliente no es una `InsuranceRequest`/Solicitud. | CONFIRMADO | Modelar creación, recuperación, conversión y no duplicación. |
 | Existe un ciclo de asegurado/pólizas además del ciclo de solicitud. | CONFIRMADO | Relevar datos visibles, administración, asociación y fuentes disponibles. |
 | MAPS dispone de una PostgreSQL existente que podrá inspeccionarse en modo read-only. | CONFIRMADO | Hacer discovery de datos; no decidir aún la integración. |
@@ -58,7 +59,7 @@ La Fase 1 toma como baseline el cambio de enfoque desde e-commerce hacia un port
 
 ### Fuente histórica y límite de interpretación
 
-Materiales anteriores que describen checkout, pagos, contratación automática, emisión automática o un constructor visual completo no son definición vigente por sí solos. En F1 se consideran únicamente como contexto histórico o como hipótesis a validar. La autonomía administrativa requerida para formularios se relevará antes de decidir la profundidad de cualquier herramienta.
+Materiales anteriores que describen checkout, pagos, contratación automática, emisión automática o un constructor visual completo no son definición vigente por sí solos. En F1 se consideran únicamente como contexto histórico o como hipótesis a validar. Está confirmada la autonomía administrativa básica para configurar y publicar formularios por producto sin cambios de código; F1 releva campos y reglas, F2 define experiencia y profundidad de autonomía, y F3 define schema/builder e implementación.
 
 ## 4. Metodología y estados de incertidumbre
 
@@ -86,8 +87,8 @@ Reglas de trabajo:
 El Portal se analiza como tres ciclos relacionados, pero diferentes:
 
 ```text
-Solicitud formal
-Producto -> inicio del trámite -> borrador de solicitud -> envío confirmado -> InsuranceRequest formal -> MAPS -> productor -> gestión comercial externa
+Solicitud
+Catálogo público -> iniciar solicitud -> registro/login -> InsuranceRequest (BORRADOR) -> completar -> envío confirmado (ENVIADA) -> MAPS -> productor -> gestión comercial externa
 
 Potencial cliente
 Interés elegible / borrador abandonado / contacto -> Lead -> recuperación -> posible Solicitud
@@ -96,7 +97,7 @@ Asegurado y pólizas
 Cliente/asegurado -> asociación o disponibilidad de pólizas/servicios -> consulta de información disponible
 ```
 
-Una solicitud formal enviada no genera automáticamente un lead duplicado. Si un lead deriva luego en una solicitud formal, la relación debe preservar origen, eventos y responsable comercial según las reglas que MAPS confirme. El borrador de solicitud todavía no es una `InsuranceRequest` formal; F3 decidirá si ambos conceptos se persisten como una o más entidades técnicas.
+Una solicitud enviada no genera automáticamente un lead duplicado. Si un lead deriva luego en una solicitud formal, la relación debe preservar origen, eventos y responsable comercial según las reglas que MAPS confirme. El borrador es una `InsuranceRequest` en **BORRADOR**, aunque todavía no constituye una presentación formal ante MAPS; F3 decide su persistencia técnica, no su significado funcional.
 
 ### 5.2 Productos iniciales de referencia
 
@@ -121,7 +122,7 @@ Esta sección registra tensiones entre la baseline y la evidencia disponible. No
 
 | Tensión | Baseline/evidencia | Pregunta de F1 | Estado |
 | --- | --- | --- | --- |
-| Precio fijo vs. Ahorro/Retiro | Fase 0 supone precios fijos visibles; el material comercial de Ahorro/Retiro menciona aportes ajustables y simulador. | ¿Todos los productos del Portal tienen realmente un precio fijo publicable o existen modalidades diferentes? | PENDIENTE MAPS |
+| Precio fijo vs. Ahorro/Retiro | Un precio fijo sólo se muestra con valor vigente, confiable y aplicable; de otro modo se informa evaluación/cotización externa. Cotizador y simulador quedan fuera del MVP. | ¿Qué condición comercial vigente aplica a cada producto particular? | PENDIENTE MAPS |
 | Nombre Ahorro vs. Retiro | El material usa “Seguro de Ahorro”, pero su contenido habla de “Seguro de Retiro”. | ¿Cuál es el nombre oficial del producto y cuál debe mostrarse al cliente? | PENDIENTE MAPS |
 
 ### 5.4 Fronteras confirmadas
@@ -130,7 +131,7 @@ Esta sección registra tensiones entre la baseline y la evidencia disponible. No
 - La gestión comercial posterior puede continuar fuera del Portal.
 - El Portal del asegurado no presupone todavía importación, sincronización ni acceso directo a Federación Patronal.
 - La información histórica de una solicitud debe poder interpretarse en relación con el producto, respuestas, adjuntos y consentimiento que aplicaban al enviarla; la implementación de versionado se define en F3.
-- WhatsApp se preserva como canal inicial/preferente definido por Fase 0. F1 valida su operación; si la evidencia requiere cambiarlo, se registrará como cambio controlado. Proveedor, adaptadores, credenciales, plantillas, reintentos e implementación quedan en F3; la UX de selección de canal, si aplica, queda en F2.
+- Email transaccional es el canal inicial del MVP por cambio controlado respecto de F0: reduce costo, dependencia de terceros, complejidad operativa y riesgo de integración, conservando asignación, notificación y acceso seguro. WhatsApp queda como evolución posible. Proveedor, adaptadores, credenciales, plantillas, reintentos y estados técnicos quedan en F3.
 
 ## 6. Bloques de trabajo
 
@@ -154,7 +155,7 @@ Salida: catálogo funcional de productos y matriz de formularios con evidencia, 
 
 | Paso | Actor principal | Preguntas a cerrar |
 | --- | --- | --- |
-| Descubrimiento e inicio | Visitante/cliente | Datos mínimos, condición de autenticación y continuidad del trámite. |
+| Descubrimiento e inicio | Visitante/cliente | Catálogo público; al iniciar, registro/login obligatorio antes de crear el borrador. F2 define la presentación UX. |
 | Borrador | Cliente/sistema | Guardado, recuperación, vencimiento, edición y abandono. |
 | Envío | Cliente | Completitud, validaciones, consentimiento y confirmación. |
 | Recepción | MAPS | Bandeja, responsable, prioridad, duplicados y observaciones. |
@@ -170,8 +171,8 @@ Salida: mapa AS-IS cuando exista evidencia suficiente y modelo funcional TO-BE d
 
 Preguntas de discovery:
 
-- ¿Qué eventos y fuentes pueden crear un lead: borrador abandonado, pedido de asesoramiento, campaña, landing u otros?
-- ¿Qué datos mínimos, tiempo de inactividad y consentimiento hacen elegible un borrador?
+- ¿Qué eventos y fuentes pueden crear un lead: `InsuranceRequest` en BORRADOR abandonada, pedido de asesoramiento, campaña, landing u otros?
+- ¿Qué datos mínimos, tiempo de inactividad y consentimiento hacen elegible una `InsuranceRequest` en BORRADOR?
 - ¿Quién recibe, asigna y trabaja el lead?
 - ¿Qué datos se transfieren y qué datos se excluyen por privacidad o calidad?
 - ¿Cómo se detecta y resuelve un duplicado?
@@ -183,7 +184,7 @@ Salida: política de creación/conversión, mapa de trazabilidad `Lead -> Insura
 
 **Propósito:** determinar el valor funcional del portal del asegurado y los datos realmente sostenibles.
 
-El mínimo mencionado para consulta incluye ramo, producto, número de póliza, estado y vigencia. Deben verificarse además cliente/asegurado, compañía, productor, renovaciones, servicios, identificadores externos y documentos disponibles.
+El mínimo mencionado para consulta incluye ramo, producto, número de póliza, estado y vigencia. Deben verificarse además cliente/asegurado, compañía, productor, renovaciones, servicios, identificadores externos y documentos disponibles. Para habilitar un PDF se relevarán fuente oficial, identificador, relación cliente/póliza/documento, versión, estado, renovaciones, reemplazos, vigencia, frecuencia de actualización y permisos. Si no puede identificarse confiablemente como documento vigente/autorizado, el PDF no se mostrará; ello no impide los datos básicos confiables.
 
 También se relevará el proceso administrativo: alta o identificación del cliente, origen de la póliza, asociación cliente-póliza, corrección de errores, actualización y tratamiento de un asegurado sin cuenta. No se decidirá en F1 si la carga es manual, por importación, sincronización o consumo directo.
 
@@ -222,12 +223,15 @@ Salida: matriz RACI por proceso, con sustitutos, plazos de atención y responsab
 | --- | --- | --- |
 | RN-01 | El Portal registra solicitudes; no ejecuta pago, contratación, emisión ni cobro automático. | CONFIRMADO |
 | RN-02 | Cada producto puede requerir datos, validaciones, adjuntos y condiciones diferentes. | CONFIRMADO |
-| RN-03 | Un borrador de solicitud puede permanecer incompleto hasta que se apliquen las reglas de vigencia/retención aprobadas. Se considera solicitud formal cuando el usuario confirma el envío. | CONFIRMADO / plazo PENDIENTE MAPS |
+| RN-03 | Una `InsuranceRequest` en **BORRADOR** pertenece a una cuenta autenticada, puede permanecer incompleta según vigencia/retención y no es presentación formal; al confirmar el envío pasa a **ENVIADA**. | CONFIRMADO / plazo PENDIENTE MAPS |
 | RN-04 | Una solicitud enviada y un lead son conceptos distintos y no deben duplicarse por defecto. | CONFIRMADO |
 | RN-05 | Un lead puede vincularse a una solicitud posterior conservando trazabilidad; la condición exacta de conversión debe confirmarse. | CONFIRMADO / detalle PENDIENTE MAPS |
 | RN-06 | La asignación a productor es manual y debe ser atribuible a un responsable autorizado. | CONFIRMADO |
 | RN-07 | La derivación debe registrar su resultado funcional y no exponer más datos de los autorizados. | CONFIRMADO |
-| RN-08 | WhatsApp es el canal inicial/preferente establecido por Fase 0. F1 debe validar su operación, destinatario, información mínima, contingencia, necesidad de otros canales y quién selecciona el canal. La UX de selección, si aplica, se define en F2; la implementación concreta se define en F3. | CONFIRMADO / DIFERIDO F2/F3 |
+| RN-08 | Tras asignación manual, el sistema envía email transaccional al email verificado del productor con identificador, producto, fecha, nombre autorizado y enlace seguro. Registra destinatario, fecha/hora, resultado conocido, fallas y reintentos; estados técnicos de entrega no son estados funcionales de `InsuranceRequest`. | CONFIRMADO / implementación DIFERIDA F3 |
+| RN-12 | Las notificaciones del Portal son mínimas, relevantes, no redundantes y preferentemente accionables; no se envían emails por cada estado ni confirmaciones in-app redundantes. | CONFIRMADO / implementación DIFERIDA F3 |
+| RN-13 | Una versión PUBLICADA de formulario es inmutable; cada solicitud conserva la versión exacta usada y una enviada no cambia retrospectivamente. | CONFIRMADO |
+| RN-14 | Una `InsuranceRequest` en **BORRADOR** sólo puede generar/actualizar un `Lead` con contacto suficiente, consentimiento comercial válido y plazo de abandono definido; debe haber deduplicación, trazabilidad y cierre/conversión al enviarse. | CONFIRMADO / plazo y consentimiento PENDIENTE MAPS |
 | RN-09 | La consulta de pólizas se limita a información realmente disponible, autorizada y asociable al asegurado. | CONFIRMADO |
 | RN-10 | La disponibilidad de PDF de póliza no se presume hasta identificar una fuente y permisos válidos. | PENDIENTE DATOS |
 | RN-11 | Los cambios posteriores no deben volver ambigua la interpretación histórica de una solicitud enviada. | CONFIRMADO |
@@ -239,9 +243,10 @@ Salida: matriz RACI por proceso, con sustitutos, plazos de atención y responsab
 ```text
 Producto elegido
 -> inicio de trámite
--> carga parcial y borrador de solicitud
+-> registro/login obligatorio
+-> creación de InsuranceRequest (BORRADOR)
 -> completar requisitos/consentimientos
--> envío confirmado y creación de InsuranceRequest formal
+-> envío confirmado y transición a ENVIADA
 -> recepción MAPS
 -> asignación manual
 -> derivación trazable
@@ -278,12 +283,13 @@ Cliente/asegurado identificado
 | --- | --- | --- | --- | --- | --- | --- |
 | Productos MVP | PENDIENTE MAPS | Documento comercial previo de cuatro productos. | ¿Qué productos entran y con qué ficha aprobada? | Responsable comercial | Pendiente | Fichas por producto |
 | Formularios | PENDIENTE MAPS | No disponible. | ¿Campos, reglas, opciones, adjuntos y consentimientos? | Responsable comercial/legal | Pendiente | Matriz de formularios |
-| Autonomía de formularios | PENDIENTE MAPS | Fase 0 requiere formularios por producto; no define grado de autonomía confirmado. | ¿Qué cambios podrá operar MAPS sin intervención y con qué gobernanza? | Administrador MAPS | Pendiente | Decisión para F2/F3 |
-| Borradores | PENDIENTE MAPS | Baseline funcional. | ¿Cuándo expiran, se eliminan o son recuperables? | MAPS/legal | Pendiente | Regla de ciclo de vida |
+| Autonomía de formularios | CONFIRMADO / DIFERIDO F2/F3 | MAPS configura y publica formularios por producto sin cambios de código. | ¿Qué tipos de campo, validaciones, condiciones, adjuntos, secciones y profundidad de autonomía corresponden? | MAPS + Kondor | Pendiente | Relevamiento F1, UX F2 e implementación F3 |
+| Borradores | PENDIENTE MAPS | `InsuranceRequest` en BORRADOR asociada a cuenta autenticada. | ¿Cuándo expiran, se eliminan o son recuperables? | MAPS/legal | Pendiente | Regla de ciclo de vida |
+| Versión de borradores | PENDIENTE MAPS | FormVersion publicada inmutable; versión enviada preservada. | ¿Qué ocurre con BORRADOR cuando se publica una nueva versión: original, migración condicionada u otra política? | MAPS + Kondor | Pendiente | Decisión justificada de continuidad/migración |
 | Leads | PENDIENTE MAPS | Discovery consolidado: Lead distinto de solicitud formal. | ¿Qué los crea, con qué datos y consentimiento, y cuándo? | MAPS comercial/legal | Pendiente | Política de recuperación |
 | Conversión Lead | PENDIENTE MAPS | Discovery consolidado. | ¿Cómo se vincula/cierra un lead al crear solicitud formal? | MAPS comercial | Pendiente | Regla de trazabilidad |
 | Operación de solicitudes | PENDIENTE MAPS | Baseline: asignación manual. | ¿Quién revisa, asigna, reasigna y en qué plazo? | MAPS | Pendiente | RACI y SLA operativo |
-| Canal de derivación | PENDIENTE MAPS / DIFERIDO F2/F3 | Fase 0: WhatsApp inicial/preferente. | ¿Destinatario, datos mínimos, contingencia, necesidad de otros canales y quién selecciona el canal? | MAPS + Kondor | Pendiente | Validación operativa; UX F2 y técnica F3 |
+| Canal de derivación | CONFIRMADO / DIFERIDO F3 | Email transaccional inicial; WhatsApp es evolución. | ¿Email verificado, contenido autorizado, contingencia y responsable operativo? | MAPS + Kondor | Pendiente | Validación operativa e implementación F3 |
 | Pólizas | PENDIENTE MAPS | Discovery: consulta esperada de datos básicos. | ¿Qué atributos desea ver MAPS y quién los mantiene? | MAPS | Pendiente | Matriz de datos funcional |
 | PostgreSQL | PENDIENTE DATOS | Acceso read-only previsto. | ¿Qué tablas/relaciones/calidad/frecuencia existen? | MAPS habilita; Kondor releva | Pendiente | Informe read-only |
 | PDF | PENDIENTE DATOS | Fuente no verificada. | ¿Existe fuente, permiso y relación confiable con una póliza? | MAPS/Kondor | Pendiente | Decisión de alcance |
@@ -308,7 +314,7 @@ Product
   - define requisitos para -> InsuranceRequest
 
 InsuranceRequest
-  - responde una versión de -> Form
+  - existe desde BORRADOR y referencia una -> FormVersion
   - contiene -> RequestAnswer, Document, Consent
   - puede originarse en -> Lead (0..1)
   - puede ser asignada a -> Producer
@@ -339,17 +345,20 @@ Los siguientes requerimientos son intencionalmente funcionales y verificables; n
 
 | ID | Requerimiento | Estado |
 | --- | --- | --- |
-| RF-SOL-01 | El sistema debe permitir iniciar, conservar y recuperar un borrador de solicitud asociado de forma recuperable y segura a la identidad disponible del interesado, según el mecanismo que se defina posteriormente. | CONFIRMADO |
+| RF-SOL-01 | El sistema debe exigir registro/login antes de crear una `InsuranceRequest` en **BORRADOR**, y permitir conservarla y recuperarla de forma segura desde esa cuenta. | CONFIRMADO; UX DIFERIDO F2 |
 | RF-SOL-02 | El sistema debe validar los requisitos definidos para el producto antes de aceptar el envío formal de una solicitud. | CONFIRMADO |
 | RF-SOL-03 | El sistema debe conservar los datos, adjuntos, consentimientos y contexto funcional aplicables a una solicitud enviada. | CONFIRMADO |
 | RF-SOL-04 | El sistema debe permitir a un responsable autorizado consultar las solicitudes recibidas y asignarlas manualmente a un productor. | CONFIRMADO |
 | RF-SOL-05 | El sistema debe registrar la derivación de una solicitud y su resultado conocido. | CONFIRMADO |
+| RF-SOL-06 | El sistema debe distinguir BORRADOR de ENVIADA: BORRADOR es trámite iniciado y ENVIADA es presentación formal ante MAPS. | CONFIRMADO |
 | RF-LEAD-01 | El sistema debe permitir registrar un potencial cliente solo cuando se cumplan las reglas aprobadas de origen, datos mínimos y consentimiento. | PENDIENTE MAPS |
 | RF-LEAD-02 | El sistema debe poder vincular una solicitud formal con el lead del que provenga, sin crear un duplicado. | CONFIRMADO |
 | RF-POL-01 | El sistema debe permitir consultar al asegurado las pólizas o servicios asociados cuya información esté disponible y autorizada. | CONFIRMADO |
 | RF-POL-02 | El sistema debe permitir a un responsable autorizado administrar o corregir la relación cliente/póliza según el proceso aprobado. | PENDIENTE MAPS / DATOS |
 | RF-PROD-01 | El sistema debe permitir administrar productores habilitados para recibir asignaciones. | CONFIRMADO a validar detalle |
 | RF-CAT-01 | El sistema debe publicar los productos y sus requisitos vigentes definidos por MAPS. | CONFIRMADO |
+| RF-FORM-01 | El sistema debe permitir a MAPS configurar y publicar formularios diferentes por producto sin cambios de código; una versión PUBLICADA es inmutable. | CONFIRMADO; detalle DIFERIDO F2/F3 |
+| RF-PROD-02 | El productor sólo debe acceder read-only mediante enlace seguro, vencible, revocable, no adivinable, vinculado a una asignación, sin navegación a otros casos, con auditoría relevante, no indexación y transporte cifrado. | CONFIRMADO; mecanismo DIFERIDO F3 |
 
 ### No funcionales / restricciones de calidad
 
@@ -361,6 +370,7 @@ Los siguientes requerimientos son intencionalmente funcionales y verificables; n
 | RNF-DAT-01 | Cualquier uso de datos de PostgreSQL MAPS debe fundamentarse en procedencia, calidad, permisos y actualización observados. | CONFIRMADO |
 | RNF-OPS-01 | Los roles operativos y los plazos de atención deben ser explícitos para evitar solicitudes o leads sin responsable. | PENDIENTE MAPS |
 | RNF-COM-01 | La derivación debe minimizar datos expuestos y disponer de un comportamiento operativo ante fallas. | CONFIRMADO; solución DIFERIDO F3 |
+| RNF-COM-02 | El email de derivación no debe incluir fotografías, archivos, respuestas completas, documentos ni información sensible innecesaria. | CONFIRMADO |
 
 ## 12. Entregables de cierre
 
@@ -401,6 +411,12 @@ La Fase 1 podrá cerrarse cuando:
 | Fecha | Tema | Decisión/evidencia | Estado | Responsable | Impacto |
 | --- | --- | --- | --- | --- | --- |
 | 2026-09-02 | Inicio F1 | Se crea este documento vivo a partir de Fase 0 mergeada y discovery consolidado. | CONFIRMADO | Kondor/MAPS | Base de relevamiento |
+| 2026-09-03 | Autenticación previa | **Cambio controlado respecto de F0:** registro/login obligatorio antes de crear `InsuranceRequest(BORRADOR)`. Simplifica ownership de borradores, recuperación, consentimiento, trazabilidad y relación con potenciales clientes. F2 define sólo UX. | CONFIRMADO | MAPS/Kondor | Actualiza baseline y flujo funcional |
+| 2026-09-03 | Modelo de borrador | `InsuranceRequest` existe desde **BORRADOR**; no es presentación formal hasta pasar a **ENVIADA** al confirmarse el envío. | CONFIRMADO | MAPS/Kondor | Ajusta dominio, reglas y requerimientos |
+| 2026-09-03 | Canal inicial MVP | **Cambio controlado respecto de F0:** email transaccional reemplaza WhatsApp. Menor costo, dependencia, complejidad y riesgo; valida la misma asignación, notificación y acceso seguro. WhatsApp queda como evolución. | CONFIRMADO | MAPS/Kondor | Ajusta derivación, dependencias y riesgos |
+| 2026-09-03 | Notificaciones | Deben ser mínimas, relevantes, accionables y no redundantes; se excluyen emails por cada estado y confirmaciones in-app redundantes. | CONFIRMADO | MAPS/Kondor | Ajusta reglas del MVP |
+| 2026-09-03 | Formularios y versiones | Autonomía básica para configurar/publicar formularios confirmada; FormVersion PUBLICADA inmutable. La continuidad o migración de borradores frente a nueva versión queda pendiente de decisión justificada. | CONFIRMADO / PENDIENTE MAPS | MAPS/Kondor | F1 releva, F2 define UX, F3 implementa |
+| 2026-09-03 | Política de precio | Precio fijo sólo con valor vigente, confiable y aplicable; en otro caso, sujeto a evaluación externa. Cotizador/simulador fuera del MVP. | CONFIRMADO / validación por producto PENDIENTE MAPS | MAPS/Kondor | Ajusta catálogo y exclusiones |
 
 ## Anexo B - Registro de evidencia de datos
 
