@@ -2,11 +2,11 @@
 
 Portal para **MAPS Organización de Seguros** con tres capacidades principales: recibir y derivar solicitudes de seguros, integrar oportunidades elegibles con Potenciales clientes de la Intranet y permitir que el asegurado consulte los seguros o servicios que tiene contratados y la información básica disponible de sus pólizas.
 
-Para las solicitudes, el cliente dispone de una cuenta mediante email y contraseña, puede conservar borradores y debe autenticarse antes del envío definitivo; el momento exacto del registro se definirá en Fase 2. Luego, un administrador asigna manualmente un productor y el sistema deriva la solicitud mediante WhatsApp como canal inicial del MVP, manteniendo la capacidad preparada para incorporar otros canales en su evolución. La gestión comercial continúa fuera de la plataforma.
+El catálogo es público. Para iniciar una solicitud, el cliente debe registrarse o iniciar sesión: desde entonces existe una `InsuranceRequest` en **BORRADOR** asociada a su cuenta; sólo al enviarla pasa a **ENVIADA** y constituye una presentación formal. Luego, un administrador asigna manualmente un productor y el sistema deriva la solicitud mediante email transaccional al email verificado, con resumen mínimo y enlace seguro read-only. WhatsApp queda como evolución posible. La gestión comercial continúa fuera de la plataforma.
 
-La plataforma no incluye carrito, checkout, pagos, contratación automática, emisión de pólizas ni cotizador. La generación de potenciales clientes desde borradores requerirá datos mínimos, consentimiento y reglas de deduplicación. La visualización o descarga del PDF de una póliza no queda comprometida hasta confirmar que Federación Patronal o la fuente correspondiente permita obtenerlo.
+La plataforma no incluye carrito, checkout, pagos, contratación automática, emisión de pólizas, cotizador ni simulador. Un precio fijo sólo se muestra cuando MAPS aporta un valor vigente, confiable y aplicable; de otro modo queda sujeto a evaluación externa. La generación de potenciales clientes desde borradores requerirá datos mínimos, consentimiento, plazo de abandono, deduplicación y trazabilidad. La visualización o descarga del PDF de una póliza no queda comprometida hasta confirmar una fuente autorizada y vigente.
 
-Baseline funcional completa: [`Fase_0__Kickoff__Gobierno_del_proyecto_.md`](./Fase_0__Kickoff__Gobierno_del_proyecto_.md).
+Baseline funcional completa: [`Fase_0__Kickoff__Gobierno_del_proyecto_.md`](./docs/00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md).
 
 ## Estado actual
 
@@ -17,7 +17,7 @@ Este repositorio está en su **estructura inicial** (HU-000): las carpetas del m
 La estructura actual del monorepo es una base inicial y no constituye por sí sola una arquitectura aprobada. Las decisiones se cerrarán de forma progresiva:
 
 - **Fase 1:** procesos, requerimientos, datos disponibles, productos, reglas y modelo de dominio inicial.
-- **Fase 2:** journeys, navegación, wireframes, wireflows y momento exacto de autenticación.
+- **Fase 2:** journeys, navegación, wireframes, wireflows y UX para presentar registro/login obligatorio.
 - **Fase 3:** arquitectura de frontend y backend, autenticación y autorización detalladas, persistencia, almacenamiento, formularios configurables e integraciones.
 
 MAPS posee una PostgreSQL propia que podrá contener datos relevantes de clientes, pólizas e identificadores externos. Se considera una dependencia para relevar con acceso de sólo lectura en Fase 1, no una decisión de arquitectura. En Fase 3 se definirá si corresponde consultarla, importar, sincronizar, replicar o no utilizarla.
@@ -40,7 +40,8 @@ maps-ecommerce/
 
 ## Documentación
 
-- [`Fase_0__Kickoff__Gobierno_del_proyecto_.md`](./Fase_0__Kickoff__Gobierno_del_proyecto_.md): baseline funcional vigente.
+- [`Fase_0__Kickoff__Gobierno_del_proyecto_.md`](./docs/00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md): baseline funcional vigente, con cambios controlados documentados.
+- [`Fase_1__Discovery_y_Relevamiento.md`](./docs/01-producto/Fase_1__Discovery_y_Relevamiento.md): documento vivo de discovery, en curso.
 - [`docs/estructura.md`](./docs/estructura.md): arquitectura técnica inicial pendiente de realineación.
 - [`docs/00-proyecto/`](./docs/00-proyecto): alcance, decisiones, riesgos y minutas.
 - [`docs/03-tecnico/`](./docs/03-tecnico): arquitectura, API, modelo de datos, seguridad y deploy.
