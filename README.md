@@ -45,6 +45,7 @@ maps-ecommerce/
 - [`docs/estructura.md`](./docs/estructura.md): arquitectura técnica inicial pendiente de realineación.
 - [`docs/00-proyecto/`](./docs/00-proyecto): alcance, decisiones, riesgos y minutas.
 - [`docs/03-tecnico/`](./docs/03-tecnico): arquitectura, API, modelo de datos, seguridad y deploy.
+- [`docs/02-diseno/ui-ux/`](./docs/02-diseno/ui-ux/): prototipos y materiales de referencia UI/UX.
 - [`docs/tdd/`](./docs/tdd): Technical Design Documents por feature.
 
 ## Cómo correr el proyecto
