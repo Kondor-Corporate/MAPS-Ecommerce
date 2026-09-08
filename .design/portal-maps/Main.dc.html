@@ -1,0 +1,2090 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap">
+  <style>
+    :root{
+      --ink:#1A2226; --ink-2:#3C4649; --ink-3:#5B6670; --muted-icon:#5C6B70; --decorative:#808A90;
+      --border:#E2E8EA; --border-input:#D7DEE0;
+      --surface:#FFFFFF; --bg:#F6F9FA; --bg-soft:#F0F6F7;
+      --accent:#0D6B78; --accent-hover:#0B5F6A; --accent-soft:#EAF7F9; --accent-deep-1:#0B5560; --accent-deep-2:#106470;
+      --danger:#B03A2E; --danger-soft:#FDEEEC;
+      --success:#166B49; --success-soft:#E7F6EC;
+      --warn:#8A5A0F; --warn-soft:#FDF3E3; --warn-dot:#B8791A;
+      --info:#9C4A18; --info-soft:#FCEFE8;
+      --fs-xs:12px; --fs-sm:13px; --fs-base:14px; --fs-md:16px; --fs-lg:20px; --fs-xl:24px; --fs-2xl:30px; --fs-3xl:38px;
+      --r-sm:8px; --r-md:14px; --r-pill:999px;
+      --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-5:20px; --sp-6:24px; --sp-7:32px; --sp-8:40px; --sp-9:48px;
+      --shadow-card:0 8px 22px rgba(20,40,45,0.08);
+      --shadow-pop:0 20px 50px rgba(13,107,120,0.22);
+    }
+    *{box-sizing:border-box;}
+    body{margin:0;background:var(--bg);font-family:"Manrope",-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;color:var(--ink);font-size:var(--fs-base);line-height:1.5;-webkit-font-smoothing:antialiased;}
+    h1,h2,h3{margin:0;font-weight:800;letter-spacing:-0.02em;text-wrap:balance;}
+    a{color:var(--accent);text-underline-offset:2px;}
+    a:hover{color:var(--accent-hover);}
+    input,select,textarea,button{font-family:inherit;}
+    ::placeholder{color:var(--ink-3);opacity:1;}
+    svg{display:block;}
+
+    :focus{outline:none;}
+    a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,[tabindex]:focus-visible{
+      outline:2.5px solid var(--accent); outline-offset:2px; border-radius:4px;
+    }
+
+    .container{max-width:1180px;margin:0 auto;width:100%;padding-left:clamp(16px,4vw,32px);padding-right:clamp(16px,4vw,32px);}
+    .container-narrow{max-width:820px;}
+    .container-form{max-width:760px;}
+    .container-tight{max-width:640px;}
+    .stack{display:flex;flex-direction:column;}
+    .row{display:flex;align-items:center;}
+    .wrap{flex-wrap:wrap;}
+
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border-radius:var(--r-sm);font-size:var(--fs-base);font-weight:700;cursor:pointer;padding:13px 18px;border:1px solid transparent;transition:background .15s,border-color .15s,color .15s;white-space:nowrap;}
+    .btn:disabled{cursor:not-allowed;opacity:0.55;}
+    .btn-primary{background:var(--accent);color:#fff;}
+    .btn-primary:hover:not(:disabled){background:var(--accent-hover);}
+    .btn-secondary{background:var(--surface);border-color:var(--border-input);color:var(--ink-3);}
+    .btn-secondary:hover:not(:disabled){background:var(--bg-soft);}
+    .btn-danger-ghost{background:var(--surface);border-color:var(--border-input);color:var(--danger);}
+    .btn-danger-ghost:hover:not(:disabled){background:var(--danger-soft);}
+    .btn-ghost{background:none;border:none;color:var(--ink-2);padding:8px 14px;border-radius:var(--r-sm);font-weight:600;font-size:var(--fs-base);cursor:pointer;}
+    .btn-ghost:hover{background:var(--bg-soft);}
+    .btn-sm{padding:8px 14px;font-size:var(--fs-sm);}
+    .btn-block{width:100%;}
+    .btn-icon{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;flex:none;border-radius:var(--r-sm);background:var(--surface);border:1px solid var(--border-input);color:var(--ink-2);cursor:pointer;}
+    .btn-icon:hover:not(:disabled){background:var(--bg-soft);}
+    .btn-icon.danger{color:var(--danger);}
+    .btn-icon.danger:hover:not(:disabled){background:var(--danger-soft);}
+    .btn-icon:disabled{opacity:0.4;cursor:not-allowed;}
+    .icon{width:18px;height:18px;flex:none;}
+    .icon-sm{width:15px;height:15px;}
+    .icon-lg{width:26px;height:26px;}
+
+    .field-label{display:flex;flex-direction:column;gap:6px;font-size:var(--fs-sm);font-weight:600;color:var(--ink-3);}
+    .field{padding:11px 13px;border:1px solid var(--border-input);border-radius:var(--r-sm);font-size:var(--fs-base);outline:none;background:var(--surface);color:var(--ink);width:100%;}
+    .field:focus-visible{border-color:var(--accent);}
+    .field.has-error{border-color:var(--danger);background:var(--danger-soft);}
+    textarea.field{resize:vertical;}
+    .grid-2col{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-4);}
+    .span-2{grid-column:span 2;}
+    @media (max-width:640px){
+      .grid-2col{grid-template-columns:1fr;}
+      .grid-2col .span-2{grid-column:span 1;}
+    }
+    .req-mark{color:var(--danger);}
+
+    .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);}
+    .card-pad{padding:22px;}
+    .card-row-btn{display:flex;align-items:center;gap:16px;width:100%;text-align:left;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:18px 22px;cursor:pointer;font:inherit;color:inherit;transition:box-shadow .15s;flex-wrap:wrap;}
+    .card-row-btn:hover{box-shadow:var(--shadow-card);}
+    .product-card{display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);overflow:hidden;text-align:left;cursor:pointer;font:inherit;color:inherit;transition:box-shadow .15s,transform .15s;padding:0;}
+    .product-card:hover{box-shadow:var(--shadow-card);transform:translateY(-3px);}
+
+    .badge{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:800;letter-spacing:0.04em;padding:5px 11px;border-radius:var(--r-pill);white-space:nowrap;}
+    .cat-pill{border:1px solid var(--border-input);padding:9px 16px;border-radius:var(--r-pill);font-size:var(--fs-sm);font-weight:600;cursor:pointer;box-shadow:0 2px 8px rgba(20,40,45,0.06);display:inline-flex;align-items:center;gap:7px;background:var(--surface);color:var(--ink-2);}
+    .cat-pill[aria-pressed="true"]{outline:2px solid var(--accent);outline-offset:-1px;}
+
+    .nav-btn{background:none;border:none;padding:8px 14px;border-radius:var(--r-sm);font-size:var(--fs-base);font-weight:600;cursor:pointer;color:var(--ink-3);}
+    .nav-btn:hover{background:var(--bg-soft);}
+    .nav-btn[aria-current="page"]{color:var(--accent);}
+    .menu-item{display:block;width:100%;text-align:left;background:none;border:none;padding:10px 12px;border-radius:var(--r-sm);font-size:13.5px;font-weight:600;cursor:pointer;color:var(--ink-2);}
+    .menu-item:hover{background:var(--bg-soft);}
+    .menu-item.danger{color:var(--danger);}
+    .menu-item.danger:hover{background:var(--danger-soft);}
+
+    .data-table{width:100%;border-collapse:collapse;min-width:820px;}
+    .data-table caption{text-align:left;padding:14px 20px;font-size:var(--fs-xs);color:var(--ink-3);}
+    .data-table th{text-align:left;font-size:11.5px;font-weight:700;color:var(--ink-3);text-transform:uppercase;letter-spacing:0.03em;padding:14px 20px;background:var(--bg);border-bottom:1px solid var(--border);}
+    .data-table td{padding:14px 20px;border-bottom:1px solid #F0F3F4;font-size:13.5px;vertical-align:middle;}
+    .data-table tbody tr:last-child td{border-bottom:none;}
+    .sort-btn{cursor:pointer;background:none;border:none;padding:0;font:inherit;font-weight:700;color:var(--ink-3);border-bottom:1px dotted var(--decorative);display:inline-flex;gap:4px;}
+    .table-scroll{overflow-x:auto;}
+
+    .skel{background:linear-gradient(90deg,#EEF2F3 25%,#F7F9FA 37%,#EEF2F3 63%);background-size:400% 100%;border-radius:var(--r-md);animation:skel-shine 1.4s ease infinite;}
+    @keyframes skel-shine{0%{background-position:100% 0;}100%{background-position:0 0;}}
+    .empty-state{text-align:center;padding:60px 20px;color:var(--ink-3);font-size:var(--fs-base);}
+    .banner-info{display:flex;align-items:flex-start;gap:10px;background:#F6FAFB;border:1px solid #DCEDF0;border-radius:var(--r-sm);padding:12px 14px;font-size:12.5px;color:var(--ink-2);line-height:1.5;}
+    .banner-error{background:var(--danger-soft);border:1px solid #F5D2CB;color:var(--danger);font-size:var(--fs-base);font-weight:600;padding:11px 14px;border-radius:var(--r-sm);}
+    .banner-warn{display:inline-flex;align-items:center;gap:8px;background:var(--info-soft);border:1px solid #F3DCCB;color:var(--info);font-size:var(--fs-xs);font-weight:700;padding:7px 12px;border-radius:var(--r-pill);}
+    .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
+    .stepper{display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;}
+    .step-circle{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;border:2px solid;}
+    .step-label{font-size:11px;font-weight:600;white-space:nowrap;}
+    .step-line{width:34px;height:2px;margin-bottom:16px;}
+    @media (max-width:620px){ .step-line{width:16px;} .step-label{display:none;} }
+
+    @keyframes kd-fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+    @keyframes kd-pop{from{opacity:0;transform:scale(.94);}to{opacity:1;transform:scale(1);}}
+    .anim-fade{animation:kd-fade .3s ease;}
+    .anim-pop{animation:kd-pop .3s ease;}
+    @media (prefers-reduced-motion:reduce){
+      .anim-fade,.anim-pop{animation:none;}
+      .skel{animation:none;}
+    }
+
+    .app-header{display:flex;align-items:center;justify-content:space-between;padding:14px clamp(16px,4vw,32px);background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:40;gap:16px;flex-wrap:wrap;}
+    .brand-btn{display:flex;align-items:center;gap:10px;background:none;border:none;cursor:pointer;padding:2px;border-radius:var(--r-sm);}
+    .brand-name{font-size:19px;font-weight:800;letter-spacing:-0.02em;color:var(--ink);}
+
+    .product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:var(--sp-5);}
+    .product-media{height:104px;flex:none;display:flex;align-items:center;justify-content:center;}
+    .product-media .icon-lg{width:38px;height:38px;}
+
+    .hero{background:linear-gradient(120deg,var(--accent-deep-1) 0%,var(--accent-deep-2) 100%);padding:56px clamp(20px,6vw,64px) 52px;color:#fff;text-align:center;}
+
+    @media (max-width:760px){
+      [data-grid="product-detail"]{grid-template-columns:1fr!important;}
+      [data-sticky-panel]{position:static!important;top:auto!important;}
+      [data-grid="form-2col"]{grid-template-columns:1fr!important;}
+      [data-grid="form-2col"] .span-2{grid-column:span 1!important;}
+      [data-grid="admin-inbox"],[data-grid="admin-users"],[data-grid="admin-clients"]{grid-template-columns:minmax(0,1fr) auto!important;font-size:12.5px;}
+      .data-table{min-width:0!important;}
+      .app-header nav{order:3;flex-basis:100%;justify-content:flex-start;overflow-x:auto;}
+    }
+    @media (max-width:420px){
+      .container,.hero{padding-left:14px;padding-right:14px;}
+    }
+  </style>
+</helmet>
+<div class="stack" style="min-height:100vh;background:var(--bg);">
+
+  <a href="#main-content" class="btn btn-primary" style="position:fixed;top:-100px;left:12px;z-index:100;transition:top .15s;" onFocus="this.style.top='12px'" onBlur="this.style.top='-100px'">Saltar al contenido principal</a>
+
+  <header class="app-header">
+    <div class="row wrap" style="gap:24px;">
+      <button class="brand-btn" onClick="{{ goCatalog }}" aria-label="Ir al catálogo — MAPS Asesores">
+        <img src="logo-maps.svg" alt="" style="height:30px;width:auto;">
+        <span class="brand-name">MAPS Asesores</span>
+      </button>
+      <nav class="row" style="gap:4px;" aria-label="Principal">
+        <button class="nav-btn" aria-current="{{ navCurrent.catalog }}" onClick="{{ goCatalog }}">Catálogo</button>
+        <sc-if value="{{ isClient }}" hint-placeholder-val="{{ false }}">
+          <button class="nav-btn" aria-current="{{ navCurrent.requests }}" onClick="{{ goRequests }}">Mis solicitudes</button>
+          <button class="nav-btn" aria-current="{{ navCurrent.policies }}" onClick="{{ goPolicies }}">Mis pólizas</button>
+        </sc-if>
+        <sc-if value="{{ isAdmin }}" hint-placeholder-val="{{ false }}">
+          <button class="nav-btn" aria-current="{{ navCurrent.adminInbox }}" onClick="{{ goAdminInbox }}">Administrar solicitudes</button>
+          <button class="nav-btn" aria-current="{{ navCurrent.adminUsers }}" onClick="{{ goAdminUsers }}">Productores</button>
+        </sc-if>
+      </nav>
+    </div>
+    <div class="row wrap" style="gap:14px;">
+      <span class="badge" style="background:var(--accent-soft);color:var(--accent);border:1px solid #CFEAEF;">FASE 1 · PROTOTIPO</span>
+      <sc-if value="{{ loggedIn }}" hint-placeholder-val="{{ false }}">
+        <div style="position:relative;">
+          <button class="row" style="gap:10px;cursor:pointer;padding:5px 8px 5px 5px;border-radius:var(--r-pill);background:none;border:none;" onClick="{{ toggleAccountMenu }}" aria-haspopup="true" aria-expanded="{{ accountMenuOpen }}" aria-label="Menú de cuenta de {{ userName }}">
+            <span style="width:32px;height:32px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;">{{ userInitials }}</span>
+            <span style="font-size:13px;color:var(--ink-3);font-weight:600;">{{ userName }}</span>
+            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="#647079" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="transform:{{ accountChevronRotate }};transition:transform .15s;" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <sc-if value="{{ accountMenuOpen }}">
+            <div style="position:fixed;inset:0;z-index:49;" onClick="{{ closeAccountMenu }}"></div>
+            <div role="menu" onKeyDown="{{ onAccountMenuKeyDown }}" style="position:absolute;top:calc(100% + 8px);right:0;background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow-card);padding:8px;width:220px;z-index:50;" class="anim-fade">
+              <sc-if value="{{ isClient }}" hint-placeholder-val="{{ true }}">
+                <button class="menu-item" role="menuitem" onClick="{{ goRequests }}">Mis solicitudes</button>
+                <button class="menu-item" role="menuitem" onClick="{{ goPolicies }}">Mis pólizas</button>
+              </sc-if>
+              <sc-if value="{{ isAdmin }}" hint-placeholder-val="{{ false }}">
+                <div style="padding:6px 12px 4px;font-size:10.5px;font-weight:800;letter-spacing:0.06em;color:var(--info);">ADMINISTRADOR</div>
+                <button class="menu-item" role="menuitem" onClick="{{ goAdminInbox }}">Administrar solicitudes</button>
+                <button class="menu-item" role="menuitem" onClick="{{ goAdminUsers }}">Productores y usuarios</button>
+              </sc-if>
+              <button class="menu-item" role="menuitem" onClick="{{ goProfile }}">Mi perfil</button>
+              <div style="height:1px;background:#F0F3F4;margin:6px 4px;"></div>
+              <button class="menu-item danger" role="menuitem" onClick="{{ logout }}">Cerrar sesión</button>
+            </div>
+          </sc-if>
+        </div>
+      </sc-if>
+      <sc-if value="{{ loggedOut }}" hint-placeholder-val="{{ true }}">
+        <button class="btn btn-primary btn-sm" onClick="{{ goAuthLogin }}">Iniciar sesión</button>
+      </sc-if>
+    </div>
+  </header>
+
+  <main id="main-content" class="stack" style="flex:1;">
+
+    <sc-if value="{{ isScreen.auth }}" hint-placeholder-val="{{ false }}">
+      <div class="row" style="flex:1;justify-content:center;padding:48px 20px;background:linear-gradient(135deg,var(--accent-deep-1) 0%,var(--accent) 100%);">
+        <form class="anim-pop card" style="width:100%;max-width:430px;box-shadow:var(--shadow-pop);padding:36px;border:none;" onSubmit="{{ preventSubmit }}">
+          <div class="row" style="justify-content:center;margin-bottom:18px;">
+            <img src="logo-maps.png" alt="MAPS Asesores" style="height:34px;width:auto;">
+          </div>
+          <sc-if value="{{ authGateVisible }}">
+            <div class="banner-info" style="margin-bottom:20px;">
+              <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-top:1px;"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+              <span>Para iniciar una solicitud necesitás una cuenta. Es el paso previo a completar el formulario del producto.</span>
+            </div>
+          </sc-if>
+          <div class="row" role="tablist" aria-label="Modo de acceso" style="background:var(--bg-soft);border-radius:10px;padding:4px;margin-bottom:26px;">
+            <button type="button" role="tab" aria-selected="{{ isAuthMode.login }}" class="btn" style="flex:1;border:none;padding:10px 0;background:{{ authTabBg.login }};color:{{ authTabColor.login }};" onClick="{{ setAuthMode_login }}">Ingresar</button>
+            <button type="button" role="tab" aria-selected="{{ isAuthMode.register }}" class="btn" style="flex:1;border:none;padding:10px 0;background:{{ authTabBg.register }};color:{{ authTabColor.register }};" onClick="{{ setAuthMode_register }}">Registrarme</button>
+          </div>
+
+          <sc-if value="{{ isAuthMode.login }}">
+            <div class="stack" style="gap:14px;">
+              <label class="field-label">Email
+                <input class="field" type="email" placeholder="nombre@empresa.com" value="{{ authForm.email }}" onChange="{{ setAuthField_email }}" autocomplete="email" required="">
+              </label>
+              <label class="field-label">Contraseña
+                <input class="field" type="password" placeholder="••••••••" value="{{ authForm.password }}" onChange="{{ setAuthField_password }}" autocomplete="current-password" required="">
+              </label>
+              <button type="submit" class="btn btn-primary btn-block" style="margin-top:8px;" onClick="{{ submitLogin }}">Ingresar</button>
+              <p style="text-align:center;font-size:12px;color:var(--ink-3);margin:2px 0 0;">Demo: cualquier email y contraseña funcionan. Un email que contenga &quot;admin&quot; entra como administrador.</p>
+            </div>
+          </sc-if>
+          <sc-if value="{{ isAuthMode.register }}">
+            <div class="stack" style="gap:14px;">
+              <label class="field-label">Nombre completo
+                <input class="field" type="text" placeholder="Juan Pérez" value="{{ authForm.name }}" onChange="{{ setAuthField_name }}" autocomplete="name" required="">
+              </label>
+              <label class="field-label">Email
+                <input class="field" type="email" placeholder="nombre@empresa.com" value="{{ authForm.email }}" onChange="{{ setAuthField_email }}" autocomplete="email" required="">
+              </label>
+              <label class="field-label">Contraseña
+                <input class="field" type="password" placeholder="Mínimo 8 caracteres" value="{{ authForm.password }}" onChange="{{ setAuthField_password }}" autocomplete="new-password" required="" minlength="8">
+              </label>
+              <button type="submit" class="btn btn-primary btn-block" style="margin-top:8px;" onClick="{{ submitRegister }}">Crear cuenta</button>
+            </div>
+          </sc-if>
+        </form>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isScreen.catalog }}" hint-placeholder-val="{{ true }}">
+      <div class="anim-fade">
+        <section class="hero">
+          <div class="badge" style="background:rgba(255,255,255,0.18);color:#fff;margin-bottom:18px;">SOLICITÁ TU SEGURO ONLINE</div>
+          <h1 style="font-size:clamp(28px,5vw,var(--fs-3xl));margin:0 0 12px;">Elegí tu cobertura y enviá la solicitud</h1>
+          <p style="font-size:var(--fs-md);max-width:600px;margin:0 auto;opacity:0.94;line-height:1.55;">Mirá las coberturas, completá el formulario del producto y enviá tu solicitud. Un asesor de MAPS la toma y sigue el trámite con vos. No se realizan pagos en el sitio.</p>
+        </section>
+
+        <section class="container" style="padding-top:20px;padding-bottom:8px;">
+          <div style="max-width:420px;margin:-30px auto 18px;position:relative;z-index:2;">
+            <label class="sr-only" for="catalog-search">Buscar una cobertura</label>
+            <div style="position:relative;">
+              <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="var(--ink-3)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+              <input id="catalog-search" class="field" type="search" value="{{ catalogSearch }}" onChange="{{ setCatalogSearch }}" placeholder="Buscar una cobertura…" style="padding-left:40px;border-radius:var(--r-pill);box-shadow:0 2px 8px rgba(20,40,45,0.06);">
+            </div>
+          </div>
+          <div class="row wrap" role="group" aria-label="Filtrar por categoría" style="gap:8px;justify-content:center;position:relative;z-index:2;">
+            <sc-for list="{{ categories }}" as="cat" hint-placeholder-count="5">
+              <button type="button" class="cat-pill" aria-pressed="{{ cat.pressed }}" onClick="{{ cat.onClick }}">
+                <sc-if value="{{ cat.dotColor }}"><span style="width:8px;height:8px;border-radius:50%;background:{{ cat.dotColor }};flex:none;" aria-hidden="true"></span></sc-if>
+                {{ cat.label }}
+              </button>
+            </sc-for>
+          </div>
+        </section>
+
+        <section class="container" style="padding-top:36px;padding-bottom:72px;">
+          <sc-if value="{{ catalogLoading }}">
+            <div class="product-grid" aria-busy="true" aria-label="Cargando coberturas">
+              <sc-for list="{{ skeletonSlots }}" as="sk" hint-placeholder-count="6">
+                <div class="stack" style="gap:10px;">
+                  <div class="skel" style="height:104px;"></div>
+                  <div class="skel" style="height:14px;width:70%;"></div>
+                  <div class="skel" style="height:12px;width:90%;"></div>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+          <sc-if value="{{ noProductResults }}">
+            <div class="empty-state" role="status">No encontramos coberturas que coincidan con tu búsqueda.</div>
+          </sc-if>
+          <sc-if value="{{ showProductGrid }}">
+            <div class="product-grid">
+              <sc-for list="{{ visibleProducts }}" as="p" hint-placeholder-count="6">
+                <button type="button" class="product-card" onClick="{{ p.onOpen }}">
+                  <div class="product-media" style="background:{{ p.iconBg }};" aria-hidden="true" dangerouslySetInnerHTML="{{ p.iconSvg }}"></div>
+                  <div class="stack" style="padding:18px 22px 22px;gap:12px;flex:1;">
+                    <div>
+                      <h3 style="font-size:var(--fs-md);margin:0 0 5px;">{{ p.name }}</h3>
+                      <p style="margin:0;font-size:var(--fs-sm);color:var(--ink-3);line-height:1.45;">{{ p.short }}</p>
+                    </div>
+                    <div class="row" style="justify-content:space-between;align-items:flex-end;gap:10px;margin-top:auto;padding-top:10px;border-top:1px solid #F0F3F4;">
+                      <span class="stack" style="gap:2px;">
+                        <span style="font-size:var(--fs-xs);color:var(--ink-3);">{{ p.priceCaption }}</span>
+                        <span style="font-size:{{ p.priceSize }};font-weight:800;color:{{ p.priceColor }};line-height:1.25;">{{ p.priceLabel }}</span>
+                      </span>
+                      <span style="font-size:var(--fs-sm);font-weight:700;color:var(--accent);white-space:nowrap;">Ver cobertura →</span>
+                    </div>
+                  </div>
+                </button>
+              </sc-for>
+            </div>
+          </sc-if>
+        </section>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isScreen.product }}" hint-placeholder-val="{{ false }}">
+      <div class="container container-narrow anim-fade" style="padding-top:32px;padding-bottom:32px;">
+        <button type="button" class="btn btn-secondary btn-sm" style="margin-bottom:20px;" onClick="{{ goCatalog }}">
+          <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>
+          Volver al catálogo
+        </button>
+        <div data-grid="product-detail" style="display:grid;grid-template-columns:1.3fr 1fr;gap:36px;align-items:start;">
+          <div>
+            <div class="product-media" style="background:{{ selectedProduct.iconBg }};border-radius:var(--r-md);height:180px;margin-bottom:22px;" aria-hidden="true" dangerouslySetInnerHTML="{{ selectedProduct.iconSvgLg }}"></div>
+            <h1 style="font-size:var(--fs-2xl);margin:0 0 10px;">{{ selectedProduct.name }}</h1>
+            <p style="font-size:var(--fs-md);color:var(--ink-3);line-height:1.6;margin:0 0 24px;">{{ selectedProduct.long }}</p>
+            <h2 style="font-size:var(--fs-base);margin:0 0 12px;color:var(--ink);">Qué cubre</h2>
+            <ul class="stack" style="gap:10px;list-style:none;margin:0 0 28px;padding:0;">
+              <sc-for list="{{ selectedProduct.coverage }}" as="c" hint-placeholder-count="4">
+                <li class="row" style="gap:10px;align-items:flex-start;font-size:var(--fs-base);color:var(--ink-2);line-height:1.5;">
+                  <span style="width:6px;height:6px;border-radius:50%;background:var(--accent-deep-2);margin-top:7px;flex:none;" aria-hidden="true"></span>
+                  {{ c }}
+                </li>
+              </sc-for>
+            </ul>
+            <h2 style="font-size:var(--fs-base);margin:0 0 12px;color:var(--ink);">Qué pasa después de enviar</h2>
+            <ol class="stack" style="gap:10px;list-style:none;margin:0;padding:0;">
+              <sc-for list="{{ afterSubmitSteps }}" as="st" hint-placeholder-count="3">
+                <li class="row" style="gap:12px;align-items:flex-start;font-size:var(--fs-base);color:var(--ink-2);line-height:1.5;">
+                  <span style="width:22px;height:22px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;flex:none;" aria-hidden="true">{{ st.num }}</span>
+                  {{ st.text }}
+                </li>
+              </sc-for>
+            </ol>
+          </div>
+          <aside data-sticky-panel class="card card-pad" style="position:sticky;top:88px;">
+            <div style="font-size:var(--fs-xs);color:var(--ink-3);margin-bottom:4px;">{{ selectedProduct.priceCaption }}</div>
+            <div style="font-size:{{ selectedProduct.priceSizeLarge }};font-weight:800;color:{{ selectedProduct.priceColor }};margin-bottom:10px;line-height:1.2;">{{ selectedProduct.priceLabel }}</div>
+            <p style="font-size:12.5px;color:var(--ink-3);line-height:1.5;margin:0 0 18px;">{{ selectedProduct.priceNote }}</p>
+            <button type="button" class="btn btn-primary btn-block" style="margin-bottom:10px;" onClick="{{ startRequest }}">Solicitar cobertura</button>
+            <p style="font-size:var(--fs-xs);color:var(--ink-3);text-align:center;margin:0;">Sin pago online · Podés guardar el borrador</p>
+          </aside>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isScreen.request }}" hint-placeholder-val="{{ false }}">
+      <div class="container container-form anim-fade" style="padding-top:32px;padding-bottom:32px;">
+        <ol class="stepper" style="margin:0 0 30px;padding:0;list-style:none;" aria-label="Pasos de la solicitud">
+          <sc-for list="{{ steps }}" as="s" hint-placeholder-count="5">
+            <li class="row" style="gap:6px;" aria-current="{{ s.current }}">
+              <span class="stack" style="align-items:center;gap:6px;">
+                <span class="step-circle" style="background:{{ s.circleBg }};color:{{ s.circleColor }};border-color:{{ s.circleBorder }};" aria-hidden="true">{{ s.num }}</span>
+                <span class="step-label" style="color:{{ s.labelColor }};">{{ s.label }}</span>
+              </span>
+              <sc-if value="{{ s.showLine }}"><span class="step-line" style="background:{{ s.lineColor }};" aria-hidden="true"></span></sc-if>
+            </li>
+          </sc-for>
+        </ol>
+        <p class="sr-only" role="status">Paso {{ currentStepDisplay }} de {{ totalSteps }}: {{ currentStepLabel }}</p>
+
+        <div class="row wrap" style="justify-content:space-between;gap:12px;margin-bottom:12px;">
+          <span style="font-size:12.5px;color:var(--ink-3);">Solicitud {{ draftNumero }} · <span style="font-weight:700;color:var(--ink-3);">{{ draftEstadoLabel }}</span></span>
+          <sc-if value="{{ canSaveDraft }}">
+            <button type="button" class="btn btn-secondary btn-sm" onClick="{{ saveDraft }}">{{ saveDraftLabel }}</button>
+          </sc-if>
+        </div>
+
+        <div class="card card-pad">
+
+          <sc-if value="{{ isStep.0 }}">
+            <h2 style="font-size:var(--fs-lg);margin:0 0 18px;">Confirmá la cobertura</h2>
+            <div class="row" style="gap:16px;background:#F6FAFB;border-radius:12px;padding:18px;margin-bottom:20px;">
+              <div style="width:46px;height:46px;border-radius:11px;background:{{ selectedProduct.iconBg }};display:flex;align-items:center;justify-content:center;flex:none;" aria-hidden="true" dangerouslySetInnerHTML="{{ selectedProduct.iconSvgSm }}"></div>
+              <div style="flex:1;">
+                <div style="font-weight:700;font-size:15px;">{{ selectedProduct.name }}</div>
+                <div style="font-size:var(--fs-sm);color:var(--ink-3);">{{ selectedProduct.short }}</div>
+              </div>
+              <div style="font-weight:800;color:{{ selectedProduct.priceColor }};font-size:{{ selectedProduct.priceSize }};text-align:right;">{{ selectedProduct.priceLabel }}</div>
+            </div>
+            <p style="font-size:13.5px;color:var(--ink-3);line-height:1.6;margin:0 0 22px;">Al enviar la solicitud no se genera ninguna póliza ni cobro. MAPS revisa los datos y te contacta un asesor.</p>
+            <button type="button" class="btn btn-primary btn-block" onClick="{{ nextStep }}">Continuar</button>
+          </sc-if>
+
+          <sc-if value="{{ isStep.1 }}">
+            <h2 style="font-size:var(--fs-lg);margin:0 0 18px;">Tus datos de contacto</h2>
+            <div data-grid="form-2col" class="grid-2col" style="margin-bottom:16px;">
+              <label class="field-label span-2">Nombre completo<span class="req-mark" aria-hidden="true"> *</span>
+                <input class="field{{ contactErrorClass.nombre }}" type="text" value="{{ requestForm.nombre }}" onChange="{{ setRqField_nombre }}" required="" aria-required="true">
+              </label>
+              <label class="field-label">DNI / CUIT<span class="req-mark" aria-hidden="true"> *</span>
+                <input class="field{{ contactErrorClass.dni }}" type="text" value="{{ requestForm.dni }}" onChange="{{ setRqField_dni }}" required="" aria-required="true">
+              </label>
+              <label class="field-label">Teléfono<span class="req-mark" aria-hidden="true"> *</span>
+                <input class="field{{ contactErrorClass.telefono }}" type="tel" value="{{ requestForm.telefono }}" onChange="{{ setRqField_telefono }}" required="" aria-required="true">
+              </label>
+              <label class="field-label span-2">Email<span class="req-mark" aria-hidden="true"> *</span>
+                <input class="field{{ contactErrorClass.email }}" type="email" value="{{ requestForm.email }}" onChange="{{ setRqField_email }}" required="" aria-required="true">
+              </label>
+              <label class="field-label span-2">Dirección<span class="req-mark" aria-hidden="true"> *</span>
+                <input class="field{{ contactErrorClass.direccion }}" type="text" value="{{ requestForm.direccion }}" onChange="{{ setRqField_direccion }}" required="" aria-required="true">
+              </label>
+              <label class="field-label">Localidad
+                <input class="field" type="text" value="{{ requestForm.ciudad }}" onChange="{{ setRqField_ciudad }}">
+              </label>
+              <label class="field-label">Código postal
+                <input class="field" type="text" value="{{ requestForm.cp }}" onChange="{{ setRqField_cp }}">
+              </label>
+            </div>
+            <sc-if value="{{ showContactError }}">
+              <div class="banner-error" role="alert" style="margin-bottom:16px;">{{ contactErrorMessage }}</div>
+            </sc-if>
+            <div class="row" style="gap:10px;">
+              <button type="button" class="btn btn-secondary" style="flex:1;" onClick="{{ prevStep }}">Atrás</button>
+              <button type="button" class="btn btn-primary" style="flex:2;" onClick="{{ nextFromContact }}">Continuar</button>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isStep.2 }}">
+            <div class="row wrap" style="justify-content:space-between;gap:12px;margin-bottom:6px;">
+              <h2 style="font-size:var(--fs-lg);margin:0;">Formulario de {{ selectedProduct.name }}</h2>
+              <span style="font-size:11.5px;font-weight:700;color:var(--ink-3);">Formulario {{ activeFormVersionLabel }}</span>
+            </div>
+            <p style="font-size:var(--fs-sm);color:var(--ink-3);margin:0 0 20px;">Los campos los define MAPS por producto. Se guardan junto a la solicitud.</p>
+            <div data-grid="form-2col" class="grid-2col" style="margin-bottom:16px;">
+              <sc-for list="{{ dynamicFields }}" as="f" hint-placeholder-count="4">
+                <label class="field-label" style="grid-column:{{ f.span }};">{{ f.label }}<sc-if value="{{ f.required }}"><span class="req-mark" aria-hidden="true"> *</span></sc-if>
+                  <sc-if value="{{ f.isText }}">
+                    <input class="field{{ f.errorClass }}" type="text" value="{{ f.value }}" onChange="{{ f.onChange }}" placeholder="{{ f.placeholder }}" required="{{ f.required }}">
+                  </sc-if>
+                  <sc-if value="{{ f.isNumber }}">
+                    <input class="field{{ f.errorClass }}" type="number" value="{{ f.value }}" onChange="{{ f.onChange }}" placeholder="{{ f.placeholder }}" required="{{ f.required }}">
+                  </sc-if>
+                  <sc-if value="{{ f.isDate }}">
+                    <input class="field{{ f.errorClass }}" type="date" value="{{ f.value }}" onChange="{{ f.onChange }}" required="{{ f.required }}">
+                  </sc-if>
+                  <sc-if value="{{ f.isSelect }}">
+                    <select class="field{{ f.errorClass }}" value="{{ f.value }}" onChange="{{ f.onChange }}" required="{{ f.required }}">
+                      <option value="">Elegí una opción</option>
+                      <sc-for list="{{ f.options }}" as="opt" hint-placeholder-count="2">
+                        <option value="{{ opt.value }}">{{ opt.label }}</option>
+                      </sc-for>
+                    </select>
+                  </sc-if>
+                  <sc-if value="{{ f.isTextarea }}">
+                    <textarea class="field{{ f.errorClass }}" value="{{ f.value }}" onChange="{{ f.onChange }}" rows="3" placeholder="{{ f.placeholder }}"></textarea>
+                  </sc-if>
+                </label>
+              </sc-for>
+            </div>
+            <sc-if value="{{ showFieldError }}">
+              <div class="banner-error" role="alert" style="margin-bottom:16px;">Completá los campos obligatorios para continuar.</div>
+            </sc-if>
+            <div class="row" style="gap:10px;">
+              <button type="button" class="btn btn-secondary" style="flex:1;" onClick="{{ prevStep }}">Atrás</button>
+              <button type="button" class="btn btn-primary" style="flex:2;" onClick="{{ nextFromFields }}">Continuar</button>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isStep.3 }}">
+            <h2 style="font-size:var(--fs-lg);margin:0 0 6px;">Documentación</h2>
+            <p style="font-size:var(--fs-sm);color:var(--ink-3);margin:0 0 20px;">Adjuntá lo que tengas a mano. Podés enviar la solicitud y completar el resto después con tu asesor.</p>
+            <label class="stack" style="align-items:center;justify-content:center;gap:8px;border:1.5px dashed var(--decorative);border-radius:12px;padding:28px;cursor:pointer;background:#FBFDFD;margin-bottom:16px;">
+              <svg class="icon-lg" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l-4.5 4.5M12 3l4.5 4.5M12 3v12"/><path d="M4 19h16"/></svg>
+              <span style="font-size:13.5px;font-weight:700;color:var(--accent);">Adjuntar archivos</span>
+              <span style="font-size:var(--fs-xs);color:var(--ink-3);">PDF o imagen</span>
+              <input type="file" multiple="" style="position:absolute;width:1px;height:1px;opacity:0;" onChange="{{ addAttachments }}" aria-label="Adjuntar archivos, PDF o imagen">
+            </label>
+            <ul class="stack" style="gap:8px;margin:0 0 22px;padding:0;list-style:none;">
+              <sc-for list="{{ attachments }}" as="a" hint-placeholder-count="0">
+                <li class="row" style="gap:12px;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:11px 14px;">
+                  <span style="flex:1;font-size:var(--fs-sm);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ a.name }}</span>
+                  <button type="button" class="btn-icon danger" style="width:28px;height:28px;" aria-label="Quitar {{ a.name }}" onClick="{{ a.onRemove }}">
+                    <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+                  </button>
+                </li>
+              </sc-for>
+            </ul>
+            <div class="row" style="gap:10px;">
+              <button type="button" class="btn btn-secondary" style="flex:1;" onClick="{{ prevStep }}">Atrás</button>
+              <button type="button" class="btn btn-primary" style="flex:2;" onClick="{{ nextStep }}">Continuar</button>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isStep.4 }}">
+            <h2 style="font-size:var(--fs-lg);margin:0 0 18px;">Revisá y enviá</h2>
+            <dl class="stack" style="gap:12px;margin:0 0 20px;">
+              <sc-for list="{{ reviewRows }}" as="r" hint-placeholder-count="5">
+                <div class="row" style="justify-content:space-between;gap:18px;font-size:13.5px;padding-bottom:11px;border-bottom:1px solid #F0F3F4;">
+                  <dt style="color:var(--ink-3);flex:none;max-width:45%;">{{ r.label }}</dt>
+                  <dd style="font-weight:700;text-align:right;margin:0;">{{ r.value }}</dd>
+                </div>
+              </sc-for>
+            </dl>
+            <label class="row" style="align-items:flex-start;gap:9px;font-size:var(--fs-sm);color:var(--ink-3);margin-bottom:20px;cursor:pointer;line-height:1.5;">
+              <input type="checkbox" checked="{{ requestForm.acepta }}" onChange="{{ toggleAcepta }}" style="width:16px;height:16px;margin-top:2px;flex:none;">
+              Declaro que los datos son correctos y acepto los términos y la política de privacidad.
+            </label>
+            <div class="row" style="gap:10px;">
+              <button type="button" class="btn btn-secondary" style="flex:1;" onClick="{{ prevStep }}">Atrás</button>
+              <button type="button" class="btn btn-primary" style="flex:2;" disabled="{{ submitDisabled }}" onClick="{{ submitRequest }}">{{ submitBtnLabel }}</button>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isStep.5 }}">
+            <div class="anim-pop" style="text-align:center;padding:20px 0;">
+              <div style="width:64px;height:64px;border-radius:50%;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;" aria-hidden="true">
+                <svg class="icon-lg" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5L9.5 18L20 6"/></svg>
+              </div>
+              <h2 style="font-size:22px;margin:0 0 8px;" role="status">Solicitud enviada</h2>
+              <p style="font-size:var(--fs-base);color:var(--ink-3);margin:0 0 4px;">Tu solicitud de <strong>{{ selectedProduct.name }}</strong> quedó registrada con el número <strong>{{ draftNumero }}</strong>.</p>
+              <p style="font-size:var(--fs-sm);color:var(--ink-3);margin:0 0 26px;">MAPS la asigna a un asesor y te contacta para continuar. Podés seguir el estado en Mis solicitudes.</p>
+              <div class="row wrap" style="gap:10px;justify-content:center;">
+                <button type="button" class="btn btn-secondary" onClick="{{ goCatalog }}">Volver al catálogo</button>
+                <button type="button" class="btn btn-primary" onClick="{{ goRequests }}">Ver mis solicitudes</button>
+              </div>
+            </div>
+          </sc-if>
+
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isScreen.requests }}" hint-placeholder-val="{{ false }}">
+      <div class="container anim-fade" style="max-width:900px;padding-top:32px;padding-bottom:32px;">
+        <h1 style="font-size:var(--fs-xl);margin:0 0 6px;">Mis solicitudes</h1>
+        <p style="font-size:var(--fs-base);color:var(--ink-3);margin:0 0 22px;">Seguimiento de cada trámite, desde el borrador hasta la derivación al asesor.</p>
+        <div class="row wrap" role="group" aria-label="Filtrar por estado" style="gap:8px;margin-bottom:18px;">
+          <sc-for list="{{ requestFilters }}" as="f" hint-placeholder-count="6">
+            <button type="button" class="btn btn-sm" style="border:1px solid var(--border-input);background:{{ f.bg }};color:{{ f.color }};border-radius:var(--r-pill);" aria-pressed="{{ f.pressed }}" onClick="{{ f.onClick }}">{{ f.label }}</button>
+          </sc-for>
+        </div>
+        <ul class="stack" style="gap:12px;list-style:none;margin:0;padding:0;">
+          <sc-for list="{{ myRequests }}" as="r" hint-placeholder-count="3">
+            <li>
+              <button type="button" class="card-row-btn" onClick="{{ r.onOpen }}">
+                <span style="width:42px;height:42px;border-radius:10px;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;flex:none;" aria-hidden="true" dangerouslySetInnerHTML="{{ r.iconSvg }}"></span>
+                <span class="stack" style="flex:1;min-width:180px;gap:2px;">
+                  <span style="font-weight:700;font-size:14.5px;">{{ r.productName }}</span>
+                  <span style="font-size:12.5px;color:var(--ink-3);">{{ r.numero }} · Actualizada el {{ r.updatedAt }}</span>
+                </span>
+                <span class="badge" style="background:{{ r.estadoBg }};color:{{ r.estadoColor }};">{{ r.estado }}</span>
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="var(--decorative)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+              </button>
+            </li>
+          </sc-for>
+          <sc-if value="{{ noRequests }}">
+            <li class="empty-state" role="status">No tenés solicitudes en este estado. <a href="#" onClick="{{ goCatalogPrevent }}" style="font-weight:600;">Ver catálogo</a></li>
+          </sc-if>
+        </ul>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isScreen.requestDetail }}" hint-placeholder-val="{{ false }}">
+      <div class="container container-narrow anim-fade" style="padding-top:32px;padding-bottom:32px;">
+        <button type="button" class="btn btn-secondary btn-sm" style="margin-bottom:20px;" onClick="{{ goRequests }}">
+          <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>
+          Volver a mis solicitudes
+        </button>
+        <div class="row wrap" style="gap:14px;margin-bottom:20px;">
+          <span style="width:46px;height:46px;border-radius:11px;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;flex:none;" aria-hidden="true" dangerouslySetInnerHTML="{{ selectedRequest.iconSvg }}"></span>
+          <span class="stack" style="flex:1;min-width:200px;gap:2px;">
+            <h1 style="font-size:22px;">{{ selectedRequest.productName }}</h1>
+            <span style="font-size:var(--fs-sm);color:var(--ink-3);">{{ selectedRequest.numero }} · Creada el {{ selectedRequest.createdAt }}</span>
+          </span>
+          <span class="badge" style="background:{{ selectedRequest.estadoBg }};color:{{ selectedRequest.estadoColor }};padding:6px 12px;">{{ selectedRequest.estado }}</span>
+        </div>
+
+        <div class="card card-pad" style="margin-bottom:16px;">
+          <h2 style="font-size:var(--fs-base);margin:0 0 14px;">Datos enviados</h2>
+          <dl class="stack" style="gap:11px;margin:0;">
+            <sc-for list="{{ selectedRequest.rows }}" as="row" hint-placeholder-count="5">
+              <div class="row" style="justify-content:space-between;gap:18px;font-size:13.5px;padding-bottom:10px;border-bottom:1px solid #F0F3F4;">
+                <dt style="color:var(--ink-3);flex:none;max-width:45%;">{{ row.label }}</dt>
+                <dd style="font-weight:700;text-align:right;margin:0;">{{ row.value }}</dd>
+              </div>
+            </sc-for>
+          </dl>
+        </div>
+
+        <sc-if value="{{ selectedRequest.hasProductor }}">
+          <div class="card card-pad" style="margin-bottom:16px;">
+            <h2 style="font-size:var(--fs-base);margin:0 0 6px;">Asesor asignado</h2>
+            <div style="font-size:var(--fs-base);font-weight:700;">{{ selectedRequest.productorNombre }}</div>
+            <div style="font-size:var(--fs-sm);color:var(--ink-3);">{{ selectedRequest.productorEmail }}</div>
+          </div>
+        </sc-if>
+
+        <div class="card card-pad" style="margin-bottom:16px;">
+          <h2 style="font-size:var(--fs-base);margin:0 0 16px;">Historial</h2>
+          <ol class="stack" style="gap:0;list-style:none;margin:0;padding:0;">
+            <sc-for list="{{ selectedRequest.historial }}" as="h" hint-placeholder-count="3">
+              <li class="row" style="gap:14px;align-items:flex-start;">
+                <span class="stack" style="align-items:center;flex:none;" aria-hidden="true">
+                  <span style="width:11px;height:11px;border-radius:50%;background:{{ h.dot }};margin-top:4px;flex:none;"></span>
+                  <sc-if value="{{ h.showLine }}"><span style="width:2px;flex:1;background:var(--border);"></span></sc-if>
+                </span>
+                <span class="stack" style="padding-bottom:18px;gap:2px;">
+                  <span style="font-size:13.5px;font-weight:700;">{{ h.label }}</span>
+                  <span style="font-size:12.5px;color:var(--ink-3);">{{ h.fecha }}</span>
+                </span>
+              </li>
+            </sc-for>
+          </ol>
+        </div>
+
+        <div class="row wrap" style="gap:10px;">
+          <sc-if value="{{ selectedRequest.canResume }}">
+            <button type="button" class="btn btn-primary" onClick="{{ resumeDraft }}">Retomar borrador</button>
+          </sc-if>
+          <sc-if value="{{ selectedRequest.canCancel }}">
+            <button type="button" class="btn btn-danger-ghost" onClick="{{ cancelRequest }}">Cancelar solicitud</button>
+          </sc-if>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isScreen.policies }}" hint-placeholder-val="{{ false }}">
+      <div class="container anim-fade" style="max-width:860px;padding-top:32px;padding-bottom:32px;">
+        <h1 style="font-size:var(--fs-xl);margin:0 0 6px;">Mis pólizas</h1>
+        <p style="font-size:var(--fs-base);color:var(--ink-3);margin:0 0 10px;">Consulta de las pólizas vigentes registradas por MAPS. La información es de solo lectura.</p>
+        <div class="banner-warn" style="margin-bottom:22px;">
+          <span style="width:7px;height:7px;border-radius:50%;background:var(--info);flex:none;" aria-hidden="true"></span>
+          PENDIENTE DATOS · Origen de la información de pólizas a confirmar con MAPS
+        </div>
+        <ul class="stack" style="gap:12px;list-style:none;margin:0;padding:0;">
+          <sc-for list="{{ myPolicies }}" as="pol" hint-placeholder-count="2">
+            <li>
+              <button type="button" class="card-row-btn" onClick="{{ pol.onOpen }}">
+                <span style="width:42px;height:42px;border-radius:10px;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;flex:none;" aria-hidden="true" dangerouslySetInnerHTML="{{ pol.iconSvg }}"></span>
+                <span class="stack" style="flex:1;min-width:190px;gap:2px;">
+                  <span style="font-weight:700;font-size:14.5px;">{{ pol.productName }}</span>
+                  <span style="font-size:12.5px;color:var(--ink-3);">Póliza {{ pol.numero }} · Vigencia {{ pol.vigencia }}</span>
+                </span>
+                <span class="badge" style="background:{{ pol.estadoBg }};color:{{ pol.estadoColor }};">{{ pol.estado }}</span>
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="var(--decorative)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+              </button>
+            </li>
+          </sc-for>
+          <sc-if value="{{ noPolicies }}">
+            <li class="empty-state" role="status">Todavía no hay pólizas registradas a tu nombre.</li>
+          </sc-if>
+        </ul>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isScreen.policyDetail }}" hint-placeholder-val="{{ false }}">
+      <div class="container container-narrow anim-fade" style="padding-top:32px;padding-bottom:32px;">
+        <button type="button" class="btn btn-secondary btn-sm" style="margin-bottom:20px;" onClick="{{ goPolicies }}">
+          <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>
+          Volver a mis pólizas
+        </button>
+        <div class="row wrap" style="gap:14px;margin-bottom:20px;">
+          <span style="width:46px;height:46px;border-radius:11px;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;flex:none;" aria-hidden="true" dangerouslySetInnerHTML="{{ selectedPolicy.iconSvg }}"></span>
+          <span class="stack" style="flex:1;min-width:200px;gap:2px;">
+            <h1 style="font-size:22px;">{{ selectedPolicy.productName }}</h1>
+            <span style="font-size:var(--fs-sm);color:var(--ink-3);">Póliza {{ selectedPolicy.numero }} · Titular {{ userName }}</span>
+          </span>
+          <span class="badge" style="background:{{ selectedPolicy.estadoBg }};color:{{ selectedPolicy.estadoColor }};padding:6px 12px;">{{ selectedPolicy.estado }}</span>
+        </div>
+        <div class="card card-pad">
+          <dl class="stack" style="gap:11px;margin:0;">
+            <sc-for list="{{ selectedPolicy.rows }}" as="row" hint-placeholder-count="5">
+              <div class="row" style="justify-content:space-between;gap:18px;font-size:13.5px;padding-bottom:10px;border-bottom:1px solid #F0F3F4;">
+                <dt style="color:var(--ink-3);flex:none;max-width:45%;">{{ row.label }}</dt>
+                <dd style="font-weight:700;text-align:right;margin:0;">{{ row.value }}</dd>
+              </div>
+            </sc-for>
+          </dl>
+        </div>
+        <p style="font-size:12.5px;color:var(--ink-3);line-height:1.6;margin:16px 0 0;">Para gestionar cambios sobre esta póliza contactá a tu asesor de MAPS.</p>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isScreen.profile }}" hint-placeholder-val="{{ false }}">
+      <div class="container container-tight anim-fade" style="padding-top:32px;padding-bottom:32px;">
+        <h1 style="font-size:var(--fs-xl);margin:0 0 6px;">Mi perfil</h1>
+        <p style="font-size:var(--fs-base);color:var(--ink-3);margin:0 0 26px;">Estos datos precargan el formulario de cada solicitud.</p>
+        <div class="card card-pad">
+          <div class="row wrap" style="gap:18px;margin-bottom:26px;">
+            <span style="width:64px;height:64px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:22px;flex:none;" aria-hidden="true">{{ userInitials }}</span>
+            <div>
+              <div style="font-weight:700;font-size:var(--fs-md);">{{ userName }}</div>
+              <div style="font-size:var(--fs-sm);color:var(--ink-3);">Cliente registrado</div>
+            </div>
+          </div>
+          <div data-grid="form-2col" class="grid-2col">
+            <label class="field-label span-2">Nombre completo
+              <input class="field" type="text" value="{{ profileForm.nombre }}" onChange="{{ setProfileField_nombre }}">
+            </label>
+            <label class="field-label">Email
+              <input class="field" type="email" value="{{ profileForm.email }}" onChange="{{ setProfileField_email }}">
+            </label>
+            <label class="field-label">Teléfono
+              <input class="field" type="text" value="{{ profileForm.telefono }}" onChange="{{ setProfileField_telefono }}">
+            </label>
+            <label class="field-label span-2">Dirección
+              <input class="field" type="text" value="{{ profileForm.direccion }}" onChange="{{ setProfileField_direccion }}">
+            </label>
+          </div>
+          <button type="button" class="btn btn-primary" style="margin-top:22px;" onClick="{{ saveProfile }}">{{ profileSaveLabel }}</button>
+        </div>
+
+        <div class="card card-pad" style="margin-top:18px;">
+          <h2 style="font-size:15px;margin:0 0 4px;">Cambiar contraseña</h2>
+          <p style="font-size:var(--fs-sm);color:var(--ink-3);margin:0 0 18px;">Usá una contraseña que no utilices en otros sitios.</p>
+          <div data-grid="form-2col" class="grid-2col">
+            <label class="field-label span-2">Contraseña actual
+              <input class="field" type="password" value="{{ passwordForm.current }}" onChange="{{ setPasswordField_current }}" placeholder="••••••••" autocomplete="current-password">
+            </label>
+            <label class="field-label">Nueva contraseña
+              <input class="field" type="password" value="{{ passwordForm.next }}" onChange="{{ setPasswordField_next }}" placeholder="••••••••" autocomplete="new-password">
+            </label>
+            <label class="field-label">Confirmar nueva contraseña
+              <input class="field" type="password" value="{{ passwordForm.confirm }}" onChange="{{ setPasswordField_confirm }}" placeholder="••••••••" autocomplete="new-password">
+            </label>
+          </div>
+          <sc-if value="{{ passwordMismatch }}">
+            <p style="color:var(--danger);font-size:var(--fs-xs);font-weight:600;margin:10px 0 0;" role="alert">Las contraseñas nuevas no coinciden.</p>
+          </sc-if>
+          <button type="button" class="btn btn-secondary" style="margin-top:22px;" onClick="{{ changePassword }}">{{ passwordSaveLabel }}</button>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isScreen.productor }}" hint-placeholder-val="{{ false }}">
+      <div class="container container-narrow anim-fade" style="padding-top:32px;padding-bottom:32px;">
+        <div class="row wrap" style="gap:10px;background:var(--accent);color:#fff;border-radius:12px;padding:14px 18px;margin-bottom:22px;">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+          <div style="flex:1;min-width:220px;">
+            <div style="font-size:13.5px;font-weight:800;">Enlace seguro · vista de solo lectura</div>
+            <div style="font-size:12.5px;opacity:0.85;">Acceso del productor a la solicitud derivada. No requiere cuenta y no permite editar.</div>
+          </div>
+        </div>
+        <div class="row wrap" style="gap:14px;margin-bottom:18px;">
+          <span style="width:46px;height:46px;border-radius:11px;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;flex:none;" aria-hidden="true" dangerouslySetInnerHTML="{{ productorView.iconSvg }}"></span>
+          <span class="stack" style="flex:1;min-width:200px;gap:2px;">
+            <h1 style="font-size:21px;">{{ productorView.productName }}</h1>
+            <span style="font-size:var(--fs-sm);color:var(--ink-3);">{{ productorView.numero }} · Cliente {{ productorView.cliente }}</span>
+          </span>
+          <span class="badge" style="background:{{ productorView.estadoBg }};color:{{ productorView.estadoColor }};padding:6px 12px;">{{ productorView.estado }}</span>
+        </div>
+        <div class="card card-pad" style="margin-bottom:16px;">
+          <h2 style="font-size:var(--fs-base);margin:0 0 14px;">Datos de la solicitud</h2>
+          <dl class="stack" style="gap:11px;margin:0;">
+            <sc-for list="{{ productorView.rows }}" as="row" hint-placeholder-count="6">
+              <div class="row" style="justify-content:space-between;gap:18px;font-size:13.5px;padding-bottom:10px;border-bottom:1px solid #F0F3F4;">
+                <dt style="color:var(--ink-3);flex:none;max-width:45%;">{{ row.label }}</dt>
+                <dd style="font-weight:700;text-align:right;margin:0;">{{ row.value }}</dd>
+              </div>
+            </sc-for>
+          </dl>
+        </div>
+        <div class="card card-pad">
+          <h2 style="font-size:var(--fs-base);margin:0 0 12px;">Documentación adjunta</h2>
+          <ul class="stack" style="gap:8px;list-style:none;margin:0;padding:0;">
+            <sc-for list="{{ productorView.adjuntos }}" as="a" hint-placeholder-count="2">
+              <li style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:11px 14px;font-size:var(--fs-sm);font-weight:600;">{{ a.name }}</li>
+            </sc-for>
+            <sc-if value="{{ productorView.noAdjuntos }}">
+              <li style="font-size:var(--fs-sm);color:var(--ink-3);list-style:none;">La solicitud no tiene archivos adjuntos.</li>
+            </sc-if>
+          </ul>
+        </div>
+        <button type="button" class="btn btn-secondary" style="margin-top:20px;" onClick="{{ exitProductorView }}">Salir de la vista de productor</button>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isScreen.admin }}" hint-placeholder-val="{{ false }}">
+      <div class="container anim-fade" style="max-width:1240px;padding-top:32px;padding-bottom:32px;">
+        <div class="row wrap" style="justify-content:space-between;gap:12px;margin-bottom:4px;">
+          <h1 style="font-size:var(--fs-xl);">Backoffice MAPS</h1>
+          <span class="badge" style="background:var(--info-soft);color:var(--info);">VISTA DEMO</span>
+        </div>
+        <div style="height:3px;border-radius:3px;background:linear-gradient(90deg,var(--info),#C97A3C);margin-bottom:14px;max-width:120px;" aria-hidden="true"></div>
+        <p style="font-size:var(--fs-base);color:var(--ink-3);margin:0 0 18px;">Bandeja de solicitudes, asignación a productores, formularios por producto y consulta de clientes y pólizas.</p>
+
+        <nav aria-label="Secciones del backoffice" class="row wrap" style="gap:4px;background:var(--bg-soft);border-radius:10px;padding:4px;width:fit-content;margin-bottom:22px;">
+          <sc-for list="{{ adminTabs }}" as="t" hint-placeholder-count="6">
+            <button type="button" class="btn btn-sm" style="border:none;background:{{ t.bg }};color:{{ t.color }};" aria-current="{{ t.current }}" onClick="{{ t.onClick }}">{{ t.label }}</button>
+          </sc-for>
+        </nav>
+
+        <sc-if value="{{ isAdminTab.inbox }}" hint-placeholder-val="{{ true }}">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:22px;">
+            <sc-for list="{{ adminKpis }}" as="kpi" hint-placeholder-count="4">
+              <button type="button" class="card" style="text-align:left;padding:16px 18px;cursor:pointer;" onClick="{{ kpi.onClick }}">
+                <div style="font-size:var(--fs-xs);color:var(--ink-3);margin-bottom:6px;">{{ kpi.label }}</div>
+                <div style="font-size:var(--fs-xl);font-weight:800;color:{{ kpi.color }};">{{ kpi.value }}</div>
+              </button>
+            </sc-for>
+          </div>
+
+          <div class="row wrap" style="gap:10px;margin-bottom:14px;">
+            <label class="sr-only" for="admin-search">Buscar por cliente o número</label>
+            <input id="admin-search" class="field" type="search" placeholder="Buscar por cliente o número…" value="{{ adminSearch }}" onChange="{{ setAdminSearch }}" style="flex:1;min-width:220px;">
+            <label class="sr-only" for="admin-filter-product">Filtrar por producto</label>
+            <select id="admin-filter-product" class="field" style="width:auto;" value="{{ adminFilterProduct }}" onChange="{{ setAdminFilterProduct }}">
+              <sc-for list="{{ productFilterOptions }}" as="opt" hint-placeholder-count="3">
+                <option value="{{ opt.value }}">{{ opt.label }}</option>
+              </sc-for>
+            </select>
+            <label class="sr-only" for="admin-filter-estado">Filtrar por estado</label>
+            <select id="admin-filter-estado" class="field" style="width:auto;" value="{{ adminFilterEstado }}" onChange="{{ setAdminFilterEstado }}">
+              <sc-for list="{{ estadoFilterOptions }}" as="opt" hint-placeholder-count="6">
+                <option value="{{ opt.value }}">{{ opt.label }}</option>
+              </sc-for>
+            </select>
+          </div>
+
+          <p style="font-size:12.5px;color:var(--ink-3);margin:0 0 10px;" role="status">Mostrando {{ adminRangeLabel }}</p>
+
+          <div class="card" style="overflow:hidden;">
+            <div class="table-scroll">
+              <table class="data-table">
+                <caption class="sr-only">Solicitudes recibidas por MAPS</caption>
+                <thead>
+                  <tr>
+                    <th scope="col">Solicitud</th>
+                    <th scope="col"><button type="button" class="sort-btn" onClick="{{ toggleSortCliente }}">Cliente <span aria-hidden="true">{{ sortClienteArrow }}</span></button></th>
+                    <th scope="col">Producto</th>
+                    <th scope="col">Estado</th>
+                    <th scope="col">Productor asignado</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <sc-for list="{{ adminRowsPage }}" as="rec" hint-placeholder-count="5">
+                    <tr>
+                      <td>
+                        <button type="button" style="background:none;border:none;padding:0;font:inherit;font-weight:700;color:var(--accent);cursor:pointer;" onClick="{{ rec.onOpenProductorView }}">{{ rec.numero }}</button>
+                        <div style="font-size:11.5px;color:var(--ink-3);">{{ rec.createdAt }}</div>
+                      </td>
+                      <td style="font-weight:600;">{{ rec.cliente }}</td>
+                      <td style="color:var(--ink-2);">{{ rec.productName }}</td>
+                      <td><span class="badge" style="background:{{ rec.estadoBg }};color:{{ rec.estadoColor }};font-size:11px;padding:5px 10px;">{{ rec.estado }}</span></td>
+                      <td>
+                        <div class="row wrap" style="gap:8px;">
+                          <label class="sr-only" for="assign-{{ rec.id }}">Asignar productor a la solicitud {{ rec.numero }}</label>
+                          <select id="assign-{{ rec.id }}" class="field" style="flex:1;min-width:150px;padding:8px 10px;font-size:12.5px;" value="{{ rec.productorId }}" onChange="{{ rec.onAssign }}">
+                            <sc-for list="{{ productorOptions }}" as="opt" hint-placeholder-count="3">
+                              <option value="{{ opt.value }}">{{ opt.label }}</option>
+                            </sc-for>
+                          </select>
+                          <sc-if value="{{ rec.canDerive }}">
+                            <button type="button" class="btn-icon" style="background:var(--accent);color:#fff;border:none;" title="Derivar al productor" aria-label="Derivar la solicitud {{ rec.numero }} al productor" onClick="{{ rec.onDerive }}">
+                              <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4Z"/></svg>
+                            </button>
+                          </sc-if>
+                        </div>
+                      </td>
+                    </tr>
+                  </sc-for>
+                </tbody>
+              </table>
+              <sc-if value="{{ adminNoResults }}">
+                <p class="empty-state" role="status">No se encontraron solicitudes con esos filtros.</p>
+              </sc-if>
+            </div>
+          </div>
+
+          <sc-if value="{{ showPagination }}">
+            <nav aria-label="Paginación de solicitudes" class="row" style="justify-content:center;gap:6px;margin-top:16px;">
+              <button type="button" class="btn btn-secondary btn-sm" disabled="{{ isFirstPage }}" onClick="{{ prevAdminPage }}">Anterior</button>
+              <span style="font-size:12.5px;color:var(--ink-3);padding:0 6px;" aria-live="polite">Página {{ adminPageDisplay }} de {{ adminPageCount }}</span>
+              <button type="button" class="btn btn-secondary btn-sm" disabled="{{ isLastPage }}" onClick="{{ nextAdminPage }}">Siguiente</button>
+            </nav>
+          </sc-if>
+        </sc-if>
+
+        <sc-if value="{{ isAdminTab.forms }}" hint-placeholder-val="{{ false }}">
+          <div class="row wrap" style="gap:12px;margin-bottom:18px;">
+            <label class="field-label">Producto
+              <select class="field" style="min-width:240px;" value="{{ formProductId }}" onChange="{{ setFormProduct }}">
+                <sc-for list="{{ productOptionsPlain }}" as="opt" hint-placeholder-count="4">
+                  <option value="{{ opt.value }}">{{ opt.label }}</option>
+                </sc-for>
+              </select>
+            </label>
+            <div class="row" style="gap:10px;margin-top:22px;">
+              <span class="badge" style="background:{{ formVersionBg }};color:{{ formVersionColor }};">{{ formVersionLabel }}</span>
+              <sc-if value="{{ formHasDraftChanges }}">
+                <span style="font-size:var(--fs-xs);color:var(--info);font-weight:700;">Cambios sin publicar</span>
+              </sc-if>
+            </div>
+          </div>
+
+          <div class="card card-pad" style="margin-bottom:16px;">
+            <h2 style="font-size:var(--fs-base);margin:0 0 14px;">Campos del formulario</h2>
+            <div class="stack" style="gap:10px;">
+              <sc-for list="{{ formFields }}" as="f" hint-placeholder-count="4">
+                <div style="display:grid;grid-template-columns:1.6fr 1fr auto auto;gap:10px;align-items:center;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;">
+                  <label class="field-label" style="font-size:11px;">Etiqueta
+                    <input class="field" style="padding:9px 11px;font-size:13px;" type="text" value="{{ f.label }}" onChange="{{ f.onLabelChange }}">
+                  </label>
+                  <label class="field-label" style="font-size:11px;">Tipo
+                    <select class="field" style="padding:9px 11px;font-size:13px;" value="{{ f.type }}" onChange="{{ f.onTypeChange }}">
+                      <sc-for list="{{ fieldTypeOptions }}" as="opt" hint-placeholder-count="5">
+                        <option value="{{ opt.value }}">{{ opt.label }}</option>
+                      </sc-for>
+                    </select>
+                  </label>
+                  <label class="row" style="gap:7px;font-size:12.5px;font-weight:600;color:var(--ink-3);white-space:nowrap;">
+                    <input type="checkbox" checked="{{ f.required }}" onChange="{{ f.onRequiredChange }}" style="width:15px;height:15px;">
+                    Obligatorio
+                  </label>
+                  <button type="button" class="btn-icon danger" aria-label="Quitar campo {{ f.label }}" onClick="{{ f.onRemove }}">
+                    <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16"/><path d="M10 11v6M14 11v6"/><path d="M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"/><path d="M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"/></svg>
+                  </button>
+                </div>
+              </sc-for>
+            </div>
+            <button type="button" class="btn btn-secondary btn-sm" style="margin-top:14px;" onClick="{{ addFormField }}">+ Agregar campo</button>
+          </div>
+          <button type="button" class="btn btn-primary" disabled="{{ publishDisabled }}" onClick="{{ publishFormVersion }}">Publicar nueva versión</button>
+        </sc-if>
+
+        <sc-if value="{{ isAdminTab.clients }}" hint-placeholder-val="{{ false }}">
+          <div class="card" style="overflow:hidden;margin-bottom:16px;">
+            <div class="table-scroll">
+              <table class="data-table">
+                <caption class="sr-only">Clientes registrados</caption>
+                <thead><tr><th scope="col">Cliente</th><th scope="col">Email</th><th scope="col">Solicitudes</th><th scope="col">Pólizas</th></tr></thead>
+                <tbody>
+                  <sc-for list="{{ adminClients }}" as="c" hint-placeholder-count="4">
+                    <tr>
+                      <td style="font-weight:600;">{{ c.nombre }}</td>
+                      <td style="color:var(--ink-3);">{{ c.email }}</td>
+                      <td>{{ c.solicitudes }}</td>
+                      <td>{{ c.polizas }}</td>
+                    </tr>
+                  </sc-for>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="card card-pad">
+            <h2 style="font-size:var(--fs-base);margin:0 0 12px;">Pólizas registradas</h2>
+            <ul class="stack" style="gap:10px;list-style:none;margin:0;padding:0;">
+              <sc-for list="{{ adminPolicies }}" as="p" hint-placeholder-count="3">
+                <li class="row wrap" style="gap:14px;border:1px solid var(--border);border-radius:10px;padding:12px 14px;">
+                  <span class="stack" style="flex:1;min-width:200px;gap:2px;">
+                    <span style="font-size:13.5px;font-weight:700;">{{ p.productName }}</span>
+                    <span style="font-size:12.5px;color:var(--ink-3);">{{ p.numero }} · {{ p.cliente }} · Vigencia {{ p.vigencia }}</span>
+                  </span>
+                  <span class="badge" style="background:{{ p.estadoBg }};color:{{ p.estadoColor }};">{{ p.estado }}</span>
+                </li>
+              </sc-for>
+            </ul>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isAdminTab.productores }}" hint-placeholder-val="{{ false }}">
+          <p style="font-size:13.5px;color:var(--ink-3);margin:0 0 16px;max-width:620px;">Perfiles de productores habilitados para recibir solicitudes. Un productor inactivo deja de aparecer en el selector de asignación de la bandeja.</p>
+          <div class="card" style="overflow:hidden;">
+            <div class="table-scroll">
+              <table class="data-table">
+                <caption class="sr-only">Productores</caption>
+                <thead><tr><th scope="col">Productor</th><th scope="col">Email</th><th scope="col">Rol</th><th scope="col">Asignadas</th><th scope="col">Estado</th><th scope="col"><span class="sr-only">Acciones</span></th></tr></thead>
+                <tbody>
+                  <sc-for list="{{ adminProductores }}" as="u" hint-placeholder-count="3">
+                    <tr>
+                      <td style="font-weight:600;">{{ u.nombre }}</td>
+                      <td style="color:var(--ink-3);">{{ u.email }}</td>
+                      <td style="color:var(--ink-3);">{{ u.rol }}</td>
+                      <td style="font-weight:700;">{{ u.asignadas }}</td>
+                      <td><span class="badge" style="background:{{ u.estadoBg }};color:{{ u.estadoColor }};">{{ u.estadoLabel }}</span></td>
+                      <td style="text-align:right;">
+                        <button type="button" class="btn-icon" style="color:{{ u.toggleColor }};" title="{{ u.toggleLabel }}" aria-label="{{ u.toggleLabel }}" onClick="{{ u.onToggle }}" dangerouslySetInnerHTML="{{ u.toggleIconSvg }}"></button>
+                      </td>
+                    </tr>
+                  </sc-for>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isAdminTab.products }}" hint-placeholder-val="{{ false }}">
+          <sc-if value="{{ isEditingProduct }}">
+            <div class="card card-pad" style="margin-bottom:22px;">
+              <h2 style="font-size:17px;margin:0 0 18px;">{{ productFormTitle }}</h2>
+              <div class="grid-2col" style="margin-bottom:16px;">
+                <label class="field-label">Nombre del producto
+                  <input class="field" type="text" value="{{ adminProductForm.name }}" onChange="{{ setProductForm_name }}">
+                </label>
+                <label class="field-label">Categoría
+                  <select class="field" value="{{ adminProductForm.categoryId }}" onChange="{{ setProductForm_categoryId }}">
+                    <sc-for list="{{ categoryOptions }}" as="opt" hint-placeholder-count="4">
+                      <option value="{{ opt.value }}">{{ opt.label }}</option>
+                    </sc-for>
+                  </select>
+                </label>
+                <label class="row span-2" style="gap:9px;font-size:var(--fs-sm);font-weight:600;color:var(--ink-3);cursor:pointer;">
+                  <input type="checkbox" checked="{{ adminProductForm.priceConfirmed }}" onChange="{{ setProductForm_priceConfirmed }}" style="width:16px;height:16px;">
+                  Precio fijo confirmado por MAPS (vigente y aplicable a todos los casos)
+                </label>
+                <sc-if value="{{ adminProductForm.priceConfirmed }}">
+                  <label class="field-label span-2">Precio mensual ($)
+                    <input class="field" type="number" value="{{ adminProductForm.price }}" onChange="{{ setProductForm_price }}">
+                  </label>
+                </sc-if>
+                <label class="field-label span-2">Descripción corta (catálogo)
+                  <input class="field" type="text" value="{{ adminProductForm.short }}" onChange="{{ setProductForm_short }}">
+                </label>
+                <label class="field-label span-2">Descripción completa
+                  <textarea class="field" value="{{ adminProductForm.long }}" onChange="{{ setProductForm_long }}" rows="3"></textarea>
+                </label>
+                <label class="field-label span-2">Coberturas (una por línea)
+                  <textarea class="field" value="{{ adminProductForm.coverageText }}" onChange="{{ setProductForm_coverageText }}" rows="4"></textarea>
+                </label>
+              </div>
+              <div class="row" style="gap:10px;">
+                <button type="button" class="btn btn-secondary" onClick="{{ cancelProductEdit }}">Cancelar</button>
+                <button type="button" class="btn btn-primary" disabled="{{ saveProductDisabled }}" onClick="{{ saveProduct }}">Guardar producto</button>
+              </div>
+            </div>
+          </sc-if>
+
+          <div class="row" style="justify-content:flex-end;margin-bottom:16px;">
+            <button type="button" class="btn btn-primary btn-sm" onClick="{{ openNewProduct }}">+ Nuevo producto</button>
+          </div>
+
+          <ul class="stack" style="gap:12px;list-style:none;margin:0;padding:0;">
+            <sc-for list="{{ productsResolved }}" as="prd" hint-placeholder-count="4">
+              <li class="card row wrap" style="gap:16px;padding:14px 18px;">
+                <span style="width:52px;height:52px;border-radius:9px;background:{{ prd.iconBg }};display:flex;align-items:center;justify-content:center;flex:none;" aria-hidden="true" dangerouslySetInnerHTML="{{ prd.iconSvg }}"></span>
+                <span class="stack" style="flex:1;min-width:190px;gap:2px;">
+                  <span style="font-weight:700;font-size:14.5px;">{{ prd.name }}</span>
+                  <span style="font-size:12.5px;color:var(--ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ prd.short }}</span>
+                  <span style="font-size:11.5px;color:var(--accent);font-weight:700;">{{ prd.categoryName }} · {{ prd.formVersionLabel }}</span>
+                </span>
+                <span style="font-weight:800;color:{{ prd.priceColor }};font-size:{{ prd.priceSize }};white-space:nowrap;">{{ prd.priceLabel }}</span>
+                <span class="badge" style="background:{{ prd.statusBg }};color:{{ prd.statusColor }};">{{ prd.statusLabel }}</span>
+                <button type="button" class="btn-icon" title="Editar {{ prd.name }}" aria-label="Editar {{ prd.name }}" onClick="{{ prd.onEdit }}">
+                  <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                </button>
+                <button type="button" class="btn-icon" style="color:{{ prd.toggleColor }};" title="{{ prd.toggleLabel }}" aria-label="{{ prd.toggleLabel }}" onClick="{{ prd.onToggleActive }}" dangerouslySetInnerHTML="{{ prd.toggleIconSvg }}"></button>
+              </li>
+            </sc-for>
+          </ul>
+        </sc-if>
+
+        <sc-if value="{{ isAdminTab.categories }}" hint-placeholder-val="{{ false }}">
+          <sc-if value="{{ isEditingCategory }}">
+            <div class="card card-pad" style="margin-bottom:22px;">
+              <h2 style="font-size:17px;margin:0 0 18px;">{{ categoryFormTitle }}</h2>
+              <label class="field-label" style="margin-bottom:20px;max-width:360px;">Nombre de la categoría
+                <input class="field" type="text" value="{{ categoryForm.name }}" onChange="{{ setCategoryForm_name }}" placeholder="Ej: Seguros Patrimoniales">
+              </label>
+              <fieldset style="border:none;padding:0;margin:0 0 20px;">
+                <legend class="field-label" style="margin-bottom:8px;padding:0;">Color</legend>
+                <div class="row" style="gap:8px;">
+                  <sc-for list="{{ categoryColorOptions }}" as="opt" hint-placeholder-count="6">
+                    <button type="button" aria-pressed="{{ opt.pressed }}" aria-label="{{ opt.name }}" style="width:28px;height:28px;border-radius:50%;background:{{ opt.hex }};border:2px solid {{ opt.selected }};cursor:pointer;padding:0;" onClick="{{ opt.onClick }}"></button>
+                  </sc-for>
+                </div>
+              </fieldset>
+              <div class="row" style="gap:10px;">
+                <button type="button" class="btn btn-secondary" onClick="{{ cancelCategoryEdit }}">Cancelar</button>
+                <button type="button" class="btn btn-primary" disabled="{{ saveCategoryDisabled }}" onClick="{{ saveCategory }}">Guardar categoría</button>
+              </div>
+            </div>
+          </sc-if>
+
+          <div class="row" style="justify-content:flex-end;margin-bottom:16px;">
+            <button type="button" class="btn btn-primary btn-sm" onClick="{{ openNewCategory }}">+ Nueva categoría</button>
+          </div>
+
+          <ul class="stack" style="gap:12px;list-style:none;margin:0;padding:0;">
+            <sc-for list="{{ categoriesResolved }}" as="cat" hint-placeholder-count="4">
+              <li class="card row wrap" style="gap:16px;padding:14px 18px;">
+                <span class="row" style="flex:1;min-width:200px;gap:10px;">
+                  <span style="width:12px;height:12px;border-radius:50%;background:{{ cat.color }};flex:none;" aria-hidden="true"></span>
+                  <span class="stack" style="gap:2px;">
+                    <span style="font-weight:700;font-size:14.5px;">{{ cat.name }}</span>
+                    <span style="font-size:12.5px;color:var(--ink-3);">{{ cat.productCount }} producto(s) asociado(s)</span>
+                  </span>
+                </span>
+                <button type="button" class="btn-icon" title="Editar {{ cat.name }}" aria-label="Editar {{ cat.name }}" onClick="{{ cat.onEdit }}">
+                  <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                </button>
+                <button type="button" class="btn-icon danger" disabled="{{ cat.deleteDisabled }}" title="{{ cat.deleteTitle }}" aria-label="Eliminar {{ cat.name }}" onClick="{{ cat.onDelete }}">
+                  <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16"/><path d="M10 11v6M14 11v6"/><path d="M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"/><path d="M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"/></svg>
+                </button>
+              </li>
+            </sc-for>
+          </ul>
+        </sc-if>
+
+        <sc-if value="{{ isAdminTab.leads }}" hint-placeholder-val="{{ false }}">
+          <div class="card card-pad">
+            <div class="banner-warn" style="margin-bottom:16px;">
+              <span style="width:7px;height:7px;border-radius:50%;background:var(--info);flex:none;" aria-hidden="true"></span>
+              PENDIENTE MAPS · INTEGRACIÓN
+            </div>
+            <h2 style="font-size:17px;margin:0 0 8px;">Potenciales clientes</h2>
+            <p style="font-size:13.5px;color:var(--ink-3);line-height:1.6;margin:0 0 20px;max-width:640px;">Los registros de personas que se dan de alta en el portal pero todavía no envían una solicitud se sincronizan con la Intranet de MAPS. El mecanismo de integración, la frecuencia y el propietario del dato están pendientes de definición.</p>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;">
+              <sc-for list="{{ leadPlaceholders }}" as="l" hint-placeholder-count="3">
+                <div style="border:1px dashed var(--decorative);border-radius:12px;padding:16px;background:#FBFDFD;">
+                  <div style="font-size:var(--fs-xs);color:var(--ink-3);margin-bottom:6px;">{{ l.label }}</div>
+                  <div style="font-size:18px;font-weight:800;color:var(--decorative);">{{ l.value }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+    </sc-if>
+
+  </main>
+
+  <footer style="background:var(--surface);border-top:1px solid var(--border);padding:40px clamp(16px,4vw,32px) 26px;">
+    <div class="container" style="display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:32px;padding-bottom:26px;border-bottom:1px solid #F0F3F4;">
+      <div>
+        <div class="row" style="gap:8px;margin-bottom:10px;">
+          <img src="logo-maps.png" alt="" style="height:20px;width:auto;">
+          <span style="font-weight:700;font-size:18px;letter-spacing:-0.3px;color:var(--ink);">MAPS Asesores</span>
+        </div>
+        <p style="font-size:13px;color:var(--ink-3);line-height:1.5;max-width:300px;margin:0;">Portal de solicitudes de seguros. Las coberturas se gestionan con un asesor de MAPS.</p>
+      </div>
+      <div>
+        <div style="font-size:13px;font-weight:700;margin-bottom:12px;">Contacto</div>
+        <div class="stack" style="gap:8px;font-size:13px;">
+          <a href="#" onClick="{{ preventDefault }}">Nosotros</a>
+          <a href="#" onClick="{{ preventDefault }}">Contacto</a>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:13px;font-weight:700;margin-bottom:12px;">Legales</div>
+        <div class="stack" style="gap:8px;font-size:13px;">
+          <a href="#" onClick="{{ preventDefault }}">Términos y Condiciones</a>
+          <a href="#" onClick="{{ preventDefault }}">Política de Privacidad</a>
+        </div>
+      </div>
+    </div>
+    <div class="container row wrap" style="justify-content:space-between;padding-top:18px;gap:10px;">
+      <span style="font-size:12px;color:var(--ink-3);">© 2026 MAPS Asesores. Todos los derechos reservados.</span>
+      <div class="row wrap" style="gap:16px;">
+        <sc-if value="{{ isAdmin }}">
+          <button type="button" class="btn-ghost" style="font-size:12px;padding:0;color:var(--ink-3);" onClick="{{ goAdmin }}">Backoffice</button>
+        </sc-if>
+        <sc-if value="{{ isAdmin }}">
+          <button type="button" class="btn-ghost" style="font-size:12px;padding:0;color:var(--ink-3);" onClick="{{ goProductorDemo }}">Vista productor (demo)</button>
+        </sc-if>
+      </div>
+    </div>
+  </footer>
+
+</div>
+</x-dc>
+<script data-dc-script data-props='{"$preview":{"width":1280,"height":900}}'>
+
+function uid(){ return Math.random().toString(36).slice(2,8).toUpperCase(); }
+function today(){ const d = new Date(); return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear(); }
+function slugify(s){ return String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'') || 'item'; }
+function svgIcon(inner, size){
+  return '<svg width="'+size+'" height="'+size+'" viewBox="0 0 24 24" fill="none" stroke="#0D6B78" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+inner+'</svg>';
+}
+function svgIconColor(inner, size, color){
+  return '<svg width="'+size+'" height="'+size+'" viewBox="0 0 24 24" fill="none" stroke="'+color+'" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+inner+'</svg>';
+}
+
+const ICON_PATHS = {
+  art: '<path d="M12 3l7 3v6c0 5-3.5 8-7 9-3.5-1-7-4-7-9V6l7-3Z"/><path d="M9.5 12l1.8 1.8L15 10"/>',
+  personales: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M17 11l2 2 4-4"/>',
+  vida: '<path d="M12 21s-7-4.4-9.5-8.8C.7 8.7 2.1 5.3 5.5 5.3c2 0 3.5 1.2 4.5 2.4 1-1.2 2.5-2.4 4.5-2.4 3.4 0 4.8 3.4 3 6.9C19 16.6 12 21 12 21Z"/>',
+  rc: '<path d="M12 3v18"/><path d="M5 21h14"/><path d="M3 7l4-2 4 2"/><path d="M13 7l4-2 4 2"/><path d="M3 7a4 4 0 0 0 8 0"/><path d="M13 7a4 4 0 0 0 8 0"/>',
+  transporte: '<rect x="1" y="7" width="13" height="9" rx="1"/><path d="M14 10h4l3 3v3h-7z"/><circle cx="6" cy="18" r="2"/><circle cx="17" cy="18" r="2"/>',
+  retiro: '<path d="M3 17l6-6 4 4 8-8"/><path d="M17 6h4v4"/>',
+  salud: '<path d="M5 3v6a4 4 0 0 0 8 0V3"/><path d="M9 15a5 5 0 0 0 5-5"/><circle cx="18" cy="6" r="2"/><circle cx="9" cy="19" r="2"/>',
+  incendio: '<path d="M12 22c4 0 7-3 7-7 0-4-3-6-4-10-1 3-2 4-3 4-2 0-2-3-2-4-3 3-5 6-5 10 0 4 3 7 7 7Z"/>',
+  default: '<path d="M12 3l7 3v6c0 5-3.5 8-7 9-3.5-1-7-4-7-9V6l7-3Z"/>',
+};
+function productIcon(catId, size){ return { __html: svgIcon(ICON_PATHS[catId] || ICON_PATHS.default, size || 24) }; }
+
+const ICON_LOCK_SM = svgIconColor('<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>', 20, '#fff');
+const ICON_BAN = '<circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/>';
+const ICON_CIRCLE_CHECK = '<circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.5 2.5L16 9"/>';
+
+const SEED_CATEGORIES = [
+  { id:'laborales', name:'Seguros Laborales', color:'#0D6B78' },
+  { id:'personas', name:'Seguros de Personas', color:'#9C4A18' },
+  { id:'patrimoniales', name:'Seguros Patrimoniales', color:'#5B6670' },
+  { id:'salud-cat', name:'Salud', color:'#166B49' },
+];
+const CATEGORY_COLORS = [
+  { hex:'#0D6B78', name:'Teal' }, { hex:'#9C4A18', name:'Naranja' }, { hex:'#5B6670', name:'Gris' },
+  { hex:'#166B49', name:'Verde' }, { hex:'#6A4FA0', name:'Violeta' }, { hex:'#B03A2E', name:'Rojo' },
+];
+
+const SEED_PRODUCTS = [
+  { id:'art', name:'ART', short:'Riesgos del trabajo para tu equipo, con cobertura médica y legal.',
+    long:'Cobertura integral de Aseguradora de Riesgos del Trabajo: accidentes laborales, enfermedades profesionales y asistencia médica para tus empleados.',
+    price:15000, priceConfirmed:true, categoryId:'laborales',
+    coverage:['Atención médica y farmacia 100% cubierta','Indemnización por incapacidad laboral','Asesoría legal en accidentes de trabajo','Capacitación en prevención de riesgos'] },
+  { id:'personales', name:'Accidentes Personales', short:'Protección ante accidentes dentro y fuera del trabajo.',
+    long:'Indemnización por muerte o invalidez a causa de accidentes, dentro y fuera del horario laboral, para vos o tu equipo.',
+    price:8500, priceConfirmed:true, categoryId:'laborales',
+    coverage:['Indemnización por invalidez total o parcial','Cobertura 24hs, dentro y fuera del trabajo','Gastos de sepelio incluidos','Sin período de carencia'] },
+  { id:'vida', name:'Vida Colectivo', short:'Seguro de vida grupal con capital asegurado fijo.',
+    long:'Seguro de vida colectivo pensado para equipos: capital asegurado fijo por persona, sin cuestionario médico para grupos reducidos.',
+    price:12000, priceConfirmed:true, categoryId:'personas',
+    coverage:['Capital asegurado por fallecimiento','Doble indemnización por accidente','Extensión por invalidez total y permanente','Adhesión simplificada sin estudios médicos'] },
+  { id:'rc', name:'Responsabilidad Civil', short:'Cubre daños a terceros por tu actividad o negocio.',
+    long:'Protege tu patrimonio ante reclamos de terceros por daños materiales o personales derivados de tu actividad comercial.',
+    price:7200, priceConfirmed:true, categoryId:'patrimoniales',
+    coverage:['Daños a terceros por hechos propios','Cobertura de gastos de defensa legal','Extensión a empleados en función','Válido para locales y oficinas'] },
+  { id:'transporte', name:'Transporte', short:'Mercadería asegurada durante todo el traslado.',
+    long:'Cobertura de mercadería en tránsito, terrestre o marítimo, ante robo, rotura o siniestro durante el traslado.',
+    price:6400, priceConfirmed:true, categoryId:'patrimoniales',
+    coverage:['Cobertura puerta a puerta','Robo, rotura y mojadura','Válido para transporte propio o de terceros','Indemnización a valor de reposición'] },
+  { id:'retiro', name:'Seguros de Retiro', short:'Ahorro planificado con beneficio a largo plazo.',
+    long:'Plan de ahorro e inversión de largo plazo, con beneficios fiscales, pensado para complementar tu jubilación.',
+    price:11000, priceConfirmed:true, categoryId:'personas',
+    coverage:['Aportes mensuales flexibles','Beneficio fiscal por aportes','Rescate parcial disponible','Renta o pago único al retiro'] },
+  { id:'salud', name:'Salud', short:'Planes prestacionales, carnets médicos y red de farmacias.',
+    long:'Cobertura médica integral con cartilla de prestadores, internación, estudios y descuentos en farmacias adheridas.',
+    price:18500, priceConfirmed:true, categoryId:'salud-cat',
+    coverage:['Cartilla médica amplia','Internación y cirugías cubiertas','Descuentos en farmacias adheridas','Odontología incluida'] },
+  { id:'incendio', name:'Incendio', short:'Cobertura para edificios, consorcios y plantas industriales.',
+    long:'Protección patrimonial ante incendio, explosión y daños asociados para tu propiedad, consorcio o planta.',
+    price:9000, priceConfirmed:true, categoryId:'patrimoniales',
+    coverage:['Incendio, rayo y explosión','Daños por humo y agua de extinción','Cobertura de contenido y mobiliario','Remoción de escombros incluida'] },
+];
+
+const BASE_FIELDS = [ { id:'obs', label:'Comentarios para el asesor', type:'textarea', required:false } ];
+const SEED_FORMS = {
+  art: [
+    { id:'art-1', label:'Razón social', type:'text', required:true },
+    { id:'art-2', label:'CUIT', type:'text', required:true },
+    { id:'art-3', label:'Cantidad de empleados', type:'number', required:true },
+    { id:'art-4', label:'Actividad principal', type:'text', required:true },
+    { id:'art-5', label:'Masa salarial mensual', type:'number', required:false },
+  ],
+  personales: [
+    { id:'ap-1', label:'Cantidad de personas a cubrir', type:'number', required:true },
+    { id:'ap-2', label:'Actividad que realizan', type:'text', required:true },
+    { id:'ap-3', label:'Suma asegurada deseada', type:'select', required:true, options:['$5.000.000','$10.000.000','$20.000.000'] },
+  ],
+  vida: [
+    { id:'vd-1', label:'Cantidad de integrantes del grupo', type:'number', required:true },
+    { id:'vd-2', label:'Edad promedio del grupo', type:'number', required:true },
+    { id:'vd-3', label:'Capital asegurado por persona', type:'select', required:true, options:['$5.000.000','$15.000.000','$30.000.000'] },
+  ],
+  rc: [
+    { id:'rc-1', label:'Actividad o rubro', type:'text', required:true },
+    { id:'rc-2', label:'Superficie del local (m²)', type:'number', required:false },
+    { id:'rc-3', label:'Cantidad de sucursales', type:'number', required:false },
+  ],
+  transporte: [
+    { id:'tr-1', label:'Tipo de mercadería', type:'text', required:true },
+    { id:'tr-2', label:'Medio de transporte', type:'select', required:true, options:['Terrestre','Marítimo','Aéreo'] },
+    { id:'tr-3', label:'Valor promedio por envío', type:'number', required:true },
+  ],
+  retiro: [
+    { id:'re-1', label:'Aporte mensual estimado', type:'number', required:true },
+    { id:'re-2', label:'Edad de retiro prevista', type:'number', required:true },
+  ],
+  salud: [
+    { id:'sa-1', label:'Cantidad de integrantes del grupo familiar', type:'number', required:true },
+    { id:'sa-2', label:'Edades de los integrantes', type:'text', required:true },
+    { id:'sa-3', label:'Cobertura actual', type:'text', required:false },
+  ],
+  incendio: [
+    { id:'in-1', label:'Tipo de inmueble', type:'select', required:true, options:['Vivienda','Consorcio','Local comercial','Planta industrial'] },
+    { id:'in-2', label:'Dirección del riesgo', type:'text', required:true },
+    { id:'in-3', label:'Suma asegurada del edificio', type:'number', required:true },
+    { id:'in-4', label:'Suma asegurada del contenido', type:'number', required:false },
+  ],
+};
+const FIELD_TYPES = [
+  { value:'text', label:'Texto' }, { value:'number', label:'Número' }, { value:'date', label:'Fecha' },
+  { value:'select', label:'Selección' }, { value:'textarea', label:'Texto largo' },
+];
+
+const PRODUCTORES = [
+  { id:'p1', nombre:'Ana Ruiz', email:'a.ruiz@mapsasesores.com' },
+  { id:'p2', nombre:'Pablo Medina', email:'p.medina@mapsasesores.com' },
+  { id:'p3', nombre:'Carla Benítez', email:'c.benitez@mapsasesores.com' },
+];
+
+const ESTADOS = {
+  BORRADOR:  { bg:'#F0F3F4', color:'#5B6670', dot:'#9099A0' },
+  ENVIADA:   { bg:'#EAF7F9', color:'#0D6B78', dot:'#0D6B78' },
+  ASIGNADA:  { bg:'#FDF3E3', color:'#8A5A0F', dot:'#B8791A' },
+  DERIVADA:  { bg:'#E7F6EC', color:'#166B49', dot:'#166B49' },
+  CANCELADA: { bg:'#FDEEEC', color:'#B03A2E', dot:'#B03A2E' },
+};
+const ESTADO_ORDER = ['BORRADOR','ENVIADA','ASIGNADA','DERIVADA','CANCELADA'];
+
+class Component extends DCLogic {
+  state = {
+    screen: 'catalog',
+    pendingAction: null,
+    loggedIn: false,
+    role: 'cliente',
+    usuarios: PRODUCTORES.map(p => ({ ...p, rol:'Productor', activo:true })),
+    userName: '', userEmail: '',
+    authMode: 'login', authGate: false,
+    authForm: { email:'', password:'', name:'' },
+    activeCategory: null, catalogSearch: '',
+    catalogLoading: true,
+    selectedProductId: null,
+    requestStep: 0, draftId: null, draftNumero: '', draftEstado: 'BORRADOR',
+    requestForm: { nombre:'', dni:'', telefono:'', email:'', direccion:'', ciudad:'', cp:'', acepta:false },
+    respuestas: {}, attachments: [], draftSaved: false,
+    showContactError: false, showFieldError: false,
+    profileForm: { nombre:'', email:'', telefono:'', direccion:'' }, profileSaved: false,
+    passwordForm: { current:'', next:'', confirm:'' }, passwordSaved: false,
+    accountMenuOpen: false,
+    requestFilter: 'ALL', selectedRequestId: null,
+    productorRequestId: 's3', selectedPolicyId: null,
+    products: SEED_PRODUCTS.map(p => ({ ...p, active:true, coverage:[...p.coverage] })),
+    categories: SEED_CATEGORIES.map(c => ({ ...c })),
+    forms: Object.keys(SEED_FORMS).reduce((acc,k) => {
+      acc[k] = { version:1, fields:[...SEED_FORMS[k].map(f=>({...f})), ...BASE_FIELDS.map(f=>({...f, id:k+'-'+f.id}))] };
+      return acc;
+    }, {}),
+    formDirty: {}, formProductId: 'art',
+    categoryEditingId: null, categoryForm: { name:'', color:CATEGORY_COLORS[0].hex },
+    adminTab: 'inbox',
+    adminProductEditingId: null,
+    adminProductForm: { name:'', price:'', priceConfirmed:false, short:'', long:'', coverageText:'', categoryId:'' },
+    adminSearch: '', adminFilterProduct: 'all', adminFilterEstado: 'ALL', adminSort: null,
+    adminPage: 0, adminPageSize: 6,
+    solicitudes: [
+      { id:'s1', numero:'SOL-4F2A19', mine:true, cliente:'Cliente Demo', email:'cliente@demo.com', productId:'incendio', estado:'BORRADOR',
+        createdAt:'28/08/2026', updatedAt:'28/08/2026', formVersion:1, datos:{}, respuestas:{ 'in-1':'Consorcio', 'in-2':'Av. Rivadavia 4820, CABA' }, adjuntos:[], productorId:'',
+        historial:[{ label:'Borrador creado', fecha:'28/08/2026' }] },
+      { id:'s2', numero:'SOL-9C3B70', mine:true, cliente:'Cliente Demo', email:'cliente@demo.com', productId:'art', estado:'ASIGNADA',
+        createdAt:'21/08/2026', updatedAt:'25/08/2026', formVersion:1, datos:{ telefono:'11-4455-2200', dni:'30-71234567-9', direccion:'Talleres Rivas SRL', ciudad:'CABA' }, respuestas:{ 'art-1':'Talleres Rivas SRL', 'art-2':'30-71234567-9', 'art-3':'18', 'art-4':'Metalurgia liviana' },
+        adjuntos:[{ name:'nomina-empleados.pdf' },{ name:'constancia-afip.pdf' }], productorId:'p1',
+        historial:[{ label:'Borrador creado', fecha:'21/08/2026' },{ label:'Solicitud enviada', fecha:'22/08/2026' },{ label:'Asignada a Ana Ruiz', fecha:'25/08/2026' }] },
+      { id:'s3', numero:'SOL-1A88D4', mine:true, cliente:'Cliente Demo', email:'cliente@demo.com', productId:'vida', estado:'DERIVADA',
+        createdAt:'05/08/2026', updatedAt:'12/08/2026', formVersion:1, datos:{}, respuestas:{ 'vd-1':'24', 'vd-2':'38', 'vd-3':'$15.000.000' }, adjuntos:[], productorId:'p2',
+        historial:[{ label:'Borrador creado', fecha:'05/08/2026' },{ label:'Solicitud enviada', fecha:'06/08/2026' },{ label:'Asignada a Pablo Medina', fecha:'08/08/2026' },{ label:'Derivada al productor', fecha:'12/08/2026' }] },
+      { id:'s4', numero:'SOL-77B0E2', mine:false, cliente:'María Gómez', email:'m.gomez@correo.com', productId:'salud', estado:'ENVIADA',
+        createdAt:'02/09/2026', updatedAt:'02/09/2026', formVersion:1, datos:{}, respuestas:{ 'sa-1':'4', 'sa-2':'41, 39, 12, 8' }, adjuntos:[], productorId:'',
+        historial:[{ label:'Solicitud enviada', fecha:'02/09/2026' }] },
+      { id:'s5', numero:'SOL-3E51C8', mine:false, cliente:'Jorge Fernández', email:'j.fernandez@correo.com', productId:'transporte', estado:'ENVIADA',
+        createdAt:'01/09/2026', updatedAt:'01/09/2026', formVersion:1, datos:{}, respuestas:{ 'tr-1':'Insumos electrónicos', 'tr-2':'Terrestre', 'tr-3':'2400000' }, adjuntos:[{ name:'remito-tipo.pdf' }], productorId:'',
+        historial:[{ label:'Solicitud enviada', fecha:'01/09/2026' }] },
+      { id:'s6', numero:'SOL-6D90AA', mine:false, cliente:'Lucía Alvarez', email:'l.alvarez@correo.com', productId:'rc', estado:'ASIGNADA',
+        createdAt:'29/08/2026', updatedAt:'30/08/2026', formVersion:1, datos:{}, respuestas:{ 'rc-1':'Gastronomía', 'rc-2':'180' }, adjuntos:[], productorId:'p3',
+        historial:[{ label:'Solicitud enviada', fecha:'29/08/2026' },{ label:'Asignada a Carla Benítez', fecha:'30/08/2026' }] },
+      { id:'s7', numero:'SOL-2B44F1', mine:false, cliente:'Noelia Suárez', email:'n.suarez@correo.com', productId:'incendio', estado:'DERIVADA',
+        createdAt:'20/08/2026', updatedAt:'26/08/2026', formVersion:1, datos:{}, respuestas:{ 'in-1':'Local comercial', 'in-2':'San Martín 1120, Rosario', 'in-3':'48000000' }, adjuntos:[], productorId:'p1',
+        historial:[{ label:'Solicitud enviada', fecha:'20/08/2026' },{ label:'Asignada a Ana Ruiz', fecha:'22/08/2026' },{ label:'Derivada al productor', fecha:'26/08/2026' }] },
+      { id:'s8', numero:'SOL-8F12C5', mine:false, cliente:'Diego Paz', email:'d.paz@correo.com', productId:'retiro', estado:'CANCELADA',
+        createdAt:'14/08/2026', updatedAt:'18/08/2026', formVersion:1, datos:{}, respuestas:{ 're-1':'80000', 're-2':'65' }, adjuntos:[], productorId:'',
+        historial:[{ label:'Solicitud enviada', fecha:'14/08/2026' },{ label:'Cancelada por el cliente', fecha:'18/08/2026' }] },
+    ],
+    polizas: [
+      { id:'pol1', numero:'POL-338271', mine:true, cliente:'Cliente Demo', productId:'rc', estado:'VIGENTE', desde:'01/06/2026', hasta:'31/05/2027', aseguradora:'Sancor Seguros', sumaAsegurada:'$25.000.000' },
+      { id:'pol2', numero:'POL-401930', mine:true, cliente:'Cliente Demo', productId:'personales', estado:'VIGENTE', desde:'15/03/2026', hasta:'14/03/2027', aseguradora:'La Segunda', sumaAsegurada:'$10.000.000' },
+      { id:'pol3', numero:'POL-298114', mine:false, cliente:'Lucía Alvarez', productId:'art', estado:'VIGENTE', desde:'01/01/2026', hasta:'31/12/2026', aseguradora:'Provincia ART', sumaAsegurada:'Según convenio' },
+      { id:'pol4', numero:'POL-155002', mine:false, cliente:'Diego Paz', productId:'vida', estado:'VENCIDA', desde:'01/07/2025', hasta:'30/06/2026', aseguradora:'Sancor Seguros', sumaAsegurada:'$15.000.000' },
+    ],
+  };
+
+  componentDidMount(){
+    this._loadTimer = setTimeout(() => this.setState({ catalogLoading:false }), 550);
+  }
+  componentWillUnmount(){ if(this._loadTimer) clearTimeout(this._loadTimer); }
+
+  fmtPrice(n){ return '$' + Number(n||0).toLocaleString('es-AR') + '/mes'; }
+  priceView(p){
+    return { priceLabel:this.fmtPrice(p.price), priceCaption:'Precio mensual', priceColor:'#0D6B78', priceSize:'17px', priceSizeLarge:'32px',
+      priceNote:'Precio fijo del plan. La cobertura tiene sumas aseguradas y límites predefinidos, detallados en la cobertura incluida.' };
+  }
+  getProduct(id){ return this.state.products.find(p=>p.id===id) || this.state.products[0]; }
+  getForm(productId){ return this.state.forms[productId] || { version:1, fields:[] }; }
+  getProductor(id){ return PRODUCTORES.find(p=>p.id===id) || null; }
+
+  go(screen){ this.setState({ screen }); window.scrollTo(0,0); }
+  goCatalog = () => this.go('catalog');
+  goCatalogPrevent = (e) => { e.preventDefault(); this.go('catalog'); };
+  goProfile = () => { if(this.requireAuth('profile')){ this.setState(s => ({ profileForm:{ nombre:s.userName, email:s.userEmail, telefono:s.profileForm.telefono, direccion:s.profileForm.direccion }, screen:'profile', accountMenuOpen:false })); window.scrollTo(0,0); } };
+  goRequests = () => { if(this.requireAuth('requests')){ this.setState({ accountMenuOpen:false }); this.go('requests'); } };
+  goPolicies = () => { if(this.requireAuth('policies')){ this.setState({ accountMenuOpen:false }); this.go('policies'); } };
+  goAdmin = () => { if(this.state.loggedIn && this.state.role==='admin'){ this.go('admin'); } else { this.requireAuth('admin'); } };
+  goAdminInbox = () => { this.setState({ adminTab:'inbox', accountMenuOpen:false }); this.goAdmin(); };
+  goAdminUsers = () => { this.setState({ adminTab:'productores', accountMenuOpen:false }); this.goAdmin(); };
+  goProductorDemo = () => { if(this.state.loggedIn && this.state.role==='admin'){ this.go('productor'); } };
+  exitProductorView = () => { this.setState({ productorRequestId: this.state.productorRequestId }); this.go(this.state.role==='admin' ? 'admin' : 'catalog'); };
+  openProductorView(id){ this.setState({ productorRequestId:id, screen:'productor' }); window.scrollTo(0,0); }
+  toggleAccountMenu = () => this.setState(s => ({ accountMenuOpen: !s.accountMenuOpen }));
+  closeAccountMenu = () => this.setState({ accountMenuOpen:false });
+  onAccountMenuKeyDown = (e) => { if(e.key === 'Escape') this.closeAccountMenu(); };
+  goAuthLogin = () => this.setState({ screen:'auth', authMode:'login', authGate:false, pendingAction:null });
+  preventDefault = (e) => e.preventDefault();
+  preventSubmit = (e) => e.preventDefault();
+  stopPropagation = (e) => e.stopPropagation();
+
+  requireAuth(action){
+    if(!this.state.loggedIn){ this.setState({ pendingAction:action, screen:'auth', authMode:'login', authGate:action==='request' }); window.scrollTo(0,0); return false; }
+    if(action==='admin' && this.state.role!=='admin'){ this.go('catalog'); return false; }
+    return true;
+  }
+
+  setAuthMode_login = () => this.setState({ authMode:'login' });
+  setAuthMode_register = () => this.setState({ authMode:'register' });
+  setAuthField_email = (e) => this.setState(s => ({ authForm:{...s.authForm, email:e.target.value} }));
+  setAuthField_password = (e) => this.setState(s => ({ authForm:{...s.authForm, password:e.target.value} }));
+  setAuthField_name = (e) => this.setState(s => ({ authForm:{...s.authForm, name:e.target.value} }));
+
+  completeLogin(name, email){
+    const pending = this.state.pendingAction;
+    const isAdmin = /admin/i.test(email) || /admin/i.test(name);
+    this.setState(s => ({
+      loggedIn:true, role: isAdmin ? 'admin' : 'cliente', userName:name, userEmail:email, authGate:false, pendingAction:null,
+      profileForm:{ nombre:name, email:email, telefono:'', direccion:'' },
+      requestForm:{ ...s.requestForm, nombre: s.requestForm.nombre || name, email: s.requestForm.email || email },
+      solicitudes: s.solicitudes.map(x => x.mine ? { ...x, cliente:name, email } : x),
+      polizas: s.polizas.map(x => x.mine ? { ...x, cliente:name } : x),
+    }));
+    if(isAdmin){ this.setState({ adminTab:'inbox', accountMenuOpen:false }); this.go('admin'); return; }
+    if(pending === 'request'){ this.beginRequest(); }
+    else if(pending === 'requests'){ this.go('requests'); }
+    else if(pending === 'policies'){ this.go('policies'); }
+    else if(pending === 'profile'){ this.go('profile'); }
+    else { this.go('catalog'); }
+  }
+  submitLogin = () => {
+    const email = this.state.authForm.email || 'cliente@demo.com';
+    const name = email.split('@')[0].replace(/[._]/g,' ').replace(/\b\w/g, c=>c.toUpperCase()) || 'Cliente Demo';
+    this.completeLogin(name, email);
+  };
+  submitRegister = () => this.completeLogin(this.state.authForm.name || 'Cliente Demo', this.state.authForm.email || 'cliente@demo.com');
+  logout = () => this.setState({ loggedIn:false, role:'cliente', userName:'', userEmail:'', screen:'catalog', accountMenuOpen:false });
+
+  selectCategory(catId){ this.setState(s => ({ activeCategory: s.activeCategory === catId ? null : catId })); }
+  setCatalogSearch = (e) => this.setState({ catalogSearch:e.target.value });
+  openProduct(id){ this.setState({ selectedProductId:id, screen:'product' }); window.scrollTo(0,0); }
+
+  beginRequest(){
+    const s = this.state;
+    const productId = s.selectedProductId || s.products[0].id;
+    this.setState({
+      screen:'request', requestStep:0, draftId:null, draftNumero:'SOL-'+uid(), draftEstado:'BORRADOR',
+      selectedProductId:productId, respuestas:{}, attachments:[], showFieldError:false, showContactError:false, draftSaved:false,
+      requestForm:{ ...s.requestForm, nombre:s.requestForm.nombre || s.userName, email:s.requestForm.email || s.userEmail, acepta:false },
+    });
+    window.scrollTo(0,0);
+  }
+  startRequest = () => { if(this.requireAuth('request')) this.beginRequest(); };
+
+  nextStep = () => this.setState(s => ({ requestStep: Math.min(5, s.requestStep+1), showFieldError:false }));
+  prevStep = () => this.setState(s => ({ requestStep: Math.max(0, s.requestStep-1), showFieldError:false, showContactError:false }));
+  nextFromContact = () => {
+    const f = this.state.requestForm;
+    const required = ['nombre','dni','telefono','email','direccion'];
+    const missing = required.filter(k => !String(f[k]||'').trim());
+    const emailBad = !!f.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email);
+    if(missing.length || emailBad){ this.setState({ showContactError:true }); return; }
+    this.setState({ requestStep:2, showContactError:false });
+  };
+  nextFromFields = () => {
+    const s = this.state;
+    const fields = this.getForm(s.selectedProductId).fields;
+    const missing = fields.filter(f => f.required && !String(s.respuestas[f.id] || '').trim());
+    if(missing.length){ this.setState({ showFieldError:true }); return; }
+    this.setState({ requestStep:3, showFieldError:false });
+  };
+
+  setRqField(field, val){ this.setState(s => ({ requestForm:{...s.requestForm, [field]:val} })); }
+  setRqField_nombre = (e) => this.setRqField('nombre', e.target.value);
+  setRqField_dni = (e) => this.setRqField('dni', e.target.value);
+  setRqField_telefono = (e) => this.setRqField('telefono', e.target.value);
+  setRqField_email = (e) => this.setRqField('email', e.target.value);
+  setRqField_direccion = (e) => this.setRqField('direccion', e.target.value);
+  setRqField_ciudad = (e) => this.setRqField('ciudad', e.target.value);
+  setRqField_cp = (e) => this.setRqField('cp', e.target.value);
+  toggleAcepta = (e) => this.setState(s => ({ requestForm:{...s.requestForm, acepta:e.target.checked} }));
+  setRespuesta(fieldId, val){ this.setState(s => ({ respuestas:{...s.respuestas, [fieldId]:val} })); }
+
+  addAttachments = (e) => {
+    const files = Array.from((e.target && e.target.files) || []).map(f => ({ name:f.name }));
+    if(!files.length) return;
+    this.setState(s => ({ attachments:[...s.attachments, ...files] }));
+  };
+  removeAttachment(i){ this.setState(s => ({ attachments: s.attachments.filter((_,idx) => idx !== i) })); }
+
+  buildSolicitud(estado){
+    const s = this.state;
+    const historial = [{ label:'Borrador creado', fecha: today() }];
+    if(estado === 'ENVIADA') historial.push({ label:'Solicitud enviada', fecha: today() });
+    return {
+      id: s.draftId || ('r'+uid()), numero: s.draftNumero, mine:true,
+      cliente: s.requestForm.nombre || s.userName || 'Cliente', email: s.requestForm.email || s.userEmail,
+      productId: s.selectedProductId, estado, createdAt: today(), updatedAt: today(),
+      formVersion: this.getForm(s.selectedProductId).version,
+      datos: { ...s.requestForm }, respuestas: { ...s.respuestas }, adjuntos: [...s.attachments],
+      productorId:'', historial,
+    };
+  }
+  upsertDraft(estado){
+    const rec = this.buildSolicitud(estado);
+    this.setState(s => {
+      const exists = s.solicitudes.some(x => x.id === rec.id);
+      const merged = exists
+        ? s.solicitudes.map(x => x.id === rec.id ? { ...x, ...rec, historial: estado==='ENVIADA' ? [...x.historial, { label:'Solicitud enviada', fecha: today() }] : x.historial } : x)
+        : [rec, ...s.solicitudes];
+      return { solicitudes: merged, draftId: rec.id, draftEstado: estado };
+    });
+  }
+  saveDraft = () => {
+    this.upsertDraft('BORRADOR');
+    this.setState({ draftSaved:true });
+    setTimeout(()=>this.setState({ draftSaved:false }), 1800);
+  };
+  submitRequest = () => {
+    if(!this.state.requestForm.acepta) return;
+    this.upsertDraft('ENVIADA');
+    this.setState({ requestStep:5, draftEstado:'ENVIADA' });
+    window.scrollTo(0,0);
+  };
+  openRequest(id){ this.setState({ selectedRequestId:id, screen:'requestDetail' }); window.scrollTo(0,0); }
+  setRequestFilter(f){ this.setState({ requestFilter:f }); }
+  resumeDraft = () => {
+    const r = this.state.solicitudes.find(x => x.id === this.state.selectedRequestId);
+    if(!r) return;
+    this.setState(s => ({
+      screen:'request', requestStep:0, draftId:r.id, draftNumero:r.numero, draftEstado:r.estado,
+      selectedProductId:r.productId, respuestas:{ ...r.respuestas }, attachments:[...(r.adjuntos||[])],
+      requestForm:{ ...s.requestForm, ...(r.datos||{}), acepta:false }, showContactError:false, showFieldError:false,
+    }));
+    window.scrollTo(0,0);
+  };
+  cancelRequest = () => {
+    const id = this.state.selectedRequestId;
+    this.setState(s => ({ solicitudes: s.solicitudes.map(x => x.id===id ? { ...x, estado:'CANCELADA', updatedAt:today(), historial:[...x.historial, { label:'Cancelada por el cliente', fecha:today() }] } : x) }));
+  };
+
+  assignProductor(id, productorId){
+    const prod = this.getProductor(productorId);
+    this.setState(s => ({ solicitudes: s.solicitudes.map(x => {
+      if(x.id !== id) return x;
+      if(!productorId) return { ...x, productorId:'', estado: (x.estado==='ASIGNADA'||x.estado==='DERIVADA') ? 'ENVIADA' : x.estado, updatedAt:today() };
+      return { ...x, productorId, estado: x.estado==='DERIVADA' ? 'DERIVADA' : 'ASIGNADA', updatedAt:today(),
+        historial:[...x.historial, { label:'Asignada a '+prod.nombre, fecha:today() }] };
+    }) }));
+  }
+  deriveRequest(id){
+    this.setState(s => ({ solicitudes: s.solicitudes.map(x => x.id===id ? { ...x, estado:'DERIVADA', updatedAt:today(), historial:[...x.historial, { label:'Derivada al productor', fecha:today() }] } : x) }));
+  }
+
+  setProfileField(field, val){ this.setState(s => ({ profileForm:{...s.profileForm, [field]:val}, profileSaved:false })); }
+  setProfileField_nombre = (e) => this.setProfileField('nombre', e.target.value);
+  setProfileField_email = (e) => this.setProfileField('email', e.target.value);
+  setProfileField_telefono = (e) => this.setProfileField('telefono', e.target.value);
+  setProfileField_direccion = (e) => this.setProfileField('direccion', e.target.value);
+  saveProfile = () => { this.setState(s => ({ userName:s.profileForm.nombre || s.userName, userEmail:s.profileForm.email || s.userEmail, profileSaved:true })); setTimeout(()=>this.setState({profileSaved:false}), 1800); };
+  setPasswordField(field, val){ this.setState(s => ({ passwordForm:{...s.passwordForm, [field]:val}, passwordSaved:false })); }
+  setPasswordField_current = (e) => this.setPasswordField('current', e.target.value);
+  setPasswordField_next = (e) => this.setPasswordField('next', e.target.value);
+  setPasswordField_confirm = (e) => this.setPasswordField('confirm', e.target.value);
+  changePassword = () => {
+    const f = this.state.passwordForm;
+    if(!f.current || !f.next || f.next !== f.confirm) return;
+    this.setState({ passwordForm:{ current:'', next:'', confirm:'' }, passwordSaved:true });
+    setTimeout(()=>this.setState({passwordSaved:false}), 1800);
+  };
+
+  setAdminTab = (tab) => () => this.setState({ adminTab:tab });
+  setAdminSearch = (e) => this.setState({ adminSearch:e.target.value, adminPage:0 });
+  setAdminFilterProduct = (e) => this.setState({ adminFilterProduct:e.target.value, adminPage:0 });
+  setAdminFilterEstado = (e) => this.setState({ adminFilterEstado:e.target.value, adminPage:0 });
+  setAdminFilterEstadoVal(v){ this.setState({ adminFilterEstado:v, adminPage:0 }); }
+  toggleSortCliente = () => this.setState(s => ({ adminSort: s.adminSort==='cliente_asc' ? 'cliente_desc' : 'cliente_asc' }));
+  prevAdminPage = () => this.setState(s => ({ adminPage: Math.max(0, s.adminPage-1) }));
+  nextAdminPage = () => this.setState(s => ({ adminPage: s.adminPage+1 }));
+
+  setFormProduct = (e) => this.setState({ formProductId:e.target.value });
+  updateFormField(fieldId, patch){
+    const pid = this.state.formProductId;
+    this.setState(s => ({
+      forms: { ...s.forms, [pid]: { ...s.forms[pid], fields: s.forms[pid].fields.map(f => f.id===fieldId ? { ...f, ...patch } : f) } },
+      formDirty: { ...s.formDirty, [pid]: true },
+    }));
+  }
+  removeFormField(fieldId){
+    const pid = this.state.formProductId;
+    this.setState(s => ({
+      forms: { ...s.forms, [pid]: { ...s.forms[pid], fields: s.forms[pid].fields.filter(f => f.id!==fieldId) } },
+      formDirty: { ...s.formDirty, [pid]: true },
+    }));
+  }
+  addFormField = () => {
+    const pid = this.state.formProductId;
+    const nf = { id: pid+'-'+uid().toLowerCase(), label:'Nuevo campo', type:'text', required:false };
+    this.setState(s => ({
+      forms: { ...s.forms, [pid]: { ...s.forms[pid], fields: [...s.forms[pid].fields, nf] } },
+      formDirty: { ...s.formDirty, [pid]: true },
+    }));
+  };
+  publishFormVersion = () => {
+    const pid = this.state.formProductId;
+    if(!this.state.formDirty[pid]) return;
+    this.setState(s => ({
+      forms: { ...s.forms, [pid]: { ...s.forms[pid], version: s.forms[pid].version + 1 } },
+      formDirty: { ...s.formDirty, [pid]: false },
+    }));
+  };
+
+  openNewProduct = () => this.setState(s => ({ adminProductEditingId:'new', adminProductForm:{ name:'', price:'', priceConfirmed:true, short:'', long:'', coverageText:'', categoryId:(s.categories[0]&&s.categories[0].id)||'' } }));
+  openEditProduct(id){
+    const p = this.state.products.find(x=>x.id===id);
+    if(!p) return;
+    this.setState(s => ({ adminProductEditingId:id, adminProductForm:{ name:p.name, price:p.price==null?'':String(p.price), priceConfirmed:!!p.priceConfirmed, short:p.short, long:p.long, coverageText:(p.coverage||[]).join('\n'), categoryId:p.categoryId || (s.categories[0]&&s.categories[0].id) || '' } }));
+  }
+  cancelProductEdit = () => this.setState({ adminProductEditingId:null });
+  setProductFormField(field, val){ this.setState(s => ({ adminProductForm:{ ...s.adminProductForm, [field]:val } })); }
+  setProductForm_name = (e) => this.setProductFormField('name', e.target.value);
+  setProductForm_price = (e) => this.setProductFormField('price', e.target.value);
+  setProductForm_priceConfirmed = (e) => this.setProductFormField('priceConfirmed', e.target.checked);
+  setProductForm_short = (e) => this.setProductFormField('short', e.target.value);
+  setProductForm_long = (e) => this.setProductFormField('long', e.target.value);
+  setProductForm_coverageText = (e) => this.setProductFormField('coverageText', e.target.value);
+  setProductForm_categoryId = (e) => this.setProductFormField('categoryId', e.target.value);
+  saveProduct = () => {
+    const f = this.state.adminProductForm;
+    if(!f.name.trim()) return;
+    const coverage = f.coverageText.split('\n').map(l=>l.trim()).filter(Boolean);
+    const price = f.priceConfirmed ? (Number(f.price) || 0) : null;
+    if(this.state.adminProductEditingId === 'new'){
+      let id = slugify(f.name);
+      if(this.state.products.some(p=>p.id===id)) id = id+'-'+Math.random().toString(36).slice(2,5);
+      const np = { id, name:f.name, short:f.short, long:f.long, price, priceConfirmed:!!f.priceConfirmed, categoryId:f.categoryId, coverage, active:true };
+      this.setState(s => ({ products:[...s.products, np], forms:{ ...s.forms, [id]:{ version:1, fields:[{ id:id+'-obs', label:'Comentarios para el asesor', type:'textarea', required:false }] } }, adminProductEditingId:null }));
+    } else {
+      const id = this.state.adminProductEditingId;
+      this.setState(s => ({ products: s.products.map(p => p.id===id ? { ...p, name:f.name, short:f.short, long:f.long, price, priceConfirmed:!!f.priceConfirmed, categoryId:f.categoryId, coverage } : p), adminProductEditingId:null }));
+    }
+  };
+  toggleProductActive(id){ this.setState(s => ({ products: s.products.map(p => p.id===id ? { ...p, active: p.active === false } : p) })); }
+
+  openNewCategory = () => this.setState({ categoryEditingId:'new', categoryForm:{ name:'', color:CATEGORY_COLORS[0].hex } });
+  openEditCategory(id){
+    const c = this.state.categories.find(cat=>cat.id===id);
+    if(!c) return;
+    this.setState({ categoryEditingId:id, categoryForm:{ name:c.name, color:c.color || CATEGORY_COLORS[0].hex } });
+  }
+  cancelCategoryEdit = () => this.setState({ categoryEditingId:null });
+  setCategoryForm_name = (e) => this.setState(s => ({ categoryForm:{ ...s.categoryForm, name:e.target.value } }));
+  setCategoryForm_color(color){ this.setState(s => ({ categoryForm:{ ...s.categoryForm, color } })); }
+  saveCategory = () => {
+    const f = this.state.categoryForm;
+    if(!f.name.trim()) return;
+    if(this.state.categoryEditingId === 'new'){
+      let id = slugify(f.name);
+      if(this.state.categories.some(c=>c.id===id)) id = id+'-'+Math.random().toString(36).slice(2,5);
+      this.setState(s => ({ categories:[...s.categories, { id, name:f.name, color:f.color }], categoryEditingId:null }));
+    } else {
+      const id = this.state.categoryEditingId;
+      this.setState(s => ({ categories: s.categories.map(c => c.id===id ? { ...c, name:f.name, color:f.color } : c), categoryEditingId:null }));
+    }
+  };
+  deleteCategory(id){
+    if(this.state.products.some(p => p.categoryId === id)) return;
+    this.setState(s => ({ categories: s.categories.filter(c => c.id !== id) }));
+  }
+  toggleProductorActivo(id){ this.setState(s => ({ usuarios: s.usuarios.map(u => u.id===id ? { ...u, activo: !u.activo } : u) })); }
+
+  estadoStyle(e){ return ESTADOS[e] || ESTADOS.BORRADOR; }
+  requestRows(r, product){
+    const form = this.getForm(r.productId);
+    const d = r.datos || {};
+    const rows = [
+      { label:'Producto', value: product.name },
+      { label:'Cliente', value: r.cliente },
+      { label:'Email', value: r.email || '—' },
+    ];
+    if(d.telefono) rows.push({ label:'Teléfono', value:d.telefono });
+    if(d.dni) rows.push({ label:'DNI / CUIT', value:d.dni });
+    if(d.direccion) rows.push({ label:'Dirección', value:[d.direccion, d.ciudad].filter(Boolean).join(', ') });
+    form.fields.forEach(f => {
+      const v = (r.respuestas || {})[f.id];
+      if(v !== undefined && String(v).trim() !== '') rows.push({ label:f.label, value:String(v) });
+    });
+    rows.push({ label:'Versión del formulario', value:'v'+(r.formVersion || 1) });
+    return rows;
+  }
+
+  renderVals(){
+    const s = this.state;
+    const isAdmin = s.loggedIn && s.role === 'admin';
+    const isClient = s.loggedIn && s.role !== 'admin';
+    const selectedProductRaw = this.getProduct(s.selectedProductId);
+    const pv = this.priceView(selectedProductRaw);
+
+    // ---------- header / nav ----------
+    const userInitials = (s.userName||'C D').trim().split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase() || 'CD';
+    const navCurrent = {
+      catalog: (s.screen==='catalog'||s.screen==='product') ? 'page' : 'false',
+      requests: (s.screen==='requests'||s.screen==='requestDetail'||s.screen==='request') ? 'page' : 'false',
+      policies: (s.screen==='policies'||s.screen==='policyDetail') ? 'page' : 'false',
+      adminInbox: (s.screen==='admin' && s.adminTab!=='productores') ? 'page' : 'false',
+      adminUsers: (s.screen==='admin' && s.adminTab==='productores') ? 'page' : 'false',
+    };
+
+    // ---------- catalog ----------
+    const categories = [
+      { id:null, label:'Todas', bg: s.activeCategory===null ? '#EAF7F9' : '#fff', color: s.activeCategory===null ? '#0D6B78' : '#3C4649', dotColor:null, pressed:String(s.activeCategory===null), onClick:()=>this.selectCategory(null) },
+      ...s.categories.map(c => ({ id:c.id, label:c.name, bg: s.activeCategory===c.id ? '#EAF7F9' : '#fff', color: s.activeCategory===c.id ? '#0D6B78' : '#3C4649', dotColor:c.color, pressed:String(s.activeCategory===c.id), onClick:()=>this.selectCategory(c.id) })),
+    ];
+    const searchTerm = s.catalogSearch.trim().toLowerCase();
+    const filteredProducts = s.products.filter(p => p.active !== false)
+      .filter(p => !s.activeCategory || p.categoryId === s.activeCategory)
+      .filter(p => !searchTerm || p.name.toLowerCase().includes(searchTerm) || p.short.toLowerCase().includes(searchTerm));
+    const visibleProducts = filteredProducts.map(p => {
+      const ppv = this.priceView(p);
+      return { id:p.id, name:p.name, short:p.short, iconBg:'var(--accent-soft)', iconSvg:productIcon(p.categoryId,28),
+        priceCaption:ppv.priceCaption, priceLabel:ppv.priceLabel, priceColor:ppv.priceColor, priceSize:'17px',
+        onOpen:()=>this.openProduct(p.id) };
+    });
+    const skeletonSlots = [1,2,3,4,5,6].map(i=>({ id:i }));
+
+    // ---------- product detail ----------
+    const selectedProduct = {
+      id:selectedProductRaw.id, name:selectedProductRaw.name, short:selectedProductRaw.short, long:selectedProductRaw.long,
+      coverage:selectedProductRaw.coverage, iconBg:'var(--accent-soft)',
+      iconSvgLg:productIcon(selectedProductRaw.categoryId,52), iconSvgSm:productIcon(selectedProductRaw.categoryId,24),
+      priceCaption:pv.priceCaption, priceLabel:pv.priceLabel, priceColor:pv.priceColor, priceSize:pv.priceSize, priceSizeLarge:pv.priceSizeLarge, priceNote:pv.priceNote,
+    };
+    const afterSubmitSteps = [
+      { num:'1', text:'MAPS revisa los datos y la documentación adjunta.' },
+      { num:'2', text:'Un administrador asigna la solicitud a un productor.' },
+      { num:'3', text:'El productor te contacta para avanzar con la contratación.' },
+    ];
+
+    // ---------- request flow ----------
+    const stepLabels = ['Cobertura','Datos','Formulario','Documentos','Revisión','Confirmación'];
+    const steps = stepLabels.map((label,i) => {
+      const done = i < s.requestStep;
+      const active = i === s.requestStep;
+      return {
+        num: done ? '✓' : String(i+1), label, current: active ? 'step' : 'false',
+        circleBg: done ? '#0D6B78' : (active ? '#EAF7F9' : '#fff'),
+        circleColor: done ? '#fff' : (active ? '#0D6B78' : '#647079'),
+        circleBorder: done ? '#0D6B78' : (active ? '#0D6B78' : '#DDE4E6'),
+        labelColor: active ? '#0D6B78' : '#647079',
+        showLine: i < stepLabels.length - 1,
+        lineColor: done ? '#0D6B78' : '#E7ECEE',
+      };
+    });
+    const isStep = { 0:s.requestStep===0, 1:s.requestStep===1, 2:s.requestStep===2, 3:s.requestStep===3, 4:s.requestStep===4, 5:s.requestStep===5 };
+    const contactMissing = {
+      nombre: s.showContactError && !s.requestForm.nombre.trim(),
+      dni: s.showContactError && !s.requestForm.dni.trim(),
+      telefono: s.showContactError && !s.requestForm.telefono.trim(),
+      email: s.showContactError && (!s.requestForm.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s.requestForm.email)),
+      direccion: s.showContactError && !s.requestForm.direccion.trim(),
+    };
+    const contactErrorClass = Object.fromEntries(Object.keys(contactMissing).map(k=>[k, contactMissing[k] ? ' has-error' : '']));
+    const contactErrorMessage = s.showContactError && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s.requestForm.email) && s.requestForm.email.trim()
+      ? 'Revisá el email: no tiene un formato válido.' : 'Completá los campos obligatorios para continuar.';
+    const activeForm = this.getForm(s.selectedProductId);
+    const activeFormVersionLabel = 'v'+activeForm.version;
+    const dynamicFields = activeForm.fields.map(f => {
+      const value = s.respuestas[f.id] || '';
+      const missing = s.showFieldError && f.required && !String(value).trim();
+      return {
+        id:f.id, label:f.label, required:f.required, span: f.type==='textarea' ? 'span 2' : 'span 1',
+        isText:f.type==='text', isNumber:f.type==='number', isDate:f.type==='date', isSelect:f.type==='select', isTextarea:f.type==='textarea',
+        value, placeholder:'', errorClass: missing ? ' has-error' : '',
+        options:(f.options||[]).map(o=>({ value:o, label:o })),
+        onChange:(e)=>this.setRespuesta(f.id, e.target.value),
+      };
+    });
+    const attachments = s.attachments.map((a,i) => ({ name:a.name, onRemove:()=>this.removeAttachment(i) }));
+    const reviewRows = [
+      { label:'Cobertura', value:selectedProductRaw.name },
+      { label:'Nombre', value:s.requestForm.nombre || '—' },
+      { label:'DNI / CUIT', value:s.requestForm.dni || '—' },
+      { label:'Teléfono', value:s.requestForm.telefono || '—' },
+      { label:'Email', value:s.requestForm.email || '—' },
+      { label:'Dirección', value:[s.requestForm.direccion, s.requestForm.ciudad].filter(Boolean).join(', ') || '—' },
+      { label:'Adjuntos', value: s.attachments.length ? s.attachments.length+' archivo(s)' : 'Ninguno' },
+    ];
+    const submitDisabled = !s.requestForm.acepta;
+    const submitBtnLabel = 'Enviar solicitud';
+    const draftEstadoLabel = { BORRADOR:'Borrador', ENVIADA:'Enviada' }[s.draftEstado] || s.draftEstado;
+    const canSaveDraft = s.requestStep < 5;
+    const saveDraftLabel = s.draftSaved ? 'Borrador guardado ✓' : 'Guardar borrador';
+    const currentStepDisplay = Math.min(s.requestStep+1, stepLabels.length);
+    const totalSteps = stepLabels.length;
+    const currentStepLabel = stepLabels[s.requestStep] || '';
+
+    // ---------- requests list / detail ----------
+    const st = (e) => this.estadoStyle(e);
+    const requestFilters = ['ALL', ...ESTADO_ORDER].map(f => ({
+      key:f, label: f==='ALL' ? 'Todas' : ({BORRADOR:'Borrador',ENVIADA:'Enviada',ASIGNADA:'Asignada',DERIVADA:'Derivada',CANCELADA:'Cancelada'}[f]),
+      pressed:String(s.requestFilter===f),
+      bg: s.requestFilter===f ? '#0D6B78' : '#fff', color: s.requestFilter===f ? '#fff' : '#3C4649',
+      onClick:()=>this.setRequestFilter(f),
+    }));
+    const myRequestsRaw = s.solicitudes.filter(r => r.mine && (s.requestFilter==='ALL' || r.estado===s.requestFilter));
+    const myRequests = myRequestsRaw.map(r => {
+      const product = this.getProduct(r.productId);
+      const stx = st(r.estado);
+      return { id:r.id, productName:product.name, numero:r.numero, updatedAt:r.updatedAt, estado:r.estado,
+        estadoBg:stx.bg, estadoColor:stx.color, iconSvg:productIcon(product.categoryId,22), onOpen:()=>this.openRequest(r.id) };
+    });
+    const noRequests = myRequests.length === 0;
+    const selReqRaw = s.solicitudes.find(r => r.id === s.selectedRequestId) || s.solicitudes[0];
+    const selReqProduct = this.getProduct(selReqRaw.productId);
+    const selReqSt = st(selReqRaw.estado);
+    const selReqProductor = this.getProductor(selReqRaw.productorId);
+    const selectedRequest = {
+      productName:selReqProduct.name, numero:selReqRaw.numero, createdAt:selReqRaw.createdAt, estado:selReqRaw.estado,
+      estadoBg:selReqSt.bg, estadoColor:selReqSt.color, iconSvg:productIcon(selReqProduct.categoryId,22),
+      rows:this.requestRows(selReqRaw, selReqProduct),
+      hasProductor: !!selReqProductor, productorNombre: selReqProductor ? selReqProductor.nombre : '', productorEmail: selReqProductor ? selReqProductor.email : '',
+      historial: selReqRaw.historial.map((h,i,arr) => ({ label:h.label, fecha:h.fecha, dot: i===arr.length-1 ? selReqSt.dot : '#C9CFD2', showLine: i < arr.length-1 })),
+      canResume: selReqRaw.mine && selReqRaw.estado === 'BORRADOR',
+      canCancel: selReqRaw.mine && !['CANCELADA','DERIVADA'].includes(selReqRaw.estado),
+    };
+
+    // ---------- policies ----------
+    const polSt = (e) => e==='VIGENTE' ? { bg:'#E7F6EC', color:'#166B49' } : { bg:'#F0F3F4', color:'#5B6670' };
+    const myPoliciesRaw = s.polizas.filter(p => p.mine);
+    const myPolicies = myPoliciesRaw.map(p => {
+      const product = this.getProduct(p.productId);
+      const px = polSt(p.estado);
+      return { id:p.id, productName:product.name, numero:p.numero, vigencia:p.desde+' – '+p.hasta, estado:p.estado,
+        estadoBg:px.bg, estadoColor:px.color, iconSvg:productIcon(product.categoryId,22),
+        onOpen:()=>{ this.setState({ selectedPolicyId:p.id, screen:'policyDetail' }); window.scrollTo(0,0); } };
+    });
+    const noPolicies = myPolicies.length === 0;
+    const selPolRaw = s.polizas.find(p => p.id === s.selectedPolicyId) || s.polizas[0];
+    const selPolProduct = this.getProduct(selPolRaw.productId);
+    const selPolSt = polSt(selPolRaw.estado);
+    const selectedPolicy = {
+      productName:selPolProduct.name, numero:selPolRaw.numero, estado:selPolRaw.estado, estadoBg:selPolSt.bg, estadoColor:selPolSt.color,
+      iconSvg:productIcon(selPolProduct.categoryId,22),
+      rows:[
+        { label:'Producto', value:selPolProduct.name },
+        { label:'Aseguradora', value:selPolRaw.aseguradora },
+        { label:'Vigencia', value:selPolRaw.desde+' – '+selPolRaw.hasta },
+        { label:'Suma asegurada', value:selPolRaw.sumaAsegurada },
+        { label:'Estado', value: selPolRaw.estado === 'VIGENTE' ? 'Vigente' : 'Vencida' },
+      ],
+    };
+
+    // ---------- profile ----------
+    const profileSaveLabel = s.profileSaved ? 'Guardado ✓' : 'Guardar cambios';
+    const passwordMismatch = !!s.passwordForm.next && !!s.passwordForm.confirm && s.passwordForm.next !== s.passwordForm.confirm;
+    const passwordSaveLabel = s.passwordSaved ? 'Contraseña actualizada ✓' : 'Actualizar contraseña';
+
+    // ---------- productor view ----------
+    const prReq = s.solicitudes.find(r => r.id === s.productorRequestId) || s.solicitudes[0];
+    const prProduct = this.getProduct(prReq.productId);
+    const prSt = st(prReq.estado);
+    const productorView = {
+      productName:prProduct.name, numero:prReq.numero, cliente:prReq.cliente, estado:prReq.estado, estadoBg:prSt.bg, estadoColor:prSt.color,
+      iconSvg:productIcon(prProduct.categoryId,22),
+      rows:this.requestRows(prReq, prProduct),
+      adjuntos:(prReq.adjuntos||[]).map(a=>({ name:a.name })), noAdjuntos:(prReq.adjuntos||[]).length===0,
+    };
+
+    // ---------- admin: inbox ----------
+    const adminTabDefs = [
+      { key:'inbox', label:'Bandeja' }, { key:'forms', label:'Formularios' }, { key:'clients', label:'Clientes y pólizas' },
+      { key:'productores', label:'Productores' }, { key:'products', label:'Productos' }, { key:'categories', label:'Categorías' }, { key:'leads', label:'Potenciales clientes' },
+    ];
+    const adminTabs = adminTabDefs.map(t => ({ key:t.key, label:t.label, current: s.adminTab===t.key ? 'true' : 'false',
+      bg: s.adminTab===t.key ? '#fff' : 'transparent', color: s.adminTab===t.key ? '#0D6B78' : '#647079', onClick:this.setAdminTab(t.key) }));
+    const isAdminTab = Object.fromEntries(adminTabDefs.map(t => [t.key, s.adminTab===t.key]));
+
+    const allSolicitudes = s.solicitudes;
+    const pendEmision = allSolicitudes.filter(r=>r.estado==='ENVIADA').length;
+    const asignadas = allSolicitudes.filter(r=>r.estado==='ASIGNADA').length;
+    const derivadas = allSolicitudes.filter(r=>r.estado==='DERIVADA').length;
+    const adminKpis = [
+      { key:'ALL', label:'Solicitudes totales', value:allSolicitudes.length, color:'#1A2226', onClick:()=>this.setAdminFilterEstadoVal('ALL') },
+      { key:'ENVIADA', label:'Pendientes de asignar', value:pendEmision, color:'#0D6B78', onClick:()=>this.setAdminFilterEstadoVal('ENVIADA') },
+      { key:'ASIGNADA', label:'Asignadas', value:asignadas, color:'#8A5A0F', onClick:()=>this.setAdminFilterEstadoVal('ASIGNADA') },
+      { key:'DERIVADA', label:'Derivadas', value:derivadas, color:'#166B49', onClick:()=>this.setAdminFilterEstadoVal('DERIVADA') },
+    ].map(k => ({ ...k, border: s.adminFilterEstado===k.key ? '#0D6B78' : '#E7ECEE' }));
+
+    const productFilterOptions = [{ value:'all', label:'Todos los productos' }, ...s.products.map(p=>({ value:p.id, label:p.name+(p.active===false?' (baja)':'') }))];
+    const estadoFilterOptions = [{ value:'ALL', label:'Todos los estados' }, ...ESTADO_ORDER.map(e=>({ value:e, label:({BORRADOR:'Borrador',ENVIADA:'Enviada',ASIGNADA:'Asignada',DERIVADA:'Derivada',CANCELADA:'Cancelada'}[e]) }))];
+    const productorOptions = [{ value:'', label:'Sin asignar' }, ...PRODUCTORES.map(p=>({ value:p.id, label:p.nombre }))];
+
+    let adminFiltered = allSolicitudes.filter(r => !r.mine || true).filter(r => r.estado !== 'BORRADOR')
+      .filter(r => s.adminFilterProduct==='all' || r.productId===s.adminFilterProduct)
+      .filter(r => s.adminFilterEstado==='ALL' || r.estado===s.adminFilterEstado)
+      .filter(r => { const q = s.adminSearch.trim().toLowerCase(); return !q || r.cliente.toLowerCase().includes(q) || r.numero.toLowerCase().includes(q); });
+    if(s.adminSort === 'cliente_asc') adminFiltered = [...adminFiltered].sort((a,b)=>a.cliente.localeCompare(b.cliente));
+    if(s.adminSort === 'cliente_desc') adminFiltered = [...adminFiltered].sort((a,b)=>b.cliente.localeCompare(a.cliente));
+    const totalFiltered = adminFiltered.length;
+    const pageCount = Math.max(1, Math.ceil(totalFiltered / s.adminPageSize));
+    const currentPage = Math.min(s.adminPage, pageCount-1);
+    const rangeFrom = totalFiltered === 0 ? 0 : currentPage*s.adminPageSize+1;
+    const rangeTo = Math.min(totalFiltered, (currentPage+1)*s.adminPageSize);
+    const pageIds = adminFiltered.slice(currentPage*s.adminPageSize, currentPage*s.adminPageSize+s.adminPageSize);
+    const adminRowsPage = pageIds.map(rec => {
+      const product = this.getProduct(rec.productId);
+      const stx = st(rec.estado);
+      return { id:rec.id, numero:rec.numero, createdAt:rec.createdAt, cliente:rec.cliente, productName:product.name,
+        estado:rec.estado, estadoBg:stx.bg, estadoColor:stx.color, productorId:rec.productorId||'',
+        canDerive: rec.estado==='ASIGNADA', onAssign:(e)=>this.assignProductor(rec.id, e.target.value), onDerive:()=>this.deriveRequest(rec.id),
+        onOpenProductorView:()=>this.openProductorView(rec.id) };
+    });
+    const adminNoResults = adminRowsPage.length === 0;
+    const sortClienteArrow = s.adminSort==='cliente_asc' ? '↑' : (s.adminSort==='cliente_desc' ? '↓' : '');
+    const adminRangeLabel = totalFiltered === 0 ? '0 resultados' : (rangeFrom+'–'+rangeTo+' de '+totalFiltered);
+    const showPagination = pageCount > 1;
+    const adminPageDisplay = currentPage+1, adminPageCount = pageCount;
+    const isFirstPage = currentPage===0, isLastPage = currentPage>=pageCount-1;
+
+    // ---------- admin: forms ----------
+    const productOptionsPlain = s.products.map(p=>({ value:p.id, label:p.name }));
+    const activeAdminForm = this.getForm(s.formProductId);
+    const formVersionLabel = 'v'+activeAdminForm.version;
+    const formVersionBg = '#EAF7F9', formVersionColor = '#0D6B78';
+    const formHasDraftChanges = !!s.formDirty[s.formProductId];
+    const publishDisabled = !formHasDraftChanges;
+    const fieldTypeOptions = FIELD_TYPES;
+    const formFields = activeAdminForm.fields.map(f => ({
+      id:f.id, label:f.label, type:f.type, required:f.required,
+      onLabelChange:(e)=>this.updateFormField(f.id,{label:e.target.value}),
+      onTypeChange:(e)=>this.updateFormField(f.id,{type:e.target.value}),
+      onRequiredChange:(e)=>this.updateFormField(f.id,{required:e.target.checked}),
+      onRemove:()=>this.removeFormField(f.id),
+    }));
+
+    // ---------- admin: clients ----------
+    const adminClients = (() => {
+      const map = {};
+      s.solicitudes.forEach(r => { const k=r.cliente; map[k]=map[k]||{ nombre:r.cliente, email:r.email, solicitudes:0 }; map[k].solicitudes++; });
+      s.polizas.forEach(p => { const k=p.cliente; map[k]=map[k]||{ nombre:p.cliente, email:'', solicitudes:0, polizas:0 }; map[k].polizas=(map[k].polizas||0)+1; });
+      return Object.values(map).map(c=>({ ...c, polizas:c.polizas||0 }));
+    })();
+    const adminPolicies = s.polizas.map(p => { const product=this.getProduct(p.productId); const px=polSt(p.estado);
+      return { productName:product.name, numero:p.numero, cliente:p.cliente, vigencia:p.desde+' – '+p.hasta, estado:p.estado, estadoBg:px.bg, estadoColor:px.color }; });
+
+    // ---------- admin: productores ----------
+    const adminProductores = s.usuarios.map(u => ({
+      id:u.id, nombre:u.nombre, email:u.email, rol:u.rol,
+      asignadas: s.solicitudes.filter(r=>r.productorId===u.id && r.estado!=='DERIVADA').length,
+      estadoBg: u.activo ? '#E7F6EC' : '#F0F3F4', estadoColor: u.activo ? '#166B49' : '#5B6670', estadoLabel: u.activo ? 'Activo' : 'Inactivo',
+      toggleLabel: u.activo ? 'Desactivar' : 'Activar', toggleColor: u.activo ? '#B03A2E' : '#166B49',
+      toggleIconSvg: { __html: svgIconColor(u.activo ? ICON_BAN : ICON_CIRCLE_CHECK, 18, u.activo ? '#B03A2E' : '#166B49') },
+      onToggle:()=>this.toggleProductorActivo(u.id),
+    }));
+
+    // ---------- admin: products ----------
+    const categoryOptions = s.categories.map(c=>({ value:c.id, label:c.name }));
+    const isNewProduct = s.adminProductEditingId === 'new';
+    const isEditingExistingProduct = !!s.adminProductEditingId && !isNewProduct;
+    const isEditingProduct = !!s.adminProductEditingId;
+    const productFormTitle = isNewProduct ? 'Nuevo producto' : 'Editar producto';
+    const saveProductDisabled = !s.adminProductForm.name.trim();
+    const productsResolved = s.products.map(p => {
+      const cat = s.categories.find(c=>c.id===p.categoryId);
+      const ppv = this.priceView(p);
+      return { id:p.id, name:p.name, short:p.short, categoryName: cat ? cat.name : '—', formVersionLabel:'v'+(this.getForm(p.id).version),
+        iconBg: p.active===false ? '#F0F3F4' : 'var(--accent-soft)', iconSvg:productIcon(p.categoryId,26),
+        priceLabel: p.priceConfirmed ? ppv.priceLabel : 'A confirmar', priceColor: p.priceConfirmed ? '#0D6B78' : '#8A5A0F', priceSize:'14px',
+        statusLabel: p.active===false ? 'De baja' : 'Activo', statusBg: p.active===false ? '#F0F3F4' : '#E7F6EC', statusColor: p.active===false ? '#5B6670' : '#166B49',
+        toggleLabel: p.active===false ? 'Reactivar' : 'Dar de baja', toggleColor: p.active===false ? '#166B49' : '#B03A2E',
+        toggleIconSvg: { __html: svgIconColor(p.active===false ? ICON_CIRCLE_CHECK : ICON_BAN, 17, p.active===false ? '#166B49' : '#B03A2E') },
+        onEdit:()=>this.openEditProduct(p.id), onToggleActive:()=>this.toggleProductActive(p.id) };
+    });
+
+    // ---------- admin: categories ----------
+    const isNewCategory = s.categoryEditingId === 'new';
+    const isEditingCategory = !!s.categoryEditingId;
+    const categoryFormTitle = isNewCategory ? 'Nueva categoría' : 'Editar categoría';
+    const saveCategoryDisabled = !s.categoryForm.name.trim();
+    const categoryColorOptions = CATEGORY_COLORS.map(c => ({ hex:c.hex, name:c.name, pressed:String(c.hex===s.categoryForm.color), selected: c.hex===s.categoryForm.color ? '#1A2226' : 'transparent', onClick:()=>this.setCategoryForm_color(c.hex) }));
+    const categoriesResolved = s.categories.map(c => ({ id:c.id, name:c.name, color:c.color, productCount: s.products.filter(p=>p.categoryId===c.id).length,
+      deleteDisabled: s.products.some(p=>p.categoryId===c.id), deleteTitle: s.products.some(p=>p.categoryId===c.id) ? 'No se puede eliminar: tiene productos asociados' : 'Eliminar',
+      deleteBg:'#fff', deleteColor: s.products.some(p=>p.categoryId===c.id) ? '#C9CFD2' : '#B03A2E', deleteCursor: s.products.some(p=>p.categoryId===c.id) ? 'not-allowed' : 'pointer',
+      onEdit:()=>this.openEditCategory(c.id), onDelete:()=>this.deleteCategory(c.id) }));
+
+    // ---------- admin: leads ----------
+    const leadPlaceholders = [
+      { label:'Altas sin solicitud (30 días)', value:'—' },
+      { label:'Última sincronización', value:'—' },
+      { label:'Fuente de datos', value:'A definir' },
+    ];
+
+    return {
+      isScreen: { auth:s.screen==='auth', catalog:s.screen==='catalog', product:s.screen==='product', request:s.screen==='request',
+        requests:s.screen==='requests', requestDetail:s.screen==='requestDetail', policies:s.screen==='policies',
+        policyDetail:s.screen==='policyDetail', profile:s.screen==='profile', admin:s.screen==='admin', productor:s.screen==='productor' },
+      loggedIn:s.loggedIn, loggedOut:!s.loggedIn, isAdmin, isClient, userName:s.userName||'Cliente Demo', userInitials, navCurrent,
+      accountMenuOpen:s.accountMenuOpen, accountChevronRotate: s.accountMenuOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+      toggleAccountMenu:this.toggleAccountMenu, closeAccountMenu:this.closeAccountMenu, onAccountMenuKeyDown:this.onAccountMenuKeyDown,
+      goCatalog:this.goCatalog, goCatalogPrevent:this.goCatalogPrevent, goRequests:this.goRequests, goPolicies:this.goPolicies,
+      goAdmin:this.goAdmin, goAdminInbox:this.goAdminInbox, goAdminUsers:this.goAdminUsers, goProfile:this.goProfile,
+      goAuthLogin:this.goAuthLogin, goProductorDemo:this.goProductorDemo, exitProductorView:this.exitProductorView, logout:this.logout,
+      preventDefault:this.preventDefault, preventSubmit:this.preventSubmit, stopPropagation:this.stopPropagation,
+
+      authGateVisible:s.authGate, authForm:s.authForm,
+      isAuthMode:{ login:s.authMode==='login', register:s.authMode==='register' },
+      authTabBg:{ login:s.authMode==='login'?'#fff':'transparent', register:s.authMode==='register'?'#fff':'transparent' },
+      authTabColor:{ login:s.authMode==='login'?'#0D6B78':'#647079', register:s.authMode==='register'?'#0D6B78':'#647079' },
+      setAuthMode_login:this.setAuthMode_login, setAuthMode_register:this.setAuthMode_register,
+      setAuthField_email:this.setAuthField_email, setAuthField_password:this.setAuthField_password, setAuthField_name:this.setAuthField_name,
+      submitLogin:this.submitLogin, submitRegister:this.submitRegister,
+
+      catalogSearch:s.catalogSearch, setCatalogSearch:this.setCatalogSearch, categories, catalogLoading:s.catalogLoading, skeletonSlots,
+      noProductResults: !s.catalogLoading && visibleProducts.length===0, showProductGrid: !s.catalogLoading && visibleProducts.length>0, visibleProducts,
+
+      selectedProduct, afterSubmitSteps, startRequest:this.startRequest,
+
+      steps, isStep, currentStepDisplay, totalSteps, currentStepLabel,
+      draftNumero:s.draftNumero, draftEstadoLabel, canSaveDraft, saveDraftLabel, saveDraft:this.saveDraft,
+      requestForm:s.requestForm, contactErrorClass, showContactError:s.showContactError, contactErrorMessage,
+      setRqField_nombre:this.setRqField_nombre, setRqField_dni:this.setRqField_dni, setRqField_telefono:this.setRqField_telefono,
+      setRqField_email:this.setRqField_email, setRqField_direccion:this.setRqField_direccion, setRqField_ciudad:this.setRqField_ciudad, setRqField_cp:this.setRqField_cp,
+      nextStep:this.nextStep, prevStep:this.prevStep, nextFromContact:this.nextFromContact, nextFromFields:this.nextFromFields,
+      activeFormVersionLabel, dynamicFields, showFieldError:s.showFieldError,
+      attachments, addAttachments:this.addAttachments,
+      reviewRows, toggleAcepta:this.toggleAcepta, submitDisabled, submitBtnLabel, submitRequest:this.submitRequest,
+
+      requestFilters, myRequests, noRequests, selectedRequest,
+      resumeDraft:this.resumeDraft, cancelRequest:this.cancelRequest,
+
+      myPolicies, noPolicies, selectedPolicy,
+
+      profileForm:s.profileForm, profileSaveLabel, saveProfile:this.saveProfile,
+      setProfileField_nombre:this.setProfileField_nombre, setProfileField_email:this.setProfileField_email,
+      setProfileField_telefono:this.setProfileField_telefono, setProfileField_direccion:this.setProfileField_direccion,
+      passwordForm:s.passwordForm, passwordMismatch, passwordSaveLabel, changePassword:this.changePassword,
+      setPasswordField_current:this.setPasswordField_current, setPasswordField_next:this.setPasswordField_next, setPasswordField_confirm:this.setPasswordField_confirm,
+
+      productorView,
+
+      adminTabs, isAdminTab, adminKpis, adminSearch:s.adminSearch, setAdminSearch:this.setAdminSearch,
+      adminFilterProduct:s.adminFilterProduct, setAdminFilterProduct:this.setAdminFilterProduct,
+      adminFilterEstado:s.adminFilterEstado, setAdminFilterEstado:this.setAdminFilterEstado,
+      productFilterOptions, estadoFilterOptions, productorOptions,
+      adminRangeLabel, adminRowsPage, adminNoResults, sortClienteArrow, toggleSortCliente:this.toggleSortCliente,
+      showPagination, adminPageDisplay, adminPageCount, isFirstPage, isLastPage, prevAdminPage:this.prevAdminPage, nextAdminPage:this.nextAdminPage,
+
+      formProductId:s.formProductId, setFormProduct:this.setFormProduct, formVersionLabel, formVersionBg, formVersionColor,
+      formHasDraftChanges, publishDisabled, productOptionsPlain, fieldTypeOptions, formFields, addFormField:this.addFormField, publishFormVersion:this.publishFormVersion,
+
+      adminClients, adminPolicies,
+      adminProductores,
+
+      isEditingProduct, isNewProduct, isEditingExistingProduct, productFormTitle, saveProductDisabled,
+      adminProductForm:s.adminProductForm, categoryOptions, productsResolved,
+      openNewProduct:this.openNewProduct, cancelProductEdit:this.cancelProductEdit, saveProduct:this.saveProduct,
+      setProductForm_name:this.setProductForm_name, setProductForm_price:this.setProductForm_price, setProductForm_priceConfirmed:this.setProductForm_priceConfirmed,
+      setProductForm_short:this.setProductForm_short, setProductForm_long:this.setProductForm_long,
+      setProductForm_coverageText:this.setProductForm_coverageText, setProductForm_categoryId:this.setProductForm_categoryId,
+
+      isEditingCategory, isNewCategory, categoryFormTitle, saveCategoryDisabled, categoryForm:s.categoryForm, categoryColorOptions, categoriesResolved,
+      openNewCategory:this.openNewCategory, cancelCategoryEdit:this.cancelCategoryEdit, saveCategory:this.saveCategory, setCategoryForm_name:this.setCategoryForm_name,
+
+      leadPlaceholders,
+    };
+  }
+}
+</script>
+</body>
+</html>
+
+
