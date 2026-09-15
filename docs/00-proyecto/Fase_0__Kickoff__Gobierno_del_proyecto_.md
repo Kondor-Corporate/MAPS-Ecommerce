@@ -7,7 +7,6 @@ Baseline funcional vigente del Portal de Seguros MAPS. Define alcance, actores, 
 | Cliente | MAPS - Organización de seguros |
 | Equipo de desarrollo | Kondor |
 | Proyecto | Portal de Seguros MAPS |
-| Versión | Baseline funcional v9 - MVP simplificado |
 | Fecha | 15 de septiembre de 2026 |
 
 ## 0.1 Definición vigente
@@ -171,4 +170,4 @@ Métricas deseadas: Product view → Start, Start → BORRADOR, BORRADOR → ENV
 
 ## 0.12 Documentación histórica
 
-El Database Discovery Pack conserva evidencia read-only útil y no se elimina. `docs/estructura.md`, TDDs y el prototipo UI/UX existente contienen propuestas o artefactos anteriores a esta baseline; no son fuente de alcance vigente. Si contradicen este documento, prevalece la baseline v8 hasta una nueva decisión explícita.
+El Database Discovery Pack conserva evidencia read-only útil y no se elimina. `docs/estructura.md`, TDDs y el prototipo UI/UX existente contienen propuestas o artefactos anteriores a esta baseline; no son fuente de alcance vigente. Si contradicen este documento, prevalece esta baseline funcional vigente hasta una nueva decisión explícita.

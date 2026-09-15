@@ -20,7 +20,7 @@ El repositorio mantiene estructura inicial de monorepo. Esta baseline es exclusi
 
 ## Documentación vigente
 
-- [Fase 0 — Baseline funcional v8](./docs/00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md)
+- [Fase 0 — Baseline funcional vigente](./docs/00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md)
 - [Fase 1 — Discovery y Relevamiento](./docs/01-producto/Fase_1__Discovery_y_Relevamiento.md)
 
 `docs/estructura.md`, los TDDs y el material UI/UX previo se conservan como históricos: no definen el alcance vigente cuando contradicen Fase 0/Fase 1.

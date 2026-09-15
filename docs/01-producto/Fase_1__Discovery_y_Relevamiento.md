@@ -1,13 +1,13 @@
 # Fase 1 - Discovery y Relevamiento
 
-> **Documento vivo.** Convierte la baseline v8 en conocimiento funcional verificable. No define wireframes, arquitectura, persistencia, proveedores ni integraciones concretas.
+> **Documento vivo.** Convierte la baseline funcional vigente en conocimiento funcional verificable. No define wireframes, arquitectura, persistencia, proveedores ni integraciones concretas.
 
 | Dato | Definición |
 | --- | --- |
 | Proyecto | Portal de Seguros MAPS |
 | Fase | 1 - Discovery y Relevamiento |
 | Estado | En curso |
-| Insumo rector | Fase 0 baseline v8 |
+| Insumo rector | Fase 0 — baseline funcional vigente |
 | Última actualización | 15 de septiembre de 2026 |
 
 ## 1. Objetivo y alcance vigente
