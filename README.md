@@ -2,17 +2,17 @@
 
 Portal para publicar productos aseguradores, permitir que una persona autenticada inicie y recupere una `InsuranceRequest`, y derivar de forma segura una solicitud formal a un productor. No es un e-commerce: no incluye checkout, pagos, contratación ni emisión automática.
 
-El catálogo es público. Al iniciar una solicitud, el usuario se registra o inicia sesión y se crea una `InsuranceRequest` en **BORRADOR**; al enviar pasa a **ENVIADA**. Un Admin la gestiona y asigna manualmente a un Productor. El sistema envía un email transaccional con resumen mínimo y enlace seguro read-only; sólo tras esa asignación el Productor accede al expediente y continúa la gestión comercial fuera del Portal.
+El catálogo es público y todos los Products publicados del MVP son seguros enlatados con precio fijo vigente, administrado por Admin. Al iniciar una solicitud, el usuario se registra o inicia sesión y se crea una `InsuranceRequest` en **BORRADOR**; al enviar pasa a **ENVIADA** y conserva como snapshot funcional el precio confirmado. Si el precio cambia mientras existe un BORRADOR, el usuario debe ser informado y confirmar el nuevo valor antes de enviar. Un Admin la gestiona y asigna manualmente a un Productor. El sistema envía un email transaccional con resumen mínimo y enlace seguro read-only; sólo tras esa asignación el Productor accede al expediente y continúa la gestión comercial fuera del Portal.
 
 ## Alcance del MVP
 
 - Catálogo y administración de productos por MAPS.
-- Formularios dinámicos/versionados por producto, con contrato funcional acotado.
-- Registro/login, borradores recuperables y envío formal.
+- Formularios dinámicos/versionados por producto, con contrato funcional acotado preliminar a validar con formularios reales.
+- Registro/login, borradores recuperables, **Mis solicitudes** y envío formal.
 - Bandeja Admin, asignación/reasignación, email transaccional y acceso seguro del Productor.
-- Auditoría y analítica básica del funnel.
+- Auditoría, cancelación por estado y analítica básica del funnel sin PII innecesaria ni automatismos comerciales.
 
-Fuera del MVP: Leads/Potenciales clientes e integración con Intranet, PostgreSQL MAPS como dependencia funcional, Portal del Asegurado/pólizas/PDF, checkout, pagos, cotizador, simulador, panel general de productores y constructor universal de formularios. Recovery de abandonos sólo podrá evaluarse en una evolución futura con métricas reales del funnel.
+Fuera del MVP: Leads/Potenciales clientes e integración con Intranet, PostgreSQL MAPS como dependencia funcional, Portal del Asegurado/pólizas/PDF, checkout, pagos, cotizador, simulador, cálculo personalizado, panel general de productores y constructor universal de formularios. Recovery de abandonos sólo podrá evaluarse en una evolución futura con métricas reales del funnel.
 
 ## Estado actual
 

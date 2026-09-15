@@ -7,8 +7,8 @@ Baseline funcional vigente del Portal de Seguros MAPS. Define alcance, actores, 
 | Cliente | MAPS - Organización de seguros |
 | Equipo de desarrollo | Kondor |
 | Proyecto | Portal de Seguros MAPS |
-| Versión | Baseline funcional v8 - MVP simplificado |
-| Fecha | 11 de septiembre de 2026 |
+| Versión | Baseline funcional v9 - MVP simplificado |
+| Fecha | 15 de septiembre de 2026 |
 
 ## 0.1 Definición vigente
 
@@ -27,7 +27,7 @@ Catálogo → Producto → Registro/Login → InsuranceRequest(BORRADOR)
 - El catálogo es público. Registro/login es obligatorio antes de crear una `InsuranceRequest(BORRADOR)`; Fase 2 define solamente cómo presentar esa exigencia.
 - Los estados funcionales son **BORRADOR**, **ENVIADA**, **ASIGNADA**, **DERIVADA** y **CANCELADA**. Estados de entrega de email no forman parte de la solicitud.
 - MAPS administra productos y formularios por producto sin cambios de código. Una `FormVersion` PUBLICADA es inmutable; el borrador conserva su versión de creación sin migración automática o silenciosa.
-- Un precio fijo sólo se muestra si MAPS aporta un valor vigente, confiable y aplicable. De otro modo, el producto queda sujeto a evaluación; no hay cotizador ni simulador.
+- Todo Product publicado del MVP es un seguro enlatado con precio fijo vigente. Admin crea y edita ese precio; el Portal no calcula precios y no admite la alternativa “sujeto a evaluación”.
 - La asignación es manual. El email transaccional al email verificado del productor contiene sólo identificador, producto, fecha, nombre autorizado y enlace seguro.
 - El productor accede read-only sólo a solicitudes asignadas, mediante enlace vencible, revocable, no adivinable, auditable y sin navegación a otros casos.
 - Las notificaciones son mínimas, relevantes, no redundantes y preferentemente accionables.
@@ -36,7 +36,7 @@ Catálogo → Producto → Registro/Login → InsuranceRequest(BORRADOR)
 
 Esta baseline conserva los cambios controlados ya aprobados de autenticación obligatoria previa y reemplazo de WhatsApp por email transaccional. Además incorpora:
 
-1. **Leads/Potenciales clientes fuera del MVP.** Se elimina la generación y sincronización de Leads/Potenciales clientes a partir de borradores. Sin checkout ni pagos, el abandono no justifica un ciclo comercial independiente. Los borradores preservan y recuperan progreso; Recovery/Potenciales clientes podrá evaluarse en una evolución futura con métricas reales del funnel.
+1. **Leads/Potenciales clientes fuera del MVP.** Se elimina su generación y sincronización. Un `InsuranceRequest(BORRADOR)` es progreso de un usuario autenticado, no una solicitud ni una intención comercial suficientemente confirmada; como ya puede recuperarse desde la cuenta, un ciclo paralelo duplicaría semántica, lifecycle, integración y ownership sin evidencia de valor. Recovery podrá evaluarse en una evolución futura con métricas reales del funnel.
 2. **PostgreSQL MAPS fuera del camino funcional del MVP.** Fue relevada read-only y contiene información parcial útil, pero no se usará como dependencia funcional actual por cobertura parcial de identidad, semántica contractual insuficiente, ausencia de PDF vigente/autorizado, renovaciones/reemplazos/endosos y riesgo asegurado, relaciones inferidas y complejidad desproporcionada. El Database Discovery Pack se conserva como evidencia de discovery.
 3. **Portal del Asegurado/pólizas diferido.** Sin una fuente funcional y reglas confiables aprobadas, no forma parte del MVP; tampoco se comprometen PDF, vigencia contractual, sincronización con Federación, asociaciones automáticas ni carga manual.
 
@@ -45,7 +45,7 @@ Esta baseline conserva los cambios controlados ya aprobados de autenticación ob
 ### Incluido
 
 - Catálogo público y detalle de productos.
-- Administración de productos por MAPS: crear, editar información comercial, definir precio fijo o sujeto a evaluación y publicar.
+- Administración de productos por MAPS: crear, editar información comercial, definir precio fijo vigente y publicar.
 - Formularios dinámicos, versionados y configurables por producto.
 - Registro/login, borradores recuperables y envío formal de `InsuranceRequest`.
 - Bandeja Admin; asignación y reasignación manual de productores.
@@ -67,7 +67,7 @@ Esta baseline conserva los cambios controlados ya aprobados de autenticación ob
 
 MAPS administra productos y formularios; el equipo no realiza una carga manual inicial como condición de desarrollo. El journey es genérico y no se bloquea por el cierre de fichas de productos concretos.
 
-El contrato funcional acotado de formularios candidato para MVP contempla `text`, `number`, `date`, `select`, `radio`, `checkbox`, `textarea` y `file`, con `required/optional`, opciones, `min/max` cuando corresponda, placeholder, orden, sección/paso, label y help text. Condicionales complejos, builder visual avanzado y dependencias arbitrarias permanecen **PENDIENTE MAPS**.
+La lista **preliminar/candidata** para el contrato funcional acotado contempla `text`, `number`, `date`, `select`, `radio`, `checkbox`, `textarea` y `file`, con `required/optional`, opciones, `min/max` cuando corresponda, placeholder, orden, sección/paso, label y help text. Antes del cierre de F1 debe validarse contra uno o dos formularios reales y representativos de seguros enlatados. Condicionales complejos, builder visual avanzado y dependencias arbitrarias quedan fuera del MVP, salvo que un formulario validado demuestre una condición obligatoria.
 
 Fase 1 define capacidad funcional; Fase 2 define UX y autonomía administrativa; Fase 3 define schema, persistencia e implementación.
 
@@ -77,7 +77,7 @@ Los roles operativos internos de MAPS en el MVP son **ADMIN** y **PRODUCTOR**. E
 
 | Actor | Responsabilidad confirmada |
 | --- | --- |
-| Cliente | Registrarse/iniciar sesión, iniciar, guardar, retomar y enviar una solicitud; consultar sus solicitudes si esa capacidad se conserva en F2. |
+| Cliente | Registrarse/iniciar sesión, iniciar, guardar, retomar y enviar una solicitud; consultar **Mis solicitudes** (borradores y enviadas con producto, fecha y estado funcional). |
 | Admin | Gestionar ENVIADA, asignar/reasignar productor, intervenir ante fallos de email, administrar productores, productos y formularios/versiones, y operar incidencias previas a DERIVADA. |
 | Productor | Consultar sólo solicitudes asignadas mediante mecanismo seguro/read-only, acceder al expediente autorizado y continuar la gestión comercial fuera del Portal. |
 
@@ -93,9 +93,21 @@ No toda solicitud ENVIADA es visible al productor. Sólo se habilita su acceso t
 | ENVIADA | Solicitud formal visible y gestionable por Admin; espera asignación. |
 | ASIGNADA | Admin seleccionó productor; puede iniciarse o reintentarse la entrega. |
 | DERIVADA | Se registró la correcta derivación al productor. |
-| CANCELADA | Estado funcional confirmado; actor autorizado, transiciones y condiciones siguen **PENDIENTE MAPS**. No se presume una acción de UI para cliente ni productor. |
+| CANCELADA | Estado final sin transiciones salientes. Registra actor, fecha y motivo. |
 
 La trazabilidad de entrega registra destinatario, fecha/hora, resultado conocido, fallas y reintentos. Pendiente/aceptado-enviado/entregado/rebotado/fallido son estados técnicos diferidos a Fase 3.
+
+### Cancelación
+
+- **BORRADOR:** el cliente puede descartarlo; no es solicitud formal y descartarlo no implica necesariamente `CANCELADA`.
+- **ENVIADA:** el cliente puede cancelar directamente (`ENVIADA → CANCELADA`); se registra actor, fecha y motivo y se notifica una sola vez al Admin.
+- **ASIGNADA:** el cliente puede cancelar directamente (`ASIGNADA → CANCELADA`); se registra actor, fecha y motivo, se notifica una sola vez a Admin y Productor y se revoca el enlace seguro.
+- **DERIVADA:** el cliente sólo puede solicitar cancelación. Admin confirma tras considerar la gestión comercial externa y recién entonces ocurre `DERIVADA → CANCELADA`; se registra solicitante, Admin confirmante, fecha y motivo, se notifica una vez al Productor y se revoca el enlace.
+- El Productor no cancela desde el Portal; comunica la situación al Admin.
+
+### Precio y solicitud
+
+Si Admin modifica el precio mientras existe un BORRADOR, el cliente es informado al retomar o antes de enviar y confirma expresamente el nuevo valor; sin esa confirmación no puede enviar. Al pasar a ENVIADA, la solicitud conserva como snapshot funcional el precio confirmado, que no cambia aunque cambie el Product. La estrategia técnica (`priceSnapshot`, `ProductVersion` u otra) corresponde a F3.
 
 ## 0.6 Seguridad y versionado
 
@@ -107,30 +119,40 @@ La trazabilidad de entrega registra destinatario, fecha/hora, resultado conocido
 
 ## 0.7 Analítica de funnel
 
-El MVP registra conceptualmente `product_viewed`, `request_started`, `request_draft_created`/`request_saved` y `request_submitted`. El abandono puede derivarse analíticamente, no es una entidad de negocio.
+El MVP registra conceptualmente `product_viewed`, `request_started`, `request_saved` y `request_submitted`. El abandono puede derivarse analíticamente, no es una entidad de negocio.
 
-Métricas deseadas: Product view → Start, Start → BORRADOR, BORRADOR → ENVIADA, tiempo mediano de completado y porcentaje de borradores nunca enviados. Esto permitirá evaluar en V2 si Recovery/Potenciales clientes tiene valor real. Proveedor e implementación de analytics quedan diferidos a F3.
+Métricas deseadas: Product view → Start, Start → BORRADOR, BORRADOR → ENVIADA, tiempo mediano de completado y porcentaje de borradores nunca enviados. Analytics no registra respuestas, documentos, adjuntos, DNI, CUIT, teléfono, datos de riesgo ni PII innecesaria; no genera Leads, oportunidades ni notificaciones comerciales y no sustituye auditoría. Esto permitirá evaluar en V2 si Recovery/Potenciales clientes tiene valor real. Proveedor, SDK, instrumentación, persistencia, retención técnica e implementación quedan diferidos a F3.
 
 ## 0.8 Frontera entre fases
 
 | Fase | Alcance |
 | --- | --- |
 | F1 | Contrato funcional de Product, formularios acotados, lifecycle de InsuranceRequest, estados, roles, asignación/reasignación, incidencias y RF/RNF. |
-| F2 | Catálogo, detalle, login/register, formulario, revisión, confirmación, Mis solicitudes, bandeja Admin, productos, formularios y acceso Productor. Excluye recovery, Leads, Intranet, pólizas y PDF. |
-| F3 | Auth/identity, Product/FormDefinition/FormVersion, state machine, respuestas, documentos, email/DeliveryAttempt, enlace seguro, RBAC, auditoría, analytics, APIs y observabilidad. PostgreSQL, Lead, Policy/PDF y sus integraciones quedan fuera del Architecture Decision Pack del MVP. |
+| F2 | Cliente: catálogo, producto, login/register, formulario, aviso/confirmación de precio, revisión, envío, Mis solicitudes, retomar BORRADOR, cancelar ENVIADA/ASIGNADA y solicitar cancelación DERIVADA. Admin: bandeja, asignación/reasignación, incidencias, productos/precio/formularios y confirmación de cancelación DERIVADA. Productor: acceso seguro, solicitud asignada y aviso de cancelación. Excluye recovery, Leads, Intranet, pólizas y PDF. |
+| F3 | Auth/identity, Product/precio/snapshot histórico, FormDefinition/FormVersion, state machine y cancellation flow, respuestas, documentos, email/Delivery, enlace seguro, RBAC, auditoría, analytics, APIs y observabilidad. PostgreSQL, Lead, Policy/PDF y sus integraciones quedan fuera del Architecture Decision Pack del MVP. |
 
 ## 0.9 Riesgos y decisiones pendientes
 
 | Tema | Estado | Pendiente |
 | --- | --- | --- |
-| Formulario dinámico | PENDIENTE MAPS | Condicionales complejos, builder avanzado y dependencias arbitrarias. |
-| CANCELADA | PENDIENTE MAPS | Actor autorizado, transiciones y condiciones. |
+| Formulario dinámico | PENDIENTE MAPS | Validar contrato preliminar contra uno o dos formularios reales; confirmar condiciones obligatorias. |
+| Precio | CONFIRMADO / DIFERIDO F3 | Precio fijo obligatorio, aviso/reconfirmación de BORRADOR y snapshot de ENVIADA; estrategia técnica F3. |
 | Operación | PENDIENTE MAPS | SLA de asignación/reasignación y tratamiento funcional de fallos de email. |
 | Legal/retención | PENDIENTE MAPS | Textos, consentimientos, retención y eliminación de solicitudes/archivos. |
 | Analytics | DIFERIDO F3 | Proveedor, instrumentación y persistencia técnica. |
 | Recovery | Evolución futura | Sólo si las métricas reales justifican reintroducir Leads/Potenciales clientes. |
 
-## 0.10 Bitácora de cambios controlados
+## 0.10 Gobierno mínimo
+
+| Aspecto | Regla |
+| --- | --- |
+| Responsables | MAPS confirma decisiones funcionales, reglas y cambios de alcance. Kondor releva, analiza, documenta y propone solución. |
+| Control de cambios | Toda modificación posterior a baseline consolidada se registra como cambio controlado con fecha, decisión, motivo y consecuencia; no se reinterpretan decisiones anteriores silenciosamente. |
+| Pendientes | Cada pendiente identifica dueño, fase destino y condición de cierre. |
+| Cierre F1 | Ocurre contra criterios explícitos, no por sensación de completitud documental. |
+| Bitácora | Preserva histórico y distingue decisión previa, cambio controlado y baseline vigente. |
+
+## 0.11 Bitácora de cambios controlados
 
 | Fecha | Tema | Decisión/evidencia | Estado |
 | --- | --- | --- | --- |
@@ -143,7 +165,10 @@ Métricas deseadas: Product view → Start, Start → BORRADOR, BORRADOR → ENV
 | 2026-09-11 | Productos y formularios | MAPS administra productos/formularios; journey genérico y contrato schema-driven acotado. | CONFIRMADO |
 | 2026-09-11 | Roles y ownership | Roles internos Admin/Productor; incidencias previas a DERIVADA son responsabilidad de Admin. | CONFIRMADO |
 | 2026-09-11 | Funnel | Se agrega analítica de funnel para evaluar recovery futuro sin crear Lead. | CONFIRMADO / técnico F3 |
+| 2026-09-15 | Precio fijo y snapshot | Cambio controlado: seguros enlatados publicados usan precio fijo; cambio en BORRADOR exige reconfirmación y ENVIADA conserva precio confirmado. | CONFIRMADO / técnico F3 |
+| 2026-09-15 | CANCELADA y Mis solicitudes | Se define cancelación por estado y se confirma Mis solicitudes como capacidad del MVP. | CONFIRMADO |
+| 2026-09-15 | Gobierno y formularios | Se recupera gobierno mínimo; contrato de formularios queda preliminar y se valida contra casos reales. | CONFIRMADO / PENDIENTE MAPS |
 
-## 0.11 Documentación histórica
+## 0.12 Documentación histórica
 
 El Database Discovery Pack conserva evidencia read-only útil y no se elimina. `docs/estructura.md`, TDDs y el prototipo UI/UX existente contienen propuestas o artefactos anteriores a esta baseline; no son fuente de alcance vigente. Si contradicen este documento, prevalece la baseline v8 hasta una nueva decisión explícita.

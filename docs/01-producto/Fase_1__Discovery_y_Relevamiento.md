@@ -8,7 +8,7 @@
 | Fase | 1 - Discovery y Relevamiento |
 | Estado | En curso |
 | Insumo rector | Fase 0 baseline v8 |
-| Última actualización | 11 de septiembre de 2026 |
+| Última actualización | 15 de septiembre de 2026 |
 
 ## 1. Objetivo y alcance vigente
 
@@ -31,7 +31,7 @@ No incluye Leads/Potenciales clientes, Recovery, Intranet, Portal del Asegurado,
 - MAPS administra Product y formularios versionados sin cambios de código.
 - Admin asigna/reasigna; el productor sólo ve solicitudes asignadas mediante enlace seguro read-only.
 - Email transaccional es el canal inicial; contenido mínimo y trazabilidad funcional obligatorios.
-- Precio fijo sólo con valor vigente/confiable/aplicable; cotizador y simulador están fuera del MVP.
+- Todo Product publicado es un seguro enlatado con precio fijo vigente administrado por Admin; cotizador y simulador están fuera del MVP.
 - Analytics de funnel permite evaluar Recovery futuro sin crear una entidad Lead.
 
 ## 3. Journey y roles
@@ -44,19 +44,19 @@ Catálogo → Producto → Registro/Login → BORRADOR
 
 | Actor | Acción funcional |
 | --- | --- |
-| Cliente | Registrarse, iniciar, guardar/retomar BORRADOR, completar y enviar; consultar sus solicitudes si F2 conserva esa capacidad. |
+| Cliente | Registrarse, iniciar, guardar/retomar BORRADOR, completar y enviar; consultar **Mis solicitudes** con borradores/enviadas, producto, fecha y estado funcional. |
 | Admin | Gestionar ENVIADA, asignar/reasignar, intervenir por email fallido, administrar productores, productos y formularios/versiones. |
 | Productor | Ver únicamente solicitudes asignadas, consultar expediente autorizado y continuar gestión comercial fuera del Portal. |
 
 No toda ENVIADA es visible al productor. Todo problema previo a DERIVADA es ownership del Admin: pendiente de asignación, productor incorrecto/inhabilitado, reasignación, email fallido/rebotado o incidencia de producto/formulario.
 
-`CANCELADA` se mantiene como estado funcional, pero actor autorizado, transiciones y condiciones están **PENDIENTE MAPS**. No se presume botón o acción de cancelación para cliente o productor.
+`CANCELADA` es final y no tiene transiciones salientes. BORRADOR puede descartarse sin ser necesariamente CANCELADA. Cliente cancela directamente ENVIADA o ASIGNADA, registrando actor, fecha y motivo; ASIGNADA notifica una vez a Admin/Productor y revoca el enlace. En DERIVADA el cliente solicita cancelación; Admin la confirma tras considerar gestión externa y recién ocurre `DERIVADA → CANCELADA`, registrando solicitante, Admin, fecha y motivo, notificando una vez al Productor y revocando el enlace. Productor no cancela desde el Portal: comunica la situación a Admin.
 
 ## 4. Productos y formularios
 
-MAPS crea, edita y publica Products, define precio fijo o sujeto a evaluación, configura formularios y publica nuevas `FormVersion`. El journey no cambia entre productos.
+MAPS crea, edita y publica Products con precio fijo vigente, configura formularios y publica nuevas `FormVersion`. El journey no cambia entre productos. Si cambia el precio de un Product con BORRADOR, el cliente debe ser informado al retomar o antes de enviar y confirmar el nuevo valor; ENVIADA conserva como snapshot funcional el precio confirmado. La estrategia técnica del snapshot es F3.
 
-Contrato funcional acotado candidato: `text`, `number`, `date`, `select`, `radio`, `checkbox`, `textarea` y `file`; propiedades `required/optional`, opciones, min/max, placeholder, orden, sección/paso, label y help text.
+Contrato funcional **preliminar/candidato**: `text`, `number`, `date`, `select`, `radio`, `checkbox`, `textarea` y `file`; propiedades candidatas `required/optional`, opciones, min/max, placeholder, orden, sección/paso, label y help text. Antes de cerrar F1 debe validarse contra uno o dos formularios reales y representativos de seguros enlatados, para comprobar que expresa casos reales sin builder universal.
 
 | Tema | Estado |
 | --- | --- |
@@ -64,7 +64,7 @@ Contrato funcional acotado candidato: `text`, `number`, `date`, `select`, `radio
 | FormVersion PUBLICADA inmutable | CONFIRMADO |
 | BORRADOR conserva FormVersion sin migración automática | CONFIRMADO |
 | Retiro de versión legal/seguridad/comercial/vigencia | CONFIRMADO; UX y reutilización de datos DIFERIDO F2/F3 |
-| Condicionales complejos, builder visual avanzado, dependencias arbitrarias | PENDIENTE MAPS |
+| Condicionales complejos, builder visual avanzado, dependencias arbitrarias | Fuera del MVP, salvo condición obligatoria demostrada por formulario real validado |
 
 ## 5. Email, seguridad y auditoría
 
@@ -76,9 +76,9 @@ El enlace es por solicitud/asignación, read-only, vencible, revocable, difícil
 
 ## 6. Analítica de funnel
 
-Eventos conceptuales: `product_viewed`, `request_started`, `request_draft_created`/`request_saved`, `request_submitted`.
+Eventos conceptuales: `product_viewed`, `request_started`, `request_saved`, `request_submitted`.
 
-Métricas: Product view → Start, Start → BORRADOR, BORRADOR → ENVIADA, tiempo mediano de completado y porcentaje de borradores nunca enviados. Abandono puede ser una métrica derivada; no es Lead ni evento de negocio. Proveedor, instrumentación y persistencia son **DIFERIDO F3**.
+Métricas: Product view → Start, Start → BORRADOR, BORRADOR → ENVIADA, tiempo mediano de completado y porcentaje de borradores nunca enviados. Abandono puede ser una métrica derivada; no es Lead ni evento de negocio. Analytics no registra respuestas, documentos, adjuntos, DNI, CUIT, teléfono, datos de riesgo ni PII innecesaria; no crea Leads/oportunidades, no dispara notificaciones comerciales y no sustituye auditoría. Proveedor, SDK, instrumentación, persistencia, estrategia y retención técnica son **DIFERIDO F3**.
 
 ## 7. Modelo conceptual activo
 
@@ -112,9 +112,10 @@ El modelo no introduce clases técnicas adicionales. Cardinalidades, esquema y p
 | RN-06 | Incidencias previas a DERIVADA son responsabilidad de Admin. | CONFIRMADO |
 | RN-07 | Email de derivación minimiza datos y registra resultado/fallas/reintentos. | CONFIRMADO; técnico F3 |
 | RN-08 | FormVersion publicada es inmutable; cambios producen nueva versión. | CONFIRMADO |
-| RN-09 | CANCELADA requiere actor, condiciones y transiciones aprobadas. | PENDIENTE MAPS |
-| RN-10 | El funnel se mide sin crear Lead. | CONFIRMADO; técnico F3 |
-| RN-11 | Recovery/Potenciales clientes se reevalúa sólo con evidencia real de abandono. | Evolución futura |
+| RN-09 | Todo Product publicado tiene precio fijo vigente. Ante cambio con BORRADOR se informa y reconfirma; ENVIADA preserva precio confirmado como snapshot funcional. | CONFIRMADO / técnico F3 |
+| RN-10 | ENVIADA y ASIGNADA pueden ser canceladas directamente por Cliente; DERIVADA requiere solicitud de Cliente y confirmación de Admin. CANCELADA es final, auditable y revoca enlace cuando corresponde. | CONFIRMADO |
+| RN-11 | El funnel se mide sin crear Lead, PII innecesaria ni automatismos comerciales. | CONFIRMADO; técnico F3 |
+| RN-12 | Recovery/Potenciales clientes se reevalúa sólo con evidencia real de abandono. | Evolución futura |
 
 ## 9. Requerimientos preliminares
 
@@ -122,28 +123,36 @@ El modelo no introduce clases técnicas adicionales. Cardinalidades, esquema y p
 | --- | --- | --- |
 | RF-SOL-01 | Iniciar, guardar, retomar y enviar `InsuranceRequest` desde cuenta autenticada. | CONFIRMADO |
 | RF-SOL-02 | Distinguir BORRADOR de ENVIADA y conservar la FormVersion utilizada. | CONFIRMADO |
-| RF-FORM-01 | MAPS configura y publica formularios por producto con contrato acotado. | CONFIRMADO / detalle PENDIENTE MAPS |
-| RF-PROD-01 | MAPS administra productos, información comercial, precio y publicación. | CONFIRMADO |
+| RF-SOL-03 | Mis solicitudes permite consultar BORRADOR y enviadas con producto, fecha y estado, y retomar BORRADOR. | CONFIRMADO; UX F2 |
+| RF-SOL-04 | Ante precio modificado en BORRADOR se informa y confirma el nuevo valor antes de enviar; ENVIADA conserva el precio confirmado. | CONFIRMADO / técnico F3 |
+| RF-SOL-05 | Cancelación responde a estado: inmediata en ENVIADA/ASIGNADA; solicitada por Cliente y confirmada por Admin en DERIVADA. | CONFIRMADO |
+| RF-FORM-01 | MAPS configura y publica formularios por producto con contrato acotado preliminar, validado contra uno o dos casos reales antes del cierre F1. | CONFIRMADO / detalle PENDIENTE MAPS |
+| RF-PROD-01 | MAPS administra productos, precio fijo vigente, información comercial y publicación. | CONFIRMADO |
 | RF-ADM-01 | Admin consulta ENVIADA, asigna/reasigna y opera incidencias previas a DERIVADA. | CONFIRMADO |
 | RF-PRODUCER-01 | Productor accede read-only sólo a solicitudes asignadas. | CONFIRMADO |
 | RF-DELIVERY-01 | Se registra derivación, resultado conocido, fallas y reintentos. | CONFIRMADO |
-| RF-ANALYTICS-01 | Se miden eventos y conversiones del funnel sin entidad Lead. | CONFIRMADO / técnico F3 |
+| RF-ANALYTICS-01 | Se miden eventos y conversiones del funnel sin entidad Lead, PII innecesaria ni automatismos comerciales. | CONFIRMADO / técnico F3 |
+| RF-GOV-01 | Cambios controlados, pendientes y criterios de cierre preservan dueño, fase destino, condición de cierre e histórico. | CONFIRMADO |
 | RNF-SEC-01 | Autorización, aislamiento, transporte cifrado y auditoría protegen solicitudes/documentos. | CONFIRMADO / técnico F3 |
 | RNF-COM-01 | Email minimiza datos expuestos y evita notificaciones redundantes. | CONFIRMADO |
 
 ## 10. Criterios de salida de F1
 
-F1 podrá cerrarse cuando estén definidos: contrato funcional de Product y formulario dinámico; tipos soportados; versionado/publicación; lifecycle de InsuranceRequest; actor/condición de CANCELADA; matriz Admin/Productor; asignación/reasignación; fallos de email; RF/RNF actualizados e inputs explícitos para F2/F3.
+F1 podrá cerrarse cuando estén definidos: contrato funcional de Product; precio fijo, cambio en BORRADOR y snapshot en ENVIADA; contrato de formulario y validación contra uno o dos casos reales; versionado/publicación; lifecycle completo y CANCELADA; Mis solicitudes; matriz Admin/Productor; asignación/reasignación; fallos de email; analytics acotado; gobierno mínimo; RF/RNF actualizados e inputs explícitos para F2/F3.
 
 No son blockers de F1: fichas completas de productos concretos, Leads, Intranet, PostgreSQL, Portal del Asegurado, semántica contractual, PDF o pólizas.
 
-## 11. Inputs para F2 y F3
+## 11. Gobierno mínimo de F1
 
-F2 puede diseñar catálogo, detalle, login/register, formulario, revisión, confirmación, Mis solicitudes, bandeja Admin, asignación/reasignación, gestión de productos/formularios y acceso Productor. Quedan fuera: Lead recovery, Intranet Lead UI, pólizas, vigencia y PDF.
+MAPS confirma decisiones funcionales, reglas de negocio y cambios de alcance; Kondor releva, analiza, documenta y propone solución. Todo cambio posterior a una baseline consolidada se registra como cambio controlado con fecha, decisión, motivo y consecuencia, sin reinterpretar silenciosamente el pasado. Cada pendiente debe indicar dueño, fase destino y condición de cierre. El cierre de F1 se evalúa contra los criterios explícitos de este documento; la bitácora distingue decisión previa, cambio controlado y baseline vigente.
 
-F3 recibe auth/identity, Product/FormDefinition/FormVersion, state machine, RequestAnswer, documentos/object storage, email/DeliveryAttempt, secure producer link, RBAC Admin/Productor/Cliente, auditoría, analytics, APIs y observabilidad. PostgreSQL, Lead, Policy/PDF y sus integraciones no forman parte del Architecture Decision Pack del MVP.
+## 12. Inputs para F2 y F3
 
-## 12. Bitácora de decisiones de F1
+F2 puede diseñar catálogo, detalle, login/register, formulario, aviso/confirmación de precio, revisión, envío, confirmación, Mis solicitudes, retomar BORRADOR, cancelar ENVIADA/ASIGNADA y solicitar cancelación DERIVADA; Admin puede diseñar bandeja, asignación/reasignación, incidencias, productos/precio/formularios/publicación y confirmación de cancelación DERIVADA; Productor acceso seguro, solicitud asignada, estado y aviso de cancelación. Quedan fuera: Lead recovery, Intranet Lead UI, pólizas, vigencia y PDF.
+
+F3 recibe auth/identity, Product/precio/snapshot histórico, FormDefinition/FormVersion, state machine/cancellation flow, RequestAnswer, documentos/object storage, email/DeliveryAttempt, secure producer link, RBAC Admin/Productor/Cliente, auditoría, analytics, APIs y observabilidad. PostgreSQL, Lead, Policy/PDF y sus integraciones no forman parte del Architecture Decision Pack del MVP.
+
+## 13. Bitácora de decisiones de F1
 
 | Fecha | Tema | Decisión/evidencia | Estado |
 | --- | --- | --- | --- |
@@ -155,7 +164,9 @@ F3 recibe auth/identity, Product/FormDefinition/FormVersion, state machine, Requ
 | 2026-09-11 | Productos/formularios | MAPS los administra; journey genérico y formulario schema-driven acotado. | CONFIRMADO |
 | 2026-09-11 | Roles/ownership | Admin y Productor son roles internos; Admin responde por incidencias previas a DERIVADA. | CONFIRMADO |
 | 2026-09-11 | Analytics | Funnel mide abandono para decidir una evolución futura de Recovery. | CONFIRMADO / F3 |
+| 2026-09-15 | Precio, CANCELADA y Mis solicitudes | Precio fijo obligatorio/snapshot, cancelación por estado y Mis solicitudes confirmada. | CONFIRMADO |
+| 2026-09-15 | Formularios, gobierno y analytics | Contrato de campos preliminar validable con casos reales, gobierno mínimo y analítica con minimización de datos. | CONFIRMADO / PENDIENTE MAPS / F3 |
 
-## 13. Evidencia histórica
+## 14. Evidencia histórica
 
 El Database Discovery Pack, `docs/estructura.md`, TDDs y el prototipo UI/UX existente se conservan como evidencia o artefactos históricos. No definen el MVP vigente si contradicen esta baseline; su eventual realineación debe hacerse en una tarea separada.
