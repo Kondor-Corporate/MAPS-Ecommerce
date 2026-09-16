@@ -1,58 +1,31 @@
-# MAPS - Portal de Seguros
+# MAPS - Portal de Solicitudes de Seguros
 
-Portal para **MAPS Organización de Seguros** con tres capacidades principales: recibir y derivar solicitudes de seguros, integrar oportunidades elegibles con Potenciales clientes de la Intranet y permitir que el asegurado consulte los seguros o servicios que tiene contratados y la información básica disponible de sus pólizas.
+Portal para publicar productos aseguradores, permitir que una persona autenticada inicie y recupere una `InsuranceRequest`, y derivar de forma segura una solicitud formal a un productor. No es un e-commerce: no incluye checkout, pagos, contratación ni emisión automática.
 
-El catálogo es público. Para iniciar una solicitud, el cliente debe registrarse o iniciar sesión: desde entonces existe una `InsuranceRequest` en **BORRADOR** asociada a su cuenta; sólo al enviarla pasa a **ENVIADA** y constituye una presentación formal. Luego, un administrador asigna manualmente un productor y el sistema deriva la solicitud mediante email transaccional al email verificado, con resumen mínimo y enlace seguro read-only. WhatsApp queda como evolución posible. La gestión comercial continúa fuera de la plataforma.
+El catálogo es público y todos los Products publicados del MVP son seguros enlatados con precio fijo vigente, administrado por Admin. Al iniciar una solicitud, el usuario se registra o inicia sesión y se crea una `InsuranceRequest` en **BORRADOR**; al enviar pasa a **ENVIADA** y conserva como snapshot funcional el precio confirmado. Si el precio cambia mientras existe un BORRADOR, el usuario debe ser informado y confirmar el nuevo valor antes de enviar. Un Admin la gestiona y asigna manualmente a un Productor. El sistema envía un email transaccional con resumen mínimo y enlace seguro read-only; sólo tras esa asignación el Productor accede al expediente y continúa la gestión comercial fuera del Portal.
 
-La plataforma no incluye carrito, checkout, pagos, contratación automática, emisión de pólizas, cotizador ni simulador. Un precio fijo sólo se muestra cuando MAPS aporta un valor vigente, confiable y aplicable; de otro modo queda sujeto a evaluación externa. La generación de potenciales clientes desde borradores requerirá datos mínimos, consentimiento, plazo de abandono, deduplicación y trazabilidad. La visualización o descarga del PDF de una póliza no queda comprometida hasta confirmar una fuente autorizada y vigente.
+## Alcance del MVP
 
-Baseline funcional completa: [`Fase_0__Kickoff__Gobierno_del_proyecto_.md`](./docs/00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md).
+- Catálogo y administración de productos por MAPS.
+- Formularios dinámicos/versionados por producto, con contrato funcional acotado preliminar a validar con formularios reales.
+- Registro/login, borradores recuperables, **Mis solicitudes** y envío formal.
+- Bandeja Admin, asignación/reasignación, email transaccional y acceso seguro del Productor.
+- Auditoría, cancelación por estado y analítica básica del funnel sin PII innecesaria ni automatismos comerciales.
+
+Fuera del MVP: Leads/Potenciales clientes e integración con Intranet, PostgreSQL MAPS como dependencia funcional, Portal del Asegurado/pólizas/PDF, checkout, pagos, cotizador, simulador, cálculo personalizado, panel general de productores y constructor universal de formularios. Recovery de abandonos sólo podrá evaluarse en una evolución futura con métricas reales del funnel.
 
 ## Estado actual
 
-Este repositorio está en su **estructura inicial** (HU-000): las carpetas del monorepo están creadas, pero las apps (`apps/web`, `apps/api`) todavía no tienen código ni `package.json` propio. La Fase 0 redefine el producto como Portal de Seguros, separa la visión objetivo del MVP y reserva para las Fases 1–3 el discovery detallado, las decisiones de UX y la arquitectura. La documentación técnica y el backlog anteriores deberán realinearse antes de implementar módulos funcionales.
+El repositorio mantiene estructura inicial de monorepo. Esta baseline es exclusivamente funcional y documental; no implementa arquitectura ni aplicaciones. El prototipo UX/UI existente es un artefacto separado que deberá realinearse posteriormente contra esta baseline.
 
-## Definiciones técnicas pendientes
+## Documentación vigente
 
-La estructura actual del monorepo es una base inicial y no constituye por sí sola una arquitectura aprobada. Las decisiones se cerrarán de forma progresiva:
+- [Fase 0 — Baseline funcional vigente](./docs/00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md)
+- [Fase 1 — Discovery y Relevamiento](./docs/01-producto/Fase_1__Discovery_y_Relevamiento.md)
 
-- **Fase 1:** procesos, requerimientos, datos disponibles, productos, reglas y modelo de dominio inicial.
-- **Fase 2:** journeys, navegación, wireframes, wireflows y UX para presentar registro/login obligatorio.
-- **Fase 3:** arquitectura de frontend y backend, autenticación y autorización detalladas, persistencia, almacenamiento, formularios configurables e integraciones.
-
-MAPS posee una PostgreSQL propia que podrá contener datos relevantes de clientes, pólizas e identificadores externos. Se considera una dependencia para relevar con acceso de sólo lectura en Fase 1, no una decisión de arquitectura. En Fase 3 se definirá si corresponde consultarla, importar, sincronizar, replicar o no utilizarla.
-
-El archivo [`docs/estructura.md`](./docs/estructura.md) conserva una propuesta técnica anterior y no debe considerarse vigente hasta su realineación en Fase 3.
-
-## Estructura del repositorio
-
-```txt
-maps-ecommerce/
-├── apps/
-│   ├── web/          # Frontend (React + Vite)
-│   └── api/          # Backend (Node.js + Express + TypeScript)
-├── packages/         # Código compartido (ui, types, validators, config, emails)
-├── prisma/           # Esquema, migraciones y seed de base de datos
-├── docs/             # Documentación viva del proyecto
-├── infra/            # Docker, scripts y configuración de deploy
-└── .github/          # Workflows de CI/CD
-```
-
-## Documentación
-
-- [`Fase_0__Kickoff__Gobierno_del_proyecto_.md`](./docs/00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md): baseline funcional vigente, con cambios controlados documentados.
-- [`Fase_1__Discovery_y_Relevamiento.md`](./docs/01-producto/Fase_1__Discovery_y_Relevamiento.md): documento vivo de discovery, en curso.
-- [`docs/estructura.md`](./docs/estructura.md): arquitectura técnica inicial pendiente de realineación.
-- [`docs/00-proyecto/`](./docs/00-proyecto): alcance, decisiones, riesgos y minutas.
-- [`docs/03-tecnico/`](./docs/03-tecnico): arquitectura, API, modelo de datos, seguridad y deploy.
-- [`docs/02-diseno/ui-ux/`](./docs/02-diseno/ui-ux/): prototipos y materiales de referencia UI/UX.
-- [`docs/tdd/`](./docs/tdd): Technical Design Documents por feature.
-
-## Cómo correr el proyecto
-
-Todavía no hay código ejecutable en `apps/web` ni en `apps/api`. Esta sección se completará cuando esas apps tengan sus propios `package.json` y scripts de `dev`, `build`, `lint` y `test`.
+`docs/estructura.md`, los TDDs y el material UI/UX previo se conservan como históricos: no definen el alcance vigente cuando contradicen Fase 0/Fase 1.
 
 ## Convenciones
 
-- Commits y PRs siguen `tipo(scope): descripcion` (ver `.githooks/commit-msg` y `.github/pull_request_template.md`).
-- Ramas por historia de usuario o documentación: `feature/HU-XXX-descripcion` o `docs/descripcion`.
+- Commits y PRs: `tipo(scope): descripcion`.
+- Esta baseline no modifica `apps/web`, `apps/api` ni infraestructura.
