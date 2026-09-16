@@ -45,6 +45,8 @@ Esta baseline conserva los cambios controlados ya aprobados de autenticación ob
 
 - Catálogo público y detalle de productos.
 - Administración de productos por MAPS: crear, editar información comercial, definir precio fijo vigente y publicar.
+- Administración de categorías del catálogo por MAPS (ABM: crear, editar y renombrar) para organizar los productos sin cambios de código.
+- Administración de clientes por MAPS (ABM: alta, edición y baja) y su consulta desde el panel Admin.
 - Formularios dinámicos, versionados y configurables por producto.
 - Registro/login, borradores recuperables y envío formal de `InsuranceRequest`.
 - Bandeja Admin; asignación y reasignación manual de productores.
@@ -77,7 +79,7 @@ Los roles operativos internos de MAPS en el MVP son **ADMIN** y **PRODUCTOR**. E
 | Actor | Responsabilidad confirmada |
 | --- | --- |
 | Cliente | Registrarse/iniciar sesión, iniciar, guardar, retomar y enviar una solicitud; consultar **Mis solicitudes** (borradores y enviadas con producto, fecha y estado funcional). |
-| Admin | Gestionar ENVIADA, asignar/reasignar productor, intervenir ante fallos de email, administrar productores, productos y formularios/versiones, y operar incidencias previas a DERIVADA. |
+| Admin | Gestionar ENVIADA, asignar/reasignar productor, intervenir ante fallos de email, administrar productores, clientes, productos, categorías del catálogo y formularios/versiones, y operar incidencias previas a DERIVADA. |
 | Productor | Consultar sólo solicitudes asignadas mediante mecanismo seguro/read-only, acceder al expediente autorizado y continuar la gestión comercial fuera del Portal. |
 
 **Regla de ownership:** todo problema previo a la correcta entrega al productor es responsabilidad del Admin: ENVIADA sin asignar, productor incorrecto/inhabilitado, reasignación, email fallido o rebotado y cambios de producto/formulario. Después de DERIVADA, la gestión comercial es responsabilidad del Productor fuera del Portal.
@@ -127,8 +129,8 @@ Métricas deseadas: Product view → Start, Start → BORRADOR, BORRADOR → ENV
 | Fase | Alcance |
 | --- | --- |
 | F1 | Contrato funcional de Product, formularios acotados, lifecycle de InsuranceRequest, estados, roles, asignación/reasignación, incidencias y RF/RNF. |
-| F2 | Cliente: catálogo, producto, login/register, formulario, aviso/confirmación de precio, revisión, envío, Mis solicitudes, retomar BORRADOR, cancelar ENVIADA/ASIGNADA y solicitar cancelación DERIVADA. Admin: bandeja, asignación/reasignación, incidencias, productos/precio/formularios y confirmación de cancelación DERIVADA. Productor: acceso seguro, solicitud asignada y aviso de cancelación. Excluye recovery, Leads, Intranet, pólizas y PDF. |
-| F3 | Auth/identity, Product/precio/snapshot histórico, FormDefinition/FormVersion, state machine y cancellation flow, respuestas, documentos, email/Delivery, enlace seguro, RBAC, auditoría, analytics, APIs y observabilidad. PostgreSQL, Lead, Policy/PDF y sus integraciones quedan fuera del Architecture Decision Pack del MVP. |
+| F2 | Cliente: catálogo, producto, login/register, formulario, aviso/confirmación de precio, revisión, envío, Mis solicitudes, retomar BORRADOR, cancelar ENVIADA/ASIGNADA y solicitar cancelación DERIVADA. Admin: bandeja, asignación/reasignación, incidencias, productos/precio/formularios, categorías del catálogo, administración de clientes y confirmación de cancelación DERIVADA. Productor: acceso seguro, solicitud asignada y aviso de cancelación. Excluye recovery, Leads, Intranet, pólizas y PDF. |
+| F3 | Auth/identity, Product/precio/snapshot histórico, Category, Customer administrable, FormDefinition/FormVersion, state machine y cancellation flow, respuestas, documentos, email/Delivery, enlace seguro, RBAC, auditoría, analytics, APIs y observabilidad. PostgreSQL, Lead, Policy/PDF y sus integraciones quedan fuera del Architecture Decision Pack del MVP. |
 
 ## 0.9 Riesgos y decisiones pendientes
 
@@ -167,6 +169,7 @@ Métricas deseadas: Product view → Start, Start → BORRADOR, BORRADOR → ENV
 | 2026-09-15 | Precio fijo y snapshot | Cambio controlado: seguros enlatados publicados usan precio fijo; cambio en BORRADOR exige reconfirmación y ENVIADA conserva precio confirmado. | CONFIRMADO / técnico F3 |
 | 2026-09-15 | CANCELADA y Mis solicitudes | Se define cancelación por estado y se confirma Mis solicitudes como capacidad del MVP. | CONFIRMADO |
 | 2026-09-15 | Gobierno y formularios | Se recupera gobierno mínimo; contrato de formularios queda preliminar y se valida contra casos reales. | CONFIRMADO / PENDIENTE MAPS |
+| 2026-09-16 | Categorías y Clientes (ABM) | Cambio controlado: se incorporan al MVP la administración (ABM) de categorías del catálogo y de clientes como capacidades del Admin. Motivo: consecuencia funcional de la gestión autónoma del catálogo sin cambios de código y de la operación de solicitudes; ambas ya presentes en el prototipo y no explicitadas en la baseline. Consecuencia: F2 diseña su UX y F3 su modelo (Category, Customer administrable). | CONFIRMADO |
 
 ## 0.12 Documentación histórica
 

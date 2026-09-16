@@ -45,7 +45,7 @@ Catálogo → Producto → Registro/Login → BORRADOR
 | Actor | Acción funcional |
 | --- | --- |
 | Cliente | Registrarse, iniciar, guardar/retomar BORRADOR, completar y enviar; consultar **Mis solicitudes** con borradores/enviadas, producto, fecha y estado funcional. |
-| Admin | Gestionar ENVIADA, asignar/reasignar, intervenir por email fallido, administrar productores, productos y formularios/versiones. |
+| Admin | Gestionar ENVIADA, asignar/reasignar, intervenir por email fallido, administrar productores, clientes, productos, categorías del catálogo y formularios/versiones. |
 | Productor | Ver únicamente solicitudes asignadas, consultar expediente autorizado y continuar gestión comercial fuera del Portal. |
 
 No toda ENVIADA es visible al productor. Todo problema previo a DERIVADA es ownership del Admin: pendiente de asignación, productor incorrecto/inhabilitado, reasignación, email fallido/rebotado o incidencia de producto/formulario.
@@ -54,13 +54,14 @@ No toda ENVIADA es visible al productor. Todo problema previo a DERIVADA es owne
 
 ## 4. Productos y formularios
 
-MAPS crea, edita y publica Products con precio fijo vigente, configura formularios y publica nuevas `FormVersion`. El journey no cambia entre productos. Si cambia el precio de un Product con BORRADOR, el cliente debe ser informado al retomar o antes de enviar y confirmar el nuevo valor; ENVIADA conserva como snapshot funcional el precio confirmado. La estrategia técnica del snapshot es F3.
+MAPS crea, edita y publica Products con precio fijo vigente, configura formularios y publica nuevas `FormVersion`. El journey no cambia entre productos. MAPS también administra (ABM) las categorías del catálogo —crear, editar y renombrar— para agrupar los productos sin cambios de código. Si cambia el precio de un Product con BORRADOR, el cliente debe ser informado al retomar o antes de enviar y confirmar el nuevo valor; ENVIADA conserva como snapshot funcional el precio confirmado. La estrategia técnica del snapshot es F3.
 
 Contrato funcional **preliminar/candidato**: `text`, `number`, `date`, `select`, `radio`, `checkbox`, `textarea` y `file`; propiedades candidatas `required/optional`, opciones, min/max, placeholder, orden, sección/paso, label y help text. Antes de cerrar F1 debe validarse contra uno o dos formularios reales y representativos de seguros enlatados, para comprobar que expresa casos reales sin builder universal.
 
 | Tema | Estado |
 | --- | --- |
 | Formulario schema-driven y versionado | CONFIRMADO |
+| Gestión de categorías del catálogo (ABM) por MAPS | CONFIRMADO |
 | FormVersion PUBLICADA inmutable | CONFIRMADO |
 | BORRADOR conserva FormVersion sin migración automática | CONFIRMADO |
 | Retiro de versión legal/seguridad/comercial/vigencia | CONFIRMADO; UX y reutilización de datos DIFERIDO F2/F3 |
@@ -84,8 +85,10 @@ Métricas: Product view → Start, Start → BORRADOR, BORRADOR → ENVIADA, tie
 
 ```text
 User -> Customer
+Category -> agrupa Product
 Product -> FormVersion
 Customer -> InsuranceRequest
+Admin administra Category y Customer (ABM)
 
 InsuranceRequest
   - estado BORRADOR / ENVIADA / ASIGNADA / DERIVADA / CANCELADA
@@ -116,6 +119,8 @@ El modelo no introduce clases técnicas adicionales. Cardinalidades, esquema y p
 | RN-10 | ENVIADA y ASIGNADA pueden ser canceladas directamente por Cliente; DERIVADA requiere solicitud de Cliente y confirmación de Admin. CANCELADA es final, auditable y revoca enlace cuando corresponde. | CONFIRMADO |
 | RN-11 | El funnel se mide sin crear Lead, PII innecesaria ni automatismos comerciales. | CONFIRMADO; técnico F3 |
 | RN-12 | Recovery/Potenciales clientes se reevalúa sólo con evidencia real de abandono. | Evolución futura |
+| RN-13 | MAPS administra (ABM) las categorías del catálogo para agrupar productos, sin cambios de código. | CONFIRMADO |
+| RN-14 | El Admin administra (ABM) los clientes (alta, edición y baja) y los consulta desde el panel. | CONFIRMADO |
 
 ## 9. Requerimientos preliminares
 
@@ -128,6 +133,8 @@ El modelo no introduce clases técnicas adicionales. Cardinalidades, esquema y p
 | RF-SOL-05 | Cancelación responde a estado: inmediata en ENVIADA/ASIGNADA; solicitada por Cliente y confirmada por Admin en DERIVADA. | CONFIRMADO |
 | RF-FORM-01 | MAPS configura y publica formularios por producto con contrato acotado preliminar, validado contra uno o dos casos reales antes del cierre F1. | CONFIRMADO / detalle PENDIENTE MAPS |
 | RF-PROD-01 | MAPS administra productos, precio fijo vigente, información comercial y publicación. | CONFIRMADO |
+| RF-CAT-01 | MAPS administra (ABM) las categorías del catálogo: crear, editar y renombrar. | CONFIRMADO |
+| RF-CLI-01 | El Admin administra (ABM) clientes: alta, edición y baja, y su consulta desde el panel. | CONFIRMADO |
 | RF-ADM-01 | Admin consulta ENVIADA, asigna/reasigna y opera incidencias previas a DERIVADA. | CONFIRMADO |
 | RF-PRODUCER-01 | Productor accede read-only sólo a solicitudes asignadas. | CONFIRMADO |
 | RF-DELIVERY-01 | Se registra derivación, resultado conocido, fallas y reintentos. | CONFIRMADO |
@@ -148,9 +155,9 @@ MAPS confirma decisiones funcionales, reglas de negocio y cambios de alcance; Ko
 
 ## 12. Inputs para F2 y F3
 
-F2 puede diseñar catálogo, detalle, login/register, formulario, aviso/confirmación de precio, revisión, envío, confirmación, Mis solicitudes, retomar BORRADOR, cancelar ENVIADA/ASIGNADA y solicitar cancelación DERIVADA; Admin puede diseñar bandeja, asignación/reasignación, incidencias, productos/precio/formularios/publicación y confirmación de cancelación DERIVADA; Productor acceso seguro, solicitud asignada, estado y aviso de cancelación. Quedan fuera: Lead recovery, Intranet Lead UI, pólizas, vigencia y PDF.
+F2 puede diseñar catálogo, detalle, login/register, formulario, aviso/confirmación de precio, revisión, envío, confirmación, Mis solicitudes, retomar BORRADOR, cancelar ENVIADA/ASIGNADA y solicitar cancelación DERIVADA; Admin puede diseñar bandeja, asignación/reasignación, incidencias, productos/precio/formularios/publicación, categorías del catálogo, administración de clientes y confirmación de cancelación DERIVADA; Productor acceso seguro, solicitud asignada, estado y aviso de cancelación. Quedan fuera: Lead recovery, Intranet Lead UI, pólizas, vigencia y PDF.
 
-F3 recibe auth/identity, Product/precio/snapshot histórico, FormDefinition/FormVersion, state machine/cancellation flow, RequestAnswer, documentos/object storage, email/DeliveryAttempt, secure producer link, RBAC Admin/Productor/Cliente, auditoría, analytics, APIs y observabilidad. PostgreSQL, Lead, Policy/PDF y sus integraciones no forman parte del Architecture Decision Pack del MVP.
+F3 recibe auth/identity, Product/precio/snapshot histórico, Category, Customer administrable, FormDefinition/FormVersion, state machine/cancellation flow, RequestAnswer, documentos/object storage, email/DeliveryAttempt, secure producer link, RBAC Admin/Productor/Cliente, auditoría, analytics, APIs y observabilidad. PostgreSQL, Lead, Policy/PDF y sus integraciones no forman parte del Architecture Decision Pack del MVP.
 
 ## 13. Bitácora de decisiones de F1
 
@@ -166,6 +173,7 @@ F3 recibe auth/identity, Product/precio/snapshot histórico, FormDefinition/Form
 | 2026-09-11 | Analytics | Funnel mide abandono para decidir una evolución futura de Recovery. | CONFIRMADO / F3 |
 | 2026-09-15 | Precio, CANCELADA y Mis solicitudes | Precio fijo obligatorio/snapshot, cancelación por estado y Mis solicitudes confirmada. | CONFIRMADO |
 | 2026-09-15 | Formularios, gobierno y analytics | Contrato de campos preliminar validable con casos reales, gobierno mínimo y analítica con minimización de datos. | CONFIRMADO / PENDIENTE MAPS / F3 |
+| 2026-09-16 | Categorías y Clientes (ABM) | Cambio controlado: se incorporan al MVP la administración (ABM) de categorías del catálogo y de clientes como capacidades del Admin (RF-CAT-01, RF-CLI-01, RN-13, RN-14). | CONFIRMADO |
 
 ## 14. Evidencia histórica
 
