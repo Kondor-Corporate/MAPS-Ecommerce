@@ -29,7 +29,7 @@ No incluye Leads/Potenciales clientes, Recovery, Intranet, Portal del Asegurado,
 - `BORRADOR` es trámite iniciado no presentado; `ENVIADA` es solicitud formal presentada a MAPS.
 - Estados confirmados: **BORRADOR**, **ENVIADA**, **ASIGNADA**, **DERIVADA**, **CANCELADA**. Estados de email son técnicos y separados.
 - MAPS administra Product y formularios versionados sin cambios de código.
-- Admin asigna/reasigna; el productor sólo ve solicitudes asignadas mediante enlace seguro read-only.
+- Admin asigna/reasigna; el productor, desde su cuenta autenticada, sólo ve read-only las solicitudes asignadas a él.
 - Email transaccional es el canal inicial; contenido mínimo y trazabilidad funcional obligatorios.
 - Todo Product publicado es un seguro enlatado con precio fijo vigente administrado por Admin; cotizador y simulador están fuera del MVP.
 - Analytics de funnel permite evaluar Recovery futuro sin crear una entidad Lead.
@@ -45,12 +45,12 @@ Catálogo → Producto → Registro/Login → BORRADOR
 | Actor | Acción funcional |
 | --- | --- |
 | Cliente | Registrarse, iniciar, guardar/retomar BORRADOR, completar y enviar; consultar **Mis solicitudes** con borradores/enviadas, producto, fecha y estado funcional. |
-| Admin | Gestionar ENVIADA, asignar/reasignar, intervenir por email fallido, administrar productores, clientes, productos, categorías del catálogo y formularios/versiones. |
-| Productor | Ver únicamente solicitudes asignadas, consultar expediente autorizado y continuar gestión comercial fuera del Portal. |
+| Admin | Gestionar ENVIADA, asignar/reasignar, intervenir por email fallido, administrar (ABM) productores, clientes, productos, categorías del catálogo y formularios/versiones. |
+| Productor | Iniciar sesión y ver en **Mis solicitudes** únicamente las asignadas a él, consultar read-only el expediente autorizado y continuar gestión comercial fuera del Portal. |
 
 No toda ENVIADA es visible al productor. Todo problema previo a DERIVADA es ownership del Admin: pendiente de asignación, productor incorrecto/inhabilitado, reasignación, email fallido/rebotado o incidencia de producto/formulario.
 
-`CANCELADA` es final y no tiene transiciones salientes. BORRADOR puede descartarse sin ser necesariamente CANCELADA. Cliente cancela directamente ENVIADA o ASIGNADA, registrando actor, fecha y motivo; ASIGNADA notifica una vez a Admin/Productor y revoca el enlace. En DERIVADA el cliente solicita cancelación; Admin la confirma tras considerar gestión externa y recién ocurre `DERIVADA → CANCELADA`, registrando solicitante, Admin, fecha y motivo, notificando una vez al Productor y revocando el enlace. Productor no cancela desde el Portal: comunica la situación a Admin.
+`CANCELADA` es final y no tiene transiciones salientes. BORRADOR puede descartarse sin ser necesariamente CANCELADA. Cliente cancela directamente ENVIADA o ASIGNADA, registrando actor, fecha y motivo; ASIGNADA notifica una vez a Admin/Productor y revoca el acceso del productor a esa solicitud. En DERIVADA el cliente solicita cancelación; Admin la confirma tras considerar gestión externa y recién ocurre `DERIVADA → CANCELADA`, registrando solicitante, Admin, fecha y motivo, notificando una vez al Productor y revocando su acceso a esa solicitud. Productor no cancela desde el Portal: comunica la situación a Admin.
 
 ## 4. Productos y formularios
 
@@ -69,11 +69,11 @@ Contrato funcional **preliminar/candidato**: `text`, `number`, `date`, `select`,
 
 ## 5. Email, seguridad y auditoría
 
-Luego de asignar, el sistema envía email transaccional al email verificado del productor con identificador, producto, fecha, nombre autorizado y enlace seguro. No contiene fotografías, archivos, documentos, respuestas completas ni información sensible innecesaria.
+Luego de asignar, el sistema envía email transaccional al email verificado del productor con identificador, producto, fecha, nombre autorizado y un enlace de acceso al Portal. El email es un aviso: no otorga acceso por sí mismo y exige sesión autenticada. No contiene fotografías, archivos, documentos, respuestas completas ni información sensible innecesaria.
 
 Se registra destinatario, fecha/hora, resultado conocido, fallas y reintentos. Pendiente, aceptado/enviado, entregado, rebotado y fallido son estados técnicos de F3, no estados de `InsuranceRequest`.
 
-El enlace es por solicitud/asignación, read-only, vencible, revocable, difícil de adivinar, sin acceso a otros casos, no indexable, con transporte cifrado y auditoría relevante. Su mecanismo exacto corresponde a F3.
+El acceso del productor es por cuenta autenticada y read-only: se restringe por identidad a las solicitudes asignadas, no permite navegar a otros casos, puede revocarse por solicitud o por cuenta, usa transporte cifrado y registra accesos relevantes. El mecanismo de autenticación, RBAC y auditoría corresponde a F3.
 
 ## 6. Analítica de funnel
 
@@ -85,10 +85,11 @@ Métricas: Product view → Start, Start → BORRADOR, BORRADOR → ENVIADA, tie
 
 ```text
 User -> Customer
+User -> Producer
 Category -> agrupa Product
 Product -> FormVersion
 Customer -> InsuranceRequest
-Admin administra Category y Customer (ABM)
+Admin administra Category, Customer y Producer (ABM)
 
 InsuranceRequest
   - estado BORRADOR / ENVIADA / ASIGNADA / DERIVADA / CANCELADA
@@ -111,7 +112,7 @@ El modelo no introduce clases técnicas adicionales. Cardinalidades, esquema y p
 | RN-02 | Login/registro precede a la creación de BORRADOR. | CONFIRMADO |
 | RN-03 | BORRADOR preserva progreso y FormVersion; ENVIADA formaliza la solicitud. | CONFIRMADO |
 | RN-04 | Sólo Admin gestiona ENVIADA y asigna/reasigna productores. | CONFIRMADO |
-| RN-05 | Productor accede únicamente a solicitudes asignadas. | CONFIRMADO |
+| RN-05 | Productor accede desde su cuenta autenticada y únicamente a las solicitudes asignadas a él. | CONFIRMADO |
 | RN-06 | Incidencias previas a DERIVADA son responsabilidad de Admin. | CONFIRMADO |
 | RN-07 | Email de derivación minimiza datos y registra resultado/fallas/reintentos. | CONFIRMADO; técnico F3 |
 | RN-08 | FormVersion publicada es inmutable; cambios producen nueva versión. | CONFIRMADO |
@@ -121,6 +122,8 @@ El modelo no introduce clases técnicas adicionales. Cardinalidades, esquema y p
 | RN-12 | Recovery/Potenciales clientes se reevalúa sólo con evidencia real de abandono. | Evolución futura |
 | RN-13 | MAPS administra (ABM) las categorías del catálogo para agrupar productos, sin cambios de código. | CONFIRMADO |
 | RN-14 | El Admin administra (ABM) los clientes (alta, edición y baja) y los consulta desde el panel. | CONFIRMADO |
+| RN-15 | El Admin administra (ABM) los productores (alta, edición y baja) y habilita o inhabilita su disponibilidad para recibir asignaciones. | CONFIRMADO |
+| RN-16 | El acceso del productor no depende de un enlace vencible: exige sesión autenticada y autorización por identidad sobre las solicitudes asignadas. | CONFIRMADO |
 
 ## 9. Requerimientos preliminares
 
@@ -136,7 +139,9 @@ El modelo no introduce clases técnicas adicionales. Cardinalidades, esquema y p
 | RF-CAT-01 | MAPS administra (ABM) las categorías del catálogo: crear, editar y renombrar. | CONFIRMADO |
 | RF-CLI-01 | El Admin administra (ABM) clientes: alta, edición y baja, y su consulta desde el panel. | CONFIRMADO |
 | RF-ADM-01 | Admin consulta ENVIADA, asigna/reasigna y opera incidencias previas a DERIVADA. | CONFIRMADO |
-| RF-PRODUCER-01 | Productor accede read-only sólo a solicitudes asignadas. | CONFIRMADO |
+| RF-PRODUCER-01 | Productor inicia sesión y consulta read-only, desde **Mis solicitudes**, únicamente las asignadas a él. | CONFIRMADO |
+| RF-PRODUCER-02 | El productor recibe aviso cuando una solicitud asignada a él se cancela y pierde el acceso a esa solicitud. | CONFIRMADO |
+| RF-PRODUCER-03 | MAPS administra (ABM) productores: alta, edición, baja y habilitación para recibir asignaciones. | CONFIRMADO |
 | RF-DELIVERY-01 | Se registra derivación, resultado conocido, fallas y reintentos. | CONFIRMADO |
 | RF-ANALYTICS-01 | Se miden eventos y conversiones del funnel sin entidad Lead, PII innecesaria ni automatismos comerciales. | CONFIRMADO / técnico F3 |
 | RF-GOV-01 | Cambios controlados, pendientes y criterios de cierre preservan dueño, fase destino, condición de cierre e histórico. | CONFIRMADO |
@@ -155,9 +160,9 @@ MAPS confirma decisiones funcionales, reglas de negocio y cambios de alcance; Ko
 
 ## 12. Inputs para F2 y F3
 
-F2 puede diseñar catálogo, detalle, login/register, formulario, aviso/confirmación de precio, revisión, envío, confirmación, Mis solicitudes, retomar BORRADOR, cancelar ENVIADA/ASIGNADA y solicitar cancelación DERIVADA; Admin puede diseñar bandeja, asignación/reasignación, incidencias, productos/precio/formularios/publicación, categorías del catálogo, administración de clientes y confirmación de cancelación DERIVADA; Productor acceso seguro, solicitud asignada, estado y aviso de cancelación. Quedan fuera: Lead recovery, Intranet Lead UI, pólizas, vigencia y PDF.
+F2 puede diseñar catálogo, detalle, login/register, formulario, aviso/confirmación de precio, revisión, envío, confirmación, Mis solicitudes, retomar BORRADOR, cancelar ENVIADA/ASIGNADA y solicitar cancelación DERIVADA; Admin puede diseñar bandeja, asignación/reasignación, incidencias, productos/precio/formularios/publicación, categorías del catálogo, administración (ABM) de clientes y de productores, y confirmación de cancelación DERIVADA; Productor login, **Mis solicitudes** asignadas, detalle read-only, estado y aviso de cancelación. Quedan fuera: Lead recovery, Intranet Lead UI, pólizas, vigencia y PDF.
 
-F3 recibe auth/identity, Product/precio/snapshot histórico, Category, Customer administrable, FormDefinition/FormVersion, state machine/cancellation flow, RequestAnswer, documentos/object storage, email/DeliveryAttempt, secure producer link, RBAC Admin/Productor/Cliente, auditoría, analytics, APIs y observabilidad. PostgreSQL, Lead, Policy/PDF y sus integraciones no forman parte del Architecture Decision Pack del MVP.
+F3 recibe auth/identity, Product/precio/snapshot histórico, Category, Customer administrable, FormDefinition/FormVersion, state machine/cancellation flow, RequestAnswer, documentos/object storage, email/DeliveryAttempt, Producer administrable, RBAC Admin/Productor/Cliente, auditoría de accesos, analytics, APIs y observabilidad. PostgreSQL, Lead, Policy/PDF y sus integraciones no forman parte del Architecture Decision Pack del MVP.
 
 ## 13. Bitácora de decisiones de F1
 
@@ -174,6 +179,8 @@ F3 recibe auth/identity, Product/precio/snapshot histórico, Category, Customer 
 | 2026-09-15 | Precio, CANCELADA y Mis solicitudes | Precio fijo obligatorio/snapshot, cancelación por estado y Mis solicitudes confirmada. | CONFIRMADO |
 | 2026-09-15 | Formularios, gobierno y analytics | Contrato de campos preliminar validable con casos reales, gobierno mínimo y analítica con minimización de datos. | CONFIRMADO / PENDIENTE MAPS / F3 |
 | 2026-09-16 | Categorías y Clientes (ABM) | Cambio controlado: se incorporan al MVP la administración (ABM) de categorías del catálogo y de clientes como capacidades del Admin (RF-CAT-01, RF-CLI-01, RN-13, RN-14). | CONFIRMADO |
+| 2026-09-16 | Acceso del productor | Cambio controlado: se revoca el enlace seguro por solicitud; el productor accede desde cuenta autenticada y consulta en **Mis solicitudes** sólo las asignadas a él (RF-PRODUCER-01, RF-PRODUCER-02, RN-05, RN-16). Motivo: fricción creciente de un enlace por asignación; el aislamiento se resuelve por autorización de identidad. | CONFIRMADO |
+| 2026-09-16 | Productores (ABM) | Cambio controlado: se explicita el ABM de productores como capacidad del Admin (RF-PRODUCER-03, RN-15), ya implícita en la asignación y en la gestión de roles internos. | CONFIRMADO |
 
 ## 14. Evidencia histórica
 
