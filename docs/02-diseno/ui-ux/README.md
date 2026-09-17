@@ -17,8 +17,8 @@ El prototipo fue adaptado a la baseline funcional vigente (Fase 0) y al Discover
 - inicio, carga, revisión y envío de solicitudes, con formulario dinámico por producto;
 - aviso de cambio de precio al retomar un borrador y reconfirmación expresa antes de enviar; la solicitud enviada conserva el precio confirmado;
 - borradores recuperables, **Mis solicitudes** y retomar borrador conservando la versión de formulario de creación;
-- cancelación según estado: descartar un BORRADOR, cancelar una ENVIADA o ASIGNADA, y solicitar la cancelación de una DERIVADA. El motivo es obligatorio en todos los casos;
-- perfil del cliente.
+- cancelación según estado: descartar un BORRADOR sin motivo obligatorio y sin llevarlo a CANCELADA; cancelar una ENVIADA o ASIGNADA con motivo; y solicitar la cancelación de una DERIVADA con motivo, cuya decisión Admin puede confirmar o rechazar;
+- perfil básico del cliente: consulta y edición de los datos habilitados para autogestión.
 
 **Admin**
 
