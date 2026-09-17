@@ -7,6 +7,7 @@ Esta carpeta contiene prototipos y materiales de referencia para validar la expe
 ## Prototipo incluido
 
 - [Prototipo standalone del Portal de Seguros MAPS](./prototipos/maps-seguros-portal-standalone.html)
+- [Fase 2 — Design Handoff](../Fase_2__Design_Handoff.md)
 
 El prototipo fue adaptado a la baseline funcional vigente (Fase 0) y al Discovery (Fase 1): es un **Portal de Solicitudes**, no un e-commerce. Permite recorrer, con datos de demostración, las áreas del MVP.
 
@@ -75,4 +76,4 @@ Descargar o clonar el repositorio y abrir el archivo HTML directamente en un nav
 
 ## Relación con las fases del proyecto
 
-El material sirve como insumo de diseño para la Fase 2. No reemplaza el discovery de la Fase 1 ni constituye una decisión técnica de arquitectura o implementación.
+El prototipo es la referencia visual/interactiva; el [Design Handoff de Fase 2](../Fase_2__Design_Handoff.md) especifica el comportamiento UX funcional. Fase 0 y Fase 1 continúan siendo la baseline funcional; Fase 3 define la implementación técnica. Ninguno de estos materiales constituye una decisión de arquitectura o implementación.

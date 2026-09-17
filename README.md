@@ -16,12 +16,13 @@ Fuera del MVP: Leads/Potenciales clientes e integración con Intranet, PostgreSQ
 
 ## Estado actual
 
-El repositorio mantiene estructura inicial de monorepo. Esta baseline es exclusivamente funcional y documental; no implementa arquitectura ni aplicaciones. El prototipo UX/UI existente es un artefacto separado que deberá realinearse posteriormente contra esta baseline.
+El repositorio mantiene estructura inicial de monorepo. Esta baseline es exclusivamente funcional y documental; no implementa arquitectura ni aplicaciones. El prototipo UX/UI es una referencia visual/interactiva y el Design Handoff de Fase 2 documenta su comportamiento funcional sin definir implementación.
 
 ## Documentación vigente
 
 - [Fase 0 — Baseline funcional vigente](./docs/00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md)
 - [Fase 1 — Discovery y Relevamiento](./docs/01-producto/Fase_1__Discovery_y_Relevamiento.md)
+- [Fase 2 — Design Handoff](./docs/02-diseno/Fase_2__Design_Handoff.md)
 
 `docs/estructura.md`, los TDDs y el material UI/UX previo se conservan como históricos: no definen el alcance vigente cuando contradicen Fase 0/Fase 1.
 
