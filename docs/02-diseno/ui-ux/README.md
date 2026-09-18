@@ -14,9 +14,9 @@ El prototipo fue adaptado a la baseline funcional vigente (Fase 0) y al Discover
 
 - autenticación y registro; el catálogo es público y el login se exige antes de crear un borrador;
 - catálogo y detalle de productos con precio fijo vigente;
-- inicio, carga, revisión y envío de solicitudes, con formulario dinámico por producto;
+- inicio, carga, revisión y envío de solicitudes, con formulario dinámico por producto, validación por campo obligatorio y un stepper que se adapta a pantallas chicas;
 - aviso de cambio de precio al retomar un borrador y reconfirmación expresa antes de enviar; la solicitud enviada conserva el precio confirmado;
-- borradores recuperables, **Mis solicitudes** y retomar borrador conservando la versión de formulario de creación;
+- borradores recuperables, **Mis solicitudes** con indicadores por estado, búsqueda, filtros y paginado, y retomar borrador conservando la versión de formulario de creación;
 - cancelación según estado: descartar un BORRADOR, cancelar una ENVIADA o ASIGNADA, y solicitar la cancelación de una DERIVADA. El motivo es obligatorio en todos los casos;
 - perfil del cliente.
 
@@ -32,7 +32,7 @@ El prototipo fue adaptado a la baseline funcional vigente (Fase 0) y al Discover
 
 **Productor**
 
-- inicia sesión con su cuenta y consulta en **Mis solicitudes** únicamente las asignadas a él;
+- inicia sesión con su cuenta y consulta en **Mis solicitudes** únicamente las asignadas a él, con indicadores por estado, búsqueda, filtros y paginado que escalan a un alto volumen de casos;
 - detalle read-only del expediente autorizado, sin navegación a otros casos;
 - aviso cuando una solicitud asignada se cancela, con pérdida del acceso al expediente.
 
@@ -59,6 +59,17 @@ El constructor de formularios cubre los tipos `text`, `number`, `date`, `select`
 Quedan **pendientes de validación con MAPS**, según el contrato preliminar: `min/max`, orden explícito y agrupación por sección/paso. La condición de cierre sigue siendo validar el contrato contra uno o dos formularios reales (F1 §9, RF-FORM-01).
 
 La versión publicada es inmutable: lo que se edita en el panel queda en un borrador de formulario y no afecta al formulario que ven los clientes hasta publicar. Cada solicitud conserva la versión con la que fue completada y un borrador de cliente sigue usando su versión de creación, sin migración automática (F0 §0.1, RN-08).
+
+## Sistema de diseño y experiencia
+
+El prototipo incorpora, como exploración de UI para Fase 2 (no como decisión técnica de implementación):
+
+- un sistema de **design tokens** (paleta de marca teal, tipografía Manrope, espaciado, radios y colores de estado) y **clases reutilizables** —tarjetas, tablas, badges de estado, indicadores (KPIs), barras de herramientas y paginado— que reemplazan estilos sueltos por componentes consistentes;
+- **diseño responsive**: las tablas de solicitudes se reorganizan en tarjetas apiladas en pantallas chicas y la navegación superior se colapsa en un menú;
+- **mejoras de accesibilidad**: navegación por teclado, foco visible, controles con etiquetas y estados comunicados con texto además del color;
+- las tres vistas de listado de solicitudes (**Cliente**, **Admin** y **Productor**) comparten el mismo patrón de búsqueda, filtros, indicadores por estado y paginado, pensado para escalar a muchos trámites.
+
+Estas mejoras se ofrecen como referencia visual para Fase 2; el detalle definitivo de UX, componentes y sistema de diseño se especifica en el Design Handoff de Fase 2.
 
 ## Cómo visualizarlo
 
