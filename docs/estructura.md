@@ -331,9 +331,7 @@ Role
 Customer
 Product
 Category
-Coverage
-Exclusion
-Requirement
+Attribute
 CheckoutSession
 Contract
 Payment
@@ -349,9 +347,7 @@ El modelo de datos deberá contemplar como mínimo:
 
 * Productos enlatados.
 * Categorías de productos.
-* Coberturas.
-* Exclusiones.
-* Requisitos.
+* Atributos de producto (coberturas, exclusiones, requisitos u otros — modelados de forma genérica, ver `TDD-0001`, ya que cada seguro puede tener un conjunto distinto de atributos).
 * Clientes.
 * Usuarios.
 * Roles.
@@ -370,9 +366,7 @@ Una estructura conceptual inicial sería:
 ```txt
 Product
 ├── Category
-├── Coverages
-├── Exclusions
-├── Requirements
+├── Attributes
 ├── Price
 ├── Payment type
 └── Status
