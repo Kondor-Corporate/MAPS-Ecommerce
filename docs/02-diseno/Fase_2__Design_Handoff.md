@@ -14,7 +14,7 @@ El producto es un Portal de Solicitudes de Seguros, no un e-commerce. Se mantien
 
 - Los únicos estados funcionales de `InsuranceRequest` son **BORRADOR**, **ENVIADA**, **ASIGNADA**, **DERIVADA** y **CANCELADA**.
 - Los estados de entrega/email son técnicos y se muestran como incidencia o trazabilidad; no agregan estados a la solicitud.
-- El Productor accede con cuenta autenticada, únicamente a solicitudes autorizadas y en modo read-only.
+- El Productor accede con cuenta autenticada, únicamente a solicitudes **DERIVADAS** que le fueron asignadas y con autorización vigente, en modo read-only; no accede en `ASIGNADA`.
 - Todo Product publicado tiene precio fijo. Un BORRADOR con precio desactualizado exige aviso y reconfirmación antes de enviar; ENVIADA conserva su precio confirmado.
 - La `FormVersion` publicada es inmutable y un BORRADOR conserva la versión con la que comenzó.
 - La autogestión del perfil del Cliente es distinta del ABM de Clientes del Admin.
@@ -48,8 +48,8 @@ El producto es un Portal de Solicitudes de Seguros, no un e-commerce. Se mantien
 | ADM-10 | Clientes | Admin | ABM y consulta de clientes | Backoffice → detalle/lista | Presente | MVP |
 | ADM-11 | Productores | Admin | ABM y disponibilidad | Backoffice → lista | Presente | MVP |
 | PRO-01 | Login | Productor | Acceder con cuenta propia | Guarda → Mis solicitudes | Presente | MVP |
-| PRO-02 | Mis solicitudes | Productor | Consultar asignadas | Sesión → detalle read-only | Presente | MVP |
-| PRO-03 | Detalle read-only | Productor | Consultar expediente autorizado | Lista → lista | Presente | MVP |
+| PRO-02 | Mis solicitudes | Productor | Consultar DERIVADAS asignadas | Sesión → detalle read-only | Presente | MVP |
+| PRO-03 | Detalle read-only | Productor | Consultar expediente DERIVADO autorizado | Lista → lista | Presente | MVP |
 
 `ADM-09` es parcial porque el prototipo muestra borrador/publicada, pero la revisión de histórico y sus estados UX requiere validación de equipo. `PUB-05` es MVP por dependencia del login, sin definir el mecanismo técnico.
 
@@ -105,7 +105,7 @@ Catálogo → Detalle Product → Login/Registro → crear BORRADOR
 Mis solicitudes → BORRADOR → misma FormVersion → continuar → revisión → confirmar precio → enviar
 ```
 
-El BORRADOR es editable y recuperable. Si su versión fue retirada, se informa que no puede continuar y se inicia con la vigente; reutilización de datos compatibles queda para F3.
+El BORRADOR es editable y recuperable mientras su `FormVersion` siga utilizable. Publicar una nueva versión no retira automáticamente la anterior: los borradores existentes conservan su versión y pueden continuar con ella. Si un Admin retira una versión por una razón legal, de seguridad, comercial o de vigencia, los borradores que la usan no pueden continuar: el Cliente recibe un aviso y debe iniciar un nuevo BORRADOR con la versión vigente. Si no existe una versión utilizable, no se ofrece continuar ni iniciar hasta que Admin publique una de reemplazo. La eventual reutilización de datos compatibles queda para F3.
 
 ### Cliente — descartar BORRADOR
 
@@ -129,8 +129,8 @@ El fallo no crea `email_failed` ni otro estado de `InsuranceRequest`.
 ### Cancelaciones
 
 ```text
-ENVIADA → Cliente cancela → CANCELADA → aviso Admin
-ASIGNADA → Cliente cancela → CANCELADA → aviso Admin + Productor → revocar acceso
+ENVIADA → Cliente indica motivo y confirma → CANCELADA → aviso Admin
+ASIGNADA → Cliente indica motivo y confirma → CANCELADA → aviso Admin + Productor → revocar acceso
 DERIVADA → Cliente solicita cancelación → Admin revisa
   ├── aprueba → CANCELADA → aviso Productor → revocar acceso
   └── rechaza → permanece DERIVADA → informar Cliente
@@ -142,8 +142,8 @@ DERIVADA → Cliente solicita cancelación → Admin revisa
 | --- | --- | --- | --- |
 | BORRADOR | Editar, guardar, retomar, descartar | — | — |
 | ENVIADA | Ver, cancelar | Ver, asignar | — |
-| ASIGNADA | Ver, cancelar | Ver, reasignar, reintentar derivación | Ver sólo si está autorizado; acceso se revoca al cancelar |
-| DERIVADA | Ver, solicitar cancelación | Ver, aprobar/rechazar cancelación | Ver read-only |
+| ASIGNADA | Ver, cancelar con motivo y confirmación | Ver, reasignar, reintentar derivación | Sin acceso |
+| DERIVADA | Ver, solicitar cancelación con motivo | Ver, aprobar/rechazar cancelación | Ver read-only si fue asignada a ese Productor y la autorización sigue vigente |
 | CANCELADA | Ver | Ver | Sin acceso operativo |
 
 ## 7. Matriz detallada de pantallas
@@ -156,11 +156,11 @@ Estados generales aplicables: loading, empty, error, unauthorized y forbidden. T
 | PUB-02 Detalle | Información comercial, precio vigente y CTA | Iniciar solicitud; CTA exige login antes de crear BORRADOR | Product publicado; salida login/registro o formulario | Producto no disponible, precio actualizado | RN-02, RN-09; disponibilidad F3 |
 | PUB-03/04/05 Acceso | Login, registro y recuperación | Validar campos, mostrar error, volver al destino solicitado | Público; no mostrar sesión ajena | Inválido, credenciales erróneas, recuperación solicitada | RN-02, RN-17; auth y recuperación F3 |
 | CLI-02 Perfil | Datos habilitados de Cliente | Editar, validar inline, guardar, feedback éxito/error | Cliente autenticado; menú → volver | Loading, inválido, guardando, éxito, error, forbidden | RF-CLI-PROFILE-01, RN-17; campos no editables y sincronización F3 |
-| CLI-03 Formulario | Product, FormVersion, pasos, progreso, campos y adjuntos | Avanzar/volver, validación inline, guardar BORRADOR, descartar | Cliente, Product disponible; salida revisión o Mis solicitudes | Loading, guardado, error guardado, inválido, versión retirada | RF-SOL-01/02, RF-FORM-01, RN-03/08; contrato y storage F3 |
-| CLI-04 Revisión | Resumen de respuestas, consentimientos, precio actual o aviso de cambio | Volver, confirmar precio nuevo, enviar | BORRADOR válido; no enviar sin reconfirmar precio cambiado | Incompleto, precio actualizado, error envío | RF-SOL-04, RN-09; snapshot F3 |
+| CLI-03 Formulario | Product, FormVersion, pasos, progreso, campos y adjuntos | Avanzar/volver, validación inline, **Guardar borrador** manual, descartar | Cliente, Product disponible; salida revisión o Mis solicitudes | Loading, guardado, error guardado, inválido, versión retirada | RF-SOL-01/02, RF-FORM-01, RN-03/08; contrato y storage F3 |
+| CLI-04 Revisión | Resumen de respuestas, consentimientos, precio actual o aviso de cambio | Volver, confirmar precio nuevo, enviar | BORRADOR; enviar sólo con todos los requisitos completos y precio vigente reconfirmado | Incompleto, precio actualizado, error envío | RF-SOL-04, RN-09; snapshot F3 |
 | CLI-05 Confirmación | Número, Product, fecha y estado ENVIADA | Ir a Mis solicitudes/detalle | Envío exitoso; no declara derivación | Error de confirmación recuperable | RF-SOL-01/03; entrega de datos F3 |
 | CLI-06 Mis solicitudes | Solicitudes propias, Product, fecha, estado y filtros | Abrir, retomar BORRADOR | Cliente autenticado; menú → detalle/formulario | Loading, vacío, error, forbidden | RF-SOL-03, RN-05; consulta F3 |
-| CLI-07 Detalle | Estado, precio confirmado cuando corresponda, historial y acciones permitidas | Retomar, descartar, cancelar o solicitar cancelación según estado | Propietario autenticado; lista → lista/cancelación | No encontrada, forbidden, CANCELADA read-only | RF-SOL-05, RN-10; auditoría F3 |
+| CLI-07 Detalle | Estado, precio confirmado cuando corresponda, historial y acciones permitidas | Retomar, descartar o cancelar; en ENVIADA/ASIGNADA pedir motivo y confirmación, en DERIVADA solicitar cancelación | Propietario autenticado; lista → lista/cancelación | Motivo requerido, no encontrada, forbidden, CANCELADA read-only | RF-SOL-05, RN-10; auditoría F3 |
 | CLI-08 Cancelación DERIVADA | Contexto, motivo y resultado de decisión si existe | Enviar solicitud con motivo; ver aprobada/rechazada | DERIVADA propia; detalle → detalle | Motivo requerido, ya solicitada, error | RF-SOL-05, RN-10; trazabilidad/notificación F3 |
 | ADM-01 Bandeja | Solicitudes, estado, Product, cliente, filtros y paginado | Buscar, filtrar, abrir detalle | Admin autenticado; backoffice → detalle | Loading, vacío, error, forbidden | RF-ADM-01; consulta/paginado F3 |
 | ADM-02 Detalle | Expediente autorizado, Product, historial, Productor y entrega | Abrir asignación, reintentar, reasignar, decidir cancelación | Admin; bandeja → bandeja/acciones | No encontrada, error, forbidden | RF-ADM-01, RF-DELIVERY-01; auditoría F3 |
@@ -168,21 +168,21 @@ Estados generales aplicables: loading, empty, error, unauthorized y forbidden. T
 | ADM-04 Incidencia derivación | Productor, último intento, resultado/error conocido | Reintentar o reasignar | ASIGNADA; volver al detalle | Procesando, fallida, reintento, error | RN-06/07, RF-DELIVERY-01; delivery técnico F3 |
 | ADM-05 Cancelación DERIVADA | Motivo, fecha y solicitante | Confirmar o rechazar; feedback trazable | DERIVADA con solicitud; detalle → DERIVADA/CANCELADA | Sin solicitud, error, acción ya resuelta | RN-10, RF-SOL-05; notificación F3 |
 | ADM-06 Categorías | Nombre, estado y asociación visible | Crear, editar, renombrar | Admin; backoffice → lista | Vacío, inválido, conflicto de uso, error | RF-CAT-01, RN-13; persistencia F3 |
-| ADM-07 Productos | Información comercial, categoría, precio y publicación | Crear/editar, precio, publicar, abrir formularios | Admin; backoffice → formularios | Inválido, precio requerido, error | RF-PROD-01, RN-09; Product F3 |
-| ADM-08 Formularios | Campos candidatos, borrador y versión publicada | Editar DRAFT, validar, publicar | Admin y Product seleccionado; producto → versiones | Sin campos, inválido, sin cambios, error | RF-FORM-01, RN-08; schema F3 |
-| ADM-09 Versiones | Versión publicada e histórico disponible | Consultar; crear nueva desde flujo de formulario | Admin; formularios → formulario | Vacío, error | RN-08; no incluye rollback/diff/restore MVP |
-| ADM-10 Clientes | Cliente y solicitudes asociadas autorizadas | Alta, edición, baja, buscar, abrir detalle | Admin; backoffice → lista/detalle | Vacío, inválido, error | RF-CLI-01, RN-14; modelo F3 |
-| ADM-11 Productores | Datos, disponibilidad y asignaciones | Alta, edición, baja, habilitar/inhabilitar | Admin; backoffice → lista | Vacío, inválido, no eliminable si corresponde, error | RF-PRODUCER-03, RN-15; modelo F3 |
+| ADM-07 Productos | Información comercial, categoría, precio, publicación y formulario asociado | Crear/editar, definir precio, publicar y abrir la configuración del formulario asociado | Admin; `ADM-07 → ADM-08` sobre el Product seleccionado | Inválido, precio requerido, error | RF-PROD-01, RN-09; Product F3 |
+| ADM-08 Formularios | Formulario asociado al Product, campos candidatos, borrador y versión publicada | Crear/configurar DRAFT, validar y publicar `FormVersion` | Admin y Product seleccionado; `ADM-07 → ADM-08 → DRAFT → publicar` | Sin campos, inválido, sin cambios, error | RF-FORM-01, RN-08; schema F3 |
+| ADM-09 Versiones | Versión publicada, utilizables e histórico disponible | Consultar, crear nueva desde el formulario o retirar una versión con causa válida | Admin; formularios → formulario; no retirar la última versión utilizable | Vacío, bloqueo por última versión utilizable, error | RN-08; no incluye rollback/diff/restore MVP |
+| ADM-10 Clientes | Cliente y solicitudes asociadas autorizadas | Alta, edición, baja, buscar, abrir detalle | Admin; confirmación informa efectos pendientes de definición MAPS | Vacío, inválido, decisión funcional pendiente, error | RF-CLI-01, RN-14; modelo F3 |
+| ADM-11 Productores | Datos, disponibilidad y asignaciones | Alta, edición, baja, habilitar/inhabilitar | Admin; inhabilitar sólo evita nuevas asignaciones; otros efectos requieren definición MAPS | Vacío, inválido, decisión funcional pendiente, error | RF-PRODUCER-03, RN-15; modelo F3 |
 | PRO-01 Login | Acceso de Productor | Autenticarse y salir a Mis solicitudes | Productor; guarda → lista | Credenciales inválidas, unauthorized | RN-05/16; auth F3 |
-| PRO-02 Mis solicitudes | Solicitudes asignadas y estado | Abrir detalle | Productor autenticado; menú → detalle | Loading, vacío, error, forbidden | RF-PRODUCER-01, RN-05/16; autorización F3 |
-| PRO-03 Detalle read-only | Expediente autorizado y avisos relevantes | Volver; no editar ni cancelar | Solicitud asignada y acceso vigente | Forbidden/revocado, no encontrada, error | RF-PRODUCER-01/02, RN-05/16; RBAC/auditoría F3 |
+| PRO-02 Mis solicitudes | Solicitudes DERIVADAS asignadas y estado | Abrir detalle | Productor autenticado; sólo DERIVADAS asignadas a su identidad y con autorización vigente | Loading, vacío, error, forbidden | RF-PRODUCER-01, RN-05/16; autorización F3 |
+| PRO-03 Detalle read-only | Expediente DERIVADO autorizado y avisos relevantes | Volver; no editar ni cancelar | Solicitud DERIVADA asignada a ese Productor y acceso vigente | Forbidden/revocado, no encontrada, error | RF-PRODUCER-01/02, RN-05/16; RBAC/auditoría F3 |
 
 ## 8. Estados UX específicos
 
 | Área | Estados UX | Regla de presentación |
 | --- | --- | --- |
 | Producto | Publicado, no disponible, precio actualizado | No iniciar sobre producto no disponible; mostrar precio vigente sin cálculo personalizado. |
-| Formulario | Loading, guardado, error de guardado, inválido, versión retirada, cambio de precio | Errores inline; conservar progreso cuando sea posible; versión retirada impide continuar con esa versión. |
+| Formulario | Loading, guardado, error de guardado, cambios sin guardar, inválido, versión retirada, cambio de precio | Guardado manual; la versión retirada impide continuar con esa versión. |
 | Solicitud | BORRADOR, ENVIADA, ASIGNADA, DERIVADA, CANCELADA | Mostrar estado funcional y acciones permitidas, sin sexto estado. |
 | Derivación | Procesando, exitosa, fallida, reintento | Es trazabilidad/incidencia de entrega, no estado de `InsuranceRequest`. |
 | Cancelación | Disponible, solicitada, aprobada, rechazada, cancelada | “Solicitada”, “aprobada” y “rechazada” son situación/resultados asociados al expediente; no agregan estados funcionales. |
@@ -190,9 +190,10 @@ Estados generales aplicables: loading, empty, error, unauthorized y forbidden. T
 ## 9. Formulario dinámico — UX contract
 
 - La experiencia usa secciones o pasos, progreso, navegación avanzar/volver, requeridos/opcionales, validación inline, adjuntos, guardado, retoma y revisión final.
-- Guardar conserva el BORRADOR y su `FormVersion`; retomar restituye esa versión sin que el Cliente pueda elegir otra.
-- Antes de enviar se revisan datos, consentimiento aplicable y precio. Un cambio de precio exige aviso explícito, nuevo valor visible y reconfirmación.
-- Ante error de guardado/envío, se informa el problema y se conserva el contexto visible; la estrategia de recuperación es F3.
+- **Guardar preserva progreso; enviar exige completitud.** El guardado ocurre sólo mediante la acción explícita **Guardar borrador**; no hay autoguardado al tipear, cambiar campo o paso, cerrar/recargar pestaña, timeout o navegar. Los cambios no guardados se pierden y la interfaz lo advierte antes de abandonar cuando corresponda.
+- Guardar permite un BORRADOR incompleto: no bloquean el guardado los requeridos vacíos, pasos incompletos, adjuntos aún faltantes ni consentimientos pendientes. Sólo se rechazan datos técnicamente imposibles de preservar, como un archivo que no supera la validación técnica aplicable. Tras éxito se confirma que el progreso y la `FormVersion` quedaron guardados; retomar restituye esa versión sin que el Cliente pueda elegir otra.
+- Antes de enviar se validan todos los requeridos, pasos, adjuntos y consentimientos aplicables, que exista una `FormVersion` utilizable y que el precio vigente haya sido confirmado o reconfirmado. Un cambio de precio exige aviso explícito, nuevo valor visible y reconfirmación.
+- Ante error de guardado/envío se informa el problema y se conserva el contexto visible; la estrategia técnica de recuperación es F3.
 - **Los tipos exactos y propiedades definitivas permanecen sujetos a validación F1 con 1–2 formularios reales.** Los candidatos actuales son `text`, `number`, `date`, `select`, `radio`, `checkbox`, `textarea` y `file`.
 
 ## 10. Versionado y precio — UX MVP
@@ -200,10 +201,12 @@ Estados generales aplicables: loading, empty, error, unauthorized y forbidden. T
 ### Versionado
 
 ```text
-Versión publicada → crear nueva versión → DRAFT → editar → publicar
+Product utilizable → `ADM-07` → `ADM-08` formulario asociado → DRAFT → editar → publicar `FormVersion`
 ```
 
-La publicada es inmutable, el histórico se conserva y el Cliente no selecciona versiones. Quedan fuera rollback, restore, diff, branching y comparación de versiones.
+Admin crea o edita el Product, define su precio y publicación, y desde `ADM-07` abre `ADM-08` para crear o configurar el formulario asociado. Cada Product publicado y utilizable en el journey de solicitud tiene un formulario administrado por MAPS y al menos una `FormVersion` utilizable; el detalle de schema queda para F3.
+
+La publicada es inmutable, el histórico se conserva y el Cliente no selecciona versiones. Publicar una nueva versión no retira la anterior: los BORRADORES existentes continúan con la versión con que fueron creados mientras siga utilizable. Sólo Admin puede retirar una versión, por razón legal, de seguridad, comercial o de vigencia. Al retirarla, los BORRADORES vinculados no pueden continuar; se informa al Cliente y se inicia un nuevo BORRADOR con la versión vigente. No se puede retirar la última versión utilizable de un Product: la UI bloquea la acción y explica que antes debe crearse y publicarse un reemplazo. Quedan fuera rollback, restore, diff, branching y comparación de versiones.
 
 ### Precio
 
@@ -213,13 +216,19 @@ Admin visualiza, edita y publica el precio fijo. Cliente visualiza el precio vig
 
 **Mi perfil** permite consultar y actualizar sólo los datos habilitados para autogestión básica. La pantalla define datos visibles/editables, validación inline, guardar, confirmación de éxito y error; no presume verificación de identidad, cambio complejo de email, MFA ni reglas de propagación a solicitudes históricas.
 
+La lista aprobada de campos visibles, editables, obligatorios y no editables es un **PENDIENTE FUNCIONAL MAPS**. MAPS define y aprueba el listado; Kondor lo releva, analiza y documenta. Se cierra al contar con la lista aprobada por MAPS, sin bloquear la aprobación de esta primera versión.
+
 La autogestión del Cliente no reemplaza el ABM de Clientes del Admin.
 
 ## 12. Incidencia de derivación y cancelación
 
 Ante fallo de email/derivación, la solicitud **permanece ASIGNADA**. Admin visualiza Productor asignado, último intento, error conocido y acciones de reintento o reasignación. Sólo una entrega requerida exitosa habilita `ASIGNADA → DERIVADA`.
 
-En cancelación, BORRADOR se descarta sin motivo obligatorio; ENVIADA y ASIGNADA se cancelan directamente; DERIVADA exige solicitud con motivo y revisión de Admin. `CANCELADA` es final y read-only. El Productor no cancela desde el Portal.
+En cancelación, BORRADOR se descarta sin motivo obligatorio. En ENVIADA y ASIGNADA, el Cliente indica motivo y confirma la acción: la transición a `CANCELADA` es inmediata, sin aprobación de Admin, y registra actor, fecha y motivo. DERIVADA exige solicitud con motivo y revisión de Admin; si la rechaza, permanece DERIVADA. `CANCELADA` es final y read-only. El Productor no cancela desde el Portal.
+
+### Baja e inhabilitación
+
+La inhabilitación de un Productor confirmada para el MVP sólo lo deja indisponible para **nuevas asignaciones**. No se presume su efecto sobre inicio de sesión, solicitudes existentes, ASIGNADAS, DERIVADAS, historial, reactivación, notificaciones ni sobre la baja/eliminación de Cliente o Productor. Estos efectos y sus mensajes de confirmación quedan como **PENDIENTE FUNCIONAL MAPS**, con trazabilidad requerida; la estrategia técnica de persistencia queda para F3.
 
 ## 13. Matriz de permisos UX
 
@@ -227,14 +236,14 @@ En cancelación, BORRADOR se descarta sin motivo obligatorio; ENVIADA y ASIGNADA
 | --- | --- | --- | --- | --- |
 | Ver catálogo/detalle | Sí | Sí | Sí | Sí |
 | Crear solicitud / editar BORRADOR | No | Propia | No | No |
-| Ver solicitudes propias | No | Sí | Operación autorizada | Sólo asignadas |
+| Ver solicitudes propias | No | Sí | Operación autorizada | Sólo DERIVADAS asignadas a su identidad y con autorización vigente |
 | Editar perfil básico | No | Sí | Sesión/perfil propio | Sesión/perfil propio |
 | Cancelar ENVIADA/ASIGNADA | No | Propia | No como flujo de Cliente | No |
 | Solicitar cancelación DERIVADA | No | Propia | No | No |
 | Asignar, reasignar, reintentar | No | No | Sí | No |
 | Confirmar/rechazar cancelación | No | No | Sí | No |
 | Administrar Category/Product/FormVersion/Customer/Producer | No | No | Sí | No |
-| Ver expediente asignado | No | Propio | Sí | Read-only autorizado |
+| Ver expediente asignado | No | Propio | Sí | Sólo DERIVADO, asignado al Productor y autorizado read-only |
 
 Esta matriz expresa permisos UX; RBAC técnico y enforcement quedan en F3.
 
@@ -268,4 +277,14 @@ Esta primera versión no declara F2 cerrada. Para cierre requiere:
 
 Las referencias rectoras de este handoff son RN-02 a RN-10, RN-13 a RN-17; RF-SOL-01 a RF-SOL-05, RF-FORM-01, RF-PROD-01, RF-CAT-01, RF-CLI-01, RF-CLI-PROFILE-01, RF-ADM-01, RF-PRODUCER-01 a RF-PRODUCER-03, RF-DELIVERY-01 y RNF-SEC-01/RNF-COM-01 de Fase 1.
 
-No se detectaron contradicciones funcionales sin resolver durante esta primera versión. Las definiciones pendientes se mantienen explícitas: validación del contrato de formulario con MAPS y decisiones técnicas propias de F3.
+La revisión dejó reglas confirmadas sobre acceso del Productor, cancelación, guardado manual, asociación Product/FormVersion y retirada de versiones. Esta aprobación de PR no cierra F2: los pendientes siguientes permanecen visibles y separan definición funcional de implementación técnica.
+
+| Tema | Tipo | Responsable | Instancia / Fase | Condición de cierre |
+| --- | --- | --- | --- | --- |
+| Formulario dinámico | **PENDIENTE FUNCIONAL** | MAPS + Kondor | Validación funcional F2 | Validar 1–2 formularios representativos y aprobar el contrato acotado. |
+| Campos de perfil | **PENDIENTE FUNCIONAL** | MAPS; Kondor releva/documenta | Definición funcional posterior | Lista de campos visibles, editables, obligatorios y no editables aprobada por MAPS. |
+| Baja de Cliente/Productor e inhabilitación | **PENDIENTE FUNCIONAL** | MAPS | Definición funcional posterior | Reglas aprobadas para acceso, solicitudes existentes, asignaciones, historial, reactivación, avisos y retención. |
+| Auth / RBAC | **DIFERIDO TÉCNICO F3** | Kondor | F3 | Diseño e implementación técnica alineados con la matriz de permisos UX. |
+| Persistencia y versionado | **DIFERIDO TÉCNICO F3** | Kondor | F3 | Modelo de datos, snapshots, auditoría y enforcement de versiones implementados. |
+| Email, entrega y reintentos | **DIFERIDO TÉCNICO F3** | Kondor | F3 | Integración de delivery, trazabilidad técnica, reintentos e incidencias implementada. |
+| Storage y documentos | **DIFERIDO TÉCNICO F3** | Kondor | F3 | Diseño e implementación de carga, acceso y retención técnica de documentos. |
