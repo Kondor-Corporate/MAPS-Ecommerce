@@ -105,7 +105,7 @@ Catálogo → Detalle Product → Login/Registro → crear BORRADOR
 Mis solicitudes → BORRADOR → misma FormVersion → continuar → revisión → confirmar precio → enviar
 ```
 
-El BORRADOR es editable y recuperable mientras su `FormVersion` siga utilizable. Publicar una nueva versión no retira automáticamente la anterior: los borradores existentes conservan su versión y pueden continuar con ella. Si un Admin retira una versión por una razón legal, de seguridad, comercial o de vigencia, los borradores que la usan no pueden continuar: el Cliente recibe un aviso y debe iniciar un nuevo BORRADOR con la versión vigente. Si no existe una versión utilizable, no se ofrece continuar ni iniciar hasta que Admin publique una de reemplazo. La eventual reutilización de datos compatibles queda para F3.
+El BORRADOR es editable y recuperable mientras su `FormVersion` siga utilizable. Publicar una nueva versión no retira automáticamente la anterior: los borradores existentes conservan su versión y pueden continuar con ella. Si un Admin retira una versión por una razón legal, de seguridad, comercial o de vigencia, los borradores que la usan dejan de ser utilizables por el Cliente: recibe un aviso y debe iniciar un nuevo BORRADOR con la versión vigente. No se migran, reutilizan ni copian respuestas, incluso si los campos parecen compatibles. Si no existe una versión utilizable, no se ofrece continuar ni iniciar hasta que Admin publique una de reemplazo. Que el BORRADOR deje de ser utilizable no implica su eliminación física; retención, eliminación, auditoría e historial quedan para F3 y las reglas legales/retención que MAPS confirme.
 
 ### Cliente — descartar BORRADOR
 
@@ -156,11 +156,11 @@ Estados generales aplicables: loading, empty, error, unauthorized y forbidden. T
 | PUB-02 Detalle | Información comercial, precio vigente y CTA | Iniciar solicitud; CTA exige login antes de crear BORRADOR | Product publicado; salida login/registro o formulario | Producto no disponible, precio actualizado | RN-02, RN-09; disponibilidad F3 |
 | PUB-03/04/05 Acceso | Login, registro y recuperación | Validar campos, mostrar error, volver al destino solicitado | Público; no mostrar sesión ajena | Inválido, credenciales erróneas, recuperación solicitada | RN-02, RN-17; auth y recuperación F3 |
 | CLI-02 Perfil | Datos habilitados de Cliente | Editar, validar inline, guardar, feedback éxito/error | Cliente autenticado; menú → volver | Loading, inválido, guardando, éxito, error, forbidden | RF-CLI-PROFILE-01, RN-17; campos no editables y sincronización F3 |
-| CLI-03 Formulario | Product, FormVersion, pasos, progreso, campos y adjuntos | Avanzar/volver, validación inline, **Guardar borrador** manual, descartar | Cliente, Product disponible; salida revisión o Mis solicitudes | Loading, guardado, error guardado, inválido, versión retirada | RF-SOL-01/02, RF-FORM-01, RN-03/08; contrato y storage F3 |
+| CLI-03 Formulario | Product, FormVersion, pasos, progreso, campos y adjuntos | Avanzar/volver, validación inline, **Guardar borrador** manual, descartar | Cliente, Product disponible; salida revisión o Mis solicitudes | Loading, guardado, error guardado, inválido; versión retirada: no continuar, aviso y acción para volver a Mis solicitudes o iniciar nueva solicitud | RF-SOL-01/02, RF-FORM-01, RN-03/08; contrato y storage F3 |
 | CLI-04 Revisión | Resumen de respuestas, consentimientos, precio actual o aviso de cambio | Volver, confirmar precio nuevo, enviar | BORRADOR; enviar sólo con todos los requisitos completos y precio vigente reconfirmado | Incompleto, precio actualizado, error envío | RF-SOL-04, RN-09; snapshot F3 |
 | CLI-05 Confirmación | Número, Product, fecha y estado ENVIADA | Ir a Mis solicitudes/detalle | Envío exitoso; no declara derivación | Error de confirmación recuperable | RF-SOL-01/03; entrega de datos F3 |
-| CLI-06 Mis solicitudes | Solicitudes propias, Product, fecha, estado y filtros | Abrir, retomar BORRADOR | Cliente autenticado; menú → detalle/formulario | Loading, vacío, error, forbidden | RF-SOL-03, RN-05; consulta F3 |
-| CLI-07 Detalle | Estado, precio confirmado cuando corresponda, historial y acciones permitidas | Retomar, descartar o cancelar; en ENVIADA/ASIGNADA pedir motivo y confirmación, en DERIVADA solicitar cancelación | Propietario autenticado; lista → lista/cancelación | Motivo requerido, no encontrada, forbidden, CANCELADA read-only | RF-SOL-05, RN-10; auditoría F3 |
+| CLI-06 Mis solicitudes | Solicitudes propias, Product, fecha, estado y filtros | Abrir, retomar BORRADOR utilizable; ante versión retirada, iniciar nueva solicitud con la vigente | Cliente autenticado; menú → detalle/formulario | Loading, vacío, error, forbidden, BORRADOR no utilizable | RF-SOL-03, RN-05; consulta F3 |
+| CLI-07 Detalle | Estado, precio confirmado cuando corresponda, historial y acciones permitidas | Retomar, descartar o cancelar; en ENVIADA/ASIGNADA pedir motivo y confirmación, en DERIVADA solicitar cancelación | Propietario autenticado; lista → lista/cancelación | Motivo requerido, BORRADOR no utilizable por versión retirada, no encontrada, forbidden, CANCELADA read-only | RF-SOL-05, RN-10; auditoría F3 |
 | CLI-08 Cancelación DERIVADA | Contexto, motivo y resultado de decisión si existe | Enviar solicitud con motivo; ver aprobada/rechazada | DERIVADA propia; detalle → detalle | Motivo requerido, ya solicitada, error | RF-SOL-05, RN-10; trazabilidad/notificación F3 |
 | ADM-01 Bandeja | Solicitudes, estado, Product, cliente, filtros y paginado | Buscar, filtrar, abrir detalle | Admin autenticado; backoffice → detalle | Loading, vacío, error, forbidden | RF-ADM-01; consulta/paginado F3 |
 | ADM-02 Detalle | Expediente autorizado, Product, historial, Productor y entrega | Abrir asignación, reintentar, reasignar, decidir cancelación | Admin; bandeja → bandeja/acciones | No encontrada, error, forbidden | RF-ADM-01, RF-DELIVERY-01; auditoría F3 |
@@ -182,7 +182,7 @@ Estados generales aplicables: loading, empty, error, unauthorized y forbidden. T
 | Área | Estados UX | Regla de presentación |
 | --- | --- | --- |
 | Producto | Publicado, no disponible, precio actualizado | No iniciar sobre producto no disponible; mostrar precio vigente sin cálculo personalizado. |
-| Formulario | Loading, guardado, error de guardado, cambios sin guardar, inválido, versión retirada, cambio de precio | Guardado manual; la versión retirada impide continuar con esa versión. |
+| Formulario | Loading, guardado, error de guardado, cambios sin guardar, inválido, versión retirada, cambio de precio | Guardado manual; ante versión retirada se informa: “Este formulario ya no está disponible y no puede continuar esta solicitud. Debe iniciar una nueva solicitud con la versión vigente.” Sólo se ofrecen volver a Mis solicitudes o iniciar una nueva solicitud si hay versión vigente. |
 | Solicitud | BORRADOR, ENVIADA, ASIGNADA, DERIVADA, CANCELADA | Mostrar estado funcional y acciones permitidas, sin sexto estado. |
 | Derivación | Procesando, exitosa, fallida, reintento | Es trazabilidad/incidencia de entrega, no estado de `InsuranceRequest`. |
 | Cancelación | Disponible, solicitada, aprobada, rechazada, cancelada | “Solicitada”, “aprobada” y “rechazada” son situación/resultados asociados al expediente; no agregan estados funcionales. |
@@ -194,6 +194,7 @@ Estados generales aplicables: loading, empty, error, unauthorized y forbidden. T
 - Guardar permite un BORRADOR incompleto: no bloquean el guardado los requeridos vacíos, pasos incompletos, adjuntos aún faltantes ni consentimientos pendientes. Sólo se rechazan datos técnicamente imposibles de preservar, como un archivo que no supera la validación técnica aplicable. Tras éxito se confirma que el progreso y la `FormVersion` quedaron guardados; retomar restituye esa versión sin que el Cliente pueda elegir otra.
 - Antes de enviar se validan todos los requeridos, pasos, adjuntos y consentimientos aplicables, que exista una `FormVersion` utilizable y que el precio vigente haya sido confirmado o reconfirmado. Un cambio de precio exige aviso explícito, nuevo valor visible y reconfirmación.
 - Ante error de guardado/envío se informa el problema y se conserva el contexto visible; la estrategia técnica de recuperación es F3.
+- Si la `FormVersion` del BORRADOR fue retirada, el Cliente no puede continuar, cambiar manualmente de versión, migrar, restaurar, reutilizar ni copiar respuestas. Inicia un nuevo BORRADOR con la versión vigente si existe. La representación técnica del BORRADOR afectado, su retención, eliminación, auditoría e historial quedan para F3 y para las reglas legales/retención de MAPS.
 - **Los tipos exactos y propiedades definitivas permanecen sujetos a validación F1 con 1–2 formularios reales.** Los candidatos actuales son `text`, `number`, `date`, `select`, `radio`, `checkbox`, `textarea` y `file`.
 
 ## 10. Versionado y precio — UX MVP
@@ -206,7 +207,7 @@ Product utilizable → `ADM-07` → `ADM-08` formulario asociado → DRAFT → e
 
 Admin crea o edita el Product, define su precio y publicación, y desde `ADM-07` abre `ADM-08` para crear o configurar el formulario asociado. Cada Product publicado y utilizable en el journey de solicitud tiene un formulario administrado por MAPS y al menos una `FormVersion` utilizable; el detalle de schema queda para F3.
 
-La publicada es inmutable, el histórico se conserva y el Cliente no selecciona versiones. Publicar una nueva versión no retira la anterior: los BORRADORES existentes continúan con la versión con que fueron creados mientras siga utilizable. Sólo Admin puede retirar una versión, por razón legal, de seguridad, comercial o de vigencia. Al retirarla, los BORRADORES vinculados no pueden continuar; se informa al Cliente y se inicia un nuevo BORRADOR con la versión vigente. No se puede retirar la última versión utilizable de un Product: la UI bloquea la acción y explica que antes debe crearse y publicarse un reemplazo. Quedan fuera rollback, restore, diff, branching y comparación de versiones.
+La publicada es inmutable, el histórico se conserva y el Cliente no selecciona versiones. Publicar una nueva versión no retira la anterior: los BORRADORES existentes continúan con la versión con que fueron creados mientras siga utilizable. Sólo Admin puede retirar una versión, por razón legal, de seguridad, comercial o de vigencia. Al retirarla, los BORRADORES vinculados dejan de ser utilizables por el Cliente, que recibe un aviso e inicia un nuevo BORRADOR con la versión vigente; no hay migración, reutilización ni copia de respuestas. No se puede retirar la última versión utilizable de un Product: la UI bloquea la acción y explica que antes debe crear una nueva versión, publicarla y confirmar que existe otro reemplazo utilizable. El retiro no afirma eliminación física del BORRADOR; su representación técnica, retención, eliminación, auditoría e historial quedan para F3 y las reglas legales/retención de MAPS. Quedan fuera rollback, restore, diff, branching y comparación de versiones.
 
 ### Precio
 
@@ -255,12 +256,14 @@ Esta matriz expresa permisos UX; RBAC técnico y enforcement quedan en F3.
 - Journeys, lifecycle visible, acciones por estado y matriz de permisos.
 - Validaciones, errores, estados UX, formulario dinámico, versionado y precio.
 - Autogestión de perfil, cancelaciones e incidencia de derivación.
+- Un BORRADOR referencia su `FormVersion`; si ésta se retira, deja de ser utilizable para el Cliente, que inicia una nueva solicitud con la versión vigente sin migración, reutilización ni copia de respuestas.
 
 ### F2 no decide
 
 - Stack, framework, DB, schema físico, endpoints, APIs ni transacciones.
 - Proveedor de auth, sesiones/JWT, email, retries/queues, storage o analytics.
 - Modelo técnico de versionado, persistencia, auditoría o integraciones.
+- Representación técnica del BORRADOR afectado, retención, eliminación, auditoría e historial; no se agrega un estado funcional de `InsuranceRequest`.
 
 ## 15. Gate de salida de F2
 
@@ -269,6 +272,7 @@ Esta primera versión no declara F2 cerrada. Para cierre requiere:
 - [x] Inventario, sitemap, journeys y matriz acción × estado.
 - [x] Matriz de pantallas, estados UX, permisos y handoff F3.
 - [x] Contrato UX de formulario, versionado, precio, perfil, derivación y cancelación.
+- [x] Regla UX para BORRADOR con `FormVersion` retirada, sin migración/reutilización de respuestas ni eliminación física declarada.
 - [ ] Validación del contrato dinámico con 1–2 formularios reales.
 - [ ] Revisión interna del equipo y validación visual/funcional de MAPS sobre el prototipo.
 - [ ] Confirmación de que no quedan decisiones de negocio abiertas ocultas en UX.
@@ -285,6 +289,6 @@ La revisión dejó reglas confirmadas sobre acceso del Productor, cancelación, 
 | Campos de perfil | **PENDIENTE FUNCIONAL** | MAPS; Kondor releva/documenta | Definición funcional posterior | Lista de campos visibles, editables, obligatorios y no editables aprobada por MAPS. |
 | Baja de Cliente/Productor e inhabilitación | **PENDIENTE FUNCIONAL** | MAPS | Definición funcional posterior | Reglas aprobadas para acceso, solicitudes existentes, asignaciones, historial, reactivación, avisos y retención. |
 | Auth / RBAC | **DIFERIDO TÉCNICO F3** | Kondor | F3 | Diseño e implementación técnica alineados con la matriz de permisos UX. |
-| Persistencia y versionado | **DIFERIDO TÉCNICO F3** | Kondor | F3 | Modelo de datos, snapshots, auditoría y enforcement de versiones implementados. |
+| Persistencia y versionado | **DIFERIDO TÉCNICO F3** | Kondor | F3 | Modelo de datos, snapshots, auditoría, enforcement de versiones y representación/retención del BORRADOR afectado implementados según reglas MAPS. |
 | Email, entrega y reintentos | **DIFERIDO TÉCNICO F3** | Kondor | F3 | Integración de delivery, trazabilidad técnica, reintentos e incidencias implementada. |
 | Storage y documentos | **DIFERIDO TÉCNICO F3** | Kondor | F3 | Diseño e implementación de carga, acceso y retención técnica de documentos. |

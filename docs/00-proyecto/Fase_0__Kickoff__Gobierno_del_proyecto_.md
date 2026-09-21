@@ -120,7 +120,7 @@ Si Admin modifica el precio mientras existe un BORRADOR, el cliente es informado
 - Consentimientos, respuestas, documentos y versión de formulario auditables.
 - El email no expone fotografías, archivos, respuestas completas, documentos ni datos sensibles innecesarios.
 - El acceso del productor exige sesión autenticada, se restringe por identidad a sus solicitudes asignadas, puede revocarse por solicitud o por cuenta, usa transporte cifrado y registra accesos relevantes.
-- Si una `FormVersion` se retira por razones legales, de seguridad, comerciales o de vigencia, el borrador no puede seguir utilizándola: el usuario será informado e iniciará con la versión vigente. UX y eventual reutilización de datos compatibles son F2/F3.
+- Si una `FormVersion` se retira por razones legales, de seguridad, comerciales o de vigencia, el borrador deja de ser utilizable por el Cliente: será informado e iniciará un BORRADOR nuevo con la versión vigente, sin migración, reutilización ni copia de respuestas. Retención, eliminación, auditoría e historial quedan diferidos a F3 y a las reglas legales/retención que MAPS confirme.
 
 ## 0.7 Analítica de funnel
 
@@ -176,6 +176,7 @@ Métricas deseadas: Product view → Start, Start → BORRADOR, BORRADOR → ENV
 | 2026-09-16 | Categorías y Clientes (ABM) | Cambio controlado: se incorporan al MVP la administración (ABM) de categorías del catálogo y de clientes como capacidades del Admin. Motivo: consecuencia funcional de la gestión autónoma del catálogo sin cambios de código y de la operación de solicitudes; ambas ya presentes en el prototipo y no explicitadas en la baseline. Consecuencia: F2 diseña su UX y F3 su modelo (Category, Customer administrable). | CONFIRMADO |
 | 2026-09-16 | Acceso del productor | Cambio controlado: se revoca el enlace seguro por solicitud y el productor pasa a acceder desde su cuenta autenticada, consultando en **Mis solicitudes** sólo las asignadas a él. Motivo: la fricción de abrir un email y un enlace distinto por cada asignación crece con el volumen y el aislamiento se resuelve por autorización de identidad. Consecuencia: se agrega el login de Productor, F2 diseña su UX y F3 reemplaza el mecanismo de enlace vencible por RBAC y auditoría de accesos. | CONFIRMADO |
 | 2026-09-16 | Administración de productores | Cambio controlado: se explicita el ABM de productores (alta, edición y baja) como capacidad del Admin, ya implícita en su responsabilidad de asignación y en la administración de roles internos. Consecuencia: F2 diseña su UX y F3 su modelo (Producer administrable). | CONFIRMADO |
+| 2026-09-21 | BORRADOR con FormVersion retirada | Cambio controlado: el BORRADOR afectado deja de ser utilizable por el Cliente; inicia uno nuevo con la versión vigente, sin migración, reutilización ni copia de respuestas. No implica eliminación física; retención, eliminación, auditoría e historial se difieren a F3 y reglas MAPS. | CONFIRMADO / técnico F3 |
 | 2026-09-17 | Alineación F1 y UX previa a F2 | Se alinean descarte de BORRADOR sin motivo obligatorio, entrega exitosa como precondición de DERIVADA, confirmación/rechazo de cancelación DERIVADA y perfil básico autogestionable del Cliente. | CONFIRMADO / técnico F3 |
 
 ## 0.12 Documentación histórica

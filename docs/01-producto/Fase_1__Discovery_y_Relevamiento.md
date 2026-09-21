@@ -65,7 +65,7 @@ Contrato funcional **preliminar/candidato**: `text`, `number`, `date`, `select`,
 | Gestión de categorías del catálogo (ABM) por MAPS | CONFIRMADO |
 | FormVersion PUBLICADA inmutable | CONFIRMADO |
 | BORRADOR conserva FormVersion sin migración automática | CONFIRMADO |
-| Retiro de versión legal/seguridad/comercial/vigencia | CONFIRMADO; UX y reutilización de datos DIFERIDO F2/F3 |
+| Retiro de versión legal/seguridad/comercial/vigencia | CONFIRMADO: el BORRADOR afectado deja de ser utilizable y el Cliente inicia uno nuevo con la versión vigente, sin migración, reutilización ni copia de respuestas; retención/eliminación/auditoría DIFERIDO F3 + MAPS |
 | Condicionales complejos, builder visual avanzado, dependencias arbitrarias | Fuera del MVP, salvo condición obligatoria demostrada por formulario real validado |
 
 ## 5. Email, seguridad y auditoría
@@ -185,6 +185,7 @@ F3 recibe auth/identity, Product/precio/snapshot histórico, Category, Customer 
 | 2026-09-16 | Categorías y Clientes (ABM) | Cambio controlado: se incorporan al MVP la administración (ABM) de categorías del catálogo y de clientes como capacidades del Admin (RF-CAT-01, RF-CLI-01, RN-13, RN-14). | CONFIRMADO |
 | 2026-09-16 | Acceso del productor | Cambio controlado: se revoca el enlace seguro por solicitud; el productor accede desde cuenta autenticada y consulta en **Mis solicitudes** sólo las asignadas a él (RF-PRODUCER-01, RF-PRODUCER-02, RN-05, RN-16). Motivo: fricción creciente de un enlace por asignación; el aislamiento se resuelve por autorización de identidad. | CONFIRMADO |
 | 2026-09-16 | Productores (ABM) | Cambio controlado: se explicita el ABM de productores como capacidad del Admin (RF-PRODUCER-03, RN-15), ya implícita en la asignación y en la gestión de roles internos. | CONFIRMADO |
+| 2026-09-21 | BORRADOR con FormVersion retirada | Cambio controlado: no se migran, reutilizan ni copian respuestas; el Cliente inicia un BORRADOR nuevo con la versión vigente. La representación, retención, eliminación, auditoría e historial quedan para F3 y reglas MAPS. | CONFIRMADO / técnico F3 |
 | 2026-09-17 | Alineación F1 y UX previa a F2 | Se formalizan descarte de BORRADOR sin motivo obligatorio, entrega exitosa como precondición de DERIVADA, confirmación/rechazo de cancelación DERIVADA y perfil básico autogestionable del Cliente. | CONFIRMADO / técnico F3 |
 
 ## 14. Evidencia histórica
