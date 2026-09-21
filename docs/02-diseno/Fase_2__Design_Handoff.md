@@ -27,7 +27,7 @@ El producto es un Portal de Solicitudes de Seguros, no un e-commerce. Se mantien
 | PUB-02 | Detalle Product | Público | Comprender producto y precio | Catálogo → login/registro o solicitud | Presente | MVP |
 | PUB-03 | Login | Público | Autenticarse | Guardas → destino solicitado | Presente | MVP |
 | PUB-04 | Registro | Público | Crear cuenta | Guardas → BORRADOR/destino | Presente | MVP |
-| PUB-05 | Recuperar contraseña | Público | Recuperar acceso | Login → confirmación | Parcial | MVP |
+| PUB-05 | Recuperar contraseña | Público | Recuperar acceso | Login → confirmación | Presente | MVP |
 | CLI-01 | Catálogo autenticado | Cliente | Iniciar una solicitud | Catálogo → detalle/formulario | Presente | MVP |
 | CLI-02 | Mi perfil | Cliente | Consultar y editar datos habilitados | Menú → guardar/volver | Presente | MVP |
 | CLI-03 | Formulario de solicitud | Cliente | Completar y guardar BORRADOR | Detalle/retomar → revisión | Presente | MVP |
@@ -44,14 +44,14 @@ El producto es un Portal de Solicitudes de Seguros, no un e-commerce. Se mantien
 | ADM-06 | Categorías | Admin | Administrar categorías | Backoffice → guardar/lista | Presente | MVP |
 | ADM-07 | Productos | Admin | Administrar Product y precio | Backoffice → formularios/lista | Presente | MVP |
 | ADM-08 | Formularios | Admin | Editar borrador por Product | Producto → versiones/publicar | Presente | MVP |
-| ADM-09 | Versiones | Admin | Consultar publicada e histórico | Formularios → formulario | Parcial | MVP |
+| ADM-09 | Versiones | Admin | Consultar publicada e histórico | Formularios → formulario | Presente | MVP |
 | ADM-10 | Clientes | Admin | ABM y consulta de clientes | Backoffice → detalle/lista | Presente | MVP |
 | ADM-11 | Productores | Admin | ABM y disponibilidad | Backoffice → lista | Presente | MVP |
 | PRO-01 | Login | Productor | Acceder con cuenta propia | Guarda → Mis solicitudes | Presente | MVP |
 | PRO-02 | Mis solicitudes | Productor | Consultar DERIVADAS asignadas | Sesión → detalle read-only | Presente | MVP |
 | PRO-03 | Detalle read-only | Productor | Consultar expediente DERIVADO autorizado | Lista → lista | Presente | MVP |
 
-`ADM-09` es parcial porque el prototipo muestra borrador/publicada, pero la revisión de histórico y sus estados UX requiere validación de equipo. `PUB-05` es MVP por dependencia del login, sin definir el mecanismo técnico.
+`ADM-09` muestra histórico, versión vigente y retiro normal/urgente; sus estados UX quedan sujetos a la revisión del equipo. `PUB-05` muestra solicitud y confirmación genérica, sin revelar si el email existe; es MVP por dependencia del login, sin definir el mecanismo técnico.
 
 ## 4. Sitemap conceptual
 
@@ -130,7 +130,7 @@ El fallo no crea `email_failed` ni otro estado de `InsuranceRequest`.
 
 ```text
 ENVIADA → Cliente indica motivo y confirma → CANCELADA → aviso Admin
-ASIGNADA → Cliente indica motivo y confirma → CANCELADA → aviso Admin + Productor → revocar acceso
+ASIGNADA → Cliente indica motivo y confirma → CANCELADA → aviso Admin + Productor (sin acceso previo que revocar)
 DERIVADA → Cliente solicita cancelación → Admin revisa
   ├── aprueba → CANCELADA → aviso Productor → revocar acceso
   └── rechaza → permanece DERIVADA → informar Cliente
@@ -159,7 +159,7 @@ Estados generales aplicables: loading, empty, error, unauthorized y forbidden. T
 | CLI-03 Formulario | Product, FormVersion, pasos, progreso, campos y adjuntos | Avanzar/volver, validación inline, **Guardar borrador** manual, descartar | Cliente, Product disponible; salida revisión o Mis solicitudes | Loading, guardado, error guardado, inválido; versión retirada: no continuar, aviso y acción para volver a Mis solicitudes o iniciar nueva solicitud | RF-SOL-01/02, RF-FORM-01, RN-03/08; contrato y storage F3 |
 | CLI-04 Revisión | Resumen de respuestas, consentimientos, precio actual o aviso de cambio | Volver, confirmar precio nuevo, enviar | BORRADOR; enviar sólo con todos los requisitos completos y precio vigente reconfirmado | Incompleto, precio actualizado, error envío | RF-SOL-04, RN-09; snapshot F3 |
 | CLI-05 Confirmación | Número, Product, fecha y estado ENVIADA | Ir a Mis solicitudes/detalle | Envío exitoso; no declara derivación | Error de confirmación recuperable | RF-SOL-01/03; entrega de datos F3 |
-| CLI-06 Mis solicitudes | Solicitudes propias, Product, fecha, estado y filtros | Abrir, retomar BORRADOR utilizable; ante versión retirada, iniciar nueva solicitud con la vigente | Cliente autenticado; menú → detalle/formulario | Loading, vacío, error, forbidden, BORRADOR no utilizable | RF-SOL-03, RN-05; consulta F3 |
+| CLI-06 Mis solicitudes | Solicitudes propias, Product, fecha, estado y filtros | Abrir, retomar BORRADOR utilizable; ante versión retirada, iniciar nueva solicitud con la vigente | Cliente autenticado; menú → detalle/formulario | Loading, vacío, error, forbidden, BORRADOR no utilizable | RF-SOL-03, RN-03; consulta F3 |
 | CLI-07 Detalle | Estado, precio confirmado cuando corresponda, historial y acciones permitidas | Retomar, descartar o cancelar; en ENVIADA/ASIGNADA pedir motivo y confirmación, en DERIVADA solicitar cancelación | Propietario autenticado; lista → lista/cancelación | Motivo requerido, BORRADOR no utilizable por versión retirada, no encontrada, forbidden, CANCELADA read-only | RF-SOL-05, RN-10; auditoría F3 |
 | CLI-08 Cancelación DERIVADA | Contexto, motivo y resultado de decisión si existe | Enviar solicitud con motivo; ver aprobada/rechazada | DERIVADA propia; detalle → detalle | Motivo requerido, ya solicitada, error | RF-SOL-05, RN-10; trazabilidad/notificación F3 |
 | ADM-01 Bandeja | Solicitudes, estado, Product, cliente, filtros y paginado | Buscar, filtrar, abrir detalle | Admin autenticado; backoffice → detalle | Loading, vacío, error, forbidden | RF-ADM-01; consulta/paginado F3 |
@@ -244,7 +244,7 @@ La inhabilitación de un Productor confirmada para el MVP sólo lo deja indispon
 | Ver catálogo/detalle | Sí | Sí | Sí | Sí |
 | Crear solicitud / editar BORRADOR | No | Propia | No | No |
 | Ver solicitudes propias | No | Sí | Operación autorizada | Sólo DERIVADAS asignadas a su identidad y con autorización vigente |
-| Editar perfil básico | No | Sí | Sólo mediante ABM de Productores; no se define perfil propio | No / no definido en MVP |
+| Editar perfil básico | No | Sí | No; edita datos de Clientes mediante el ABM de Clientes (ADM-10) y no tiene perfil propio definido | No / no definido en MVP |
 | Cancelar ENVIADA/ASIGNADA | No | Propia | No como flujo de Cliente | No |
 | Solicitar cancelación DERIVADA | No | Propia | No | No |
 | Asignar, reasignar, reintentar | No | No | Sí | No |
