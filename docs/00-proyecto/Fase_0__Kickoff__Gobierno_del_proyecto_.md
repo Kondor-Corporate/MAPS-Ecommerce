@@ -7,7 +7,7 @@ Baseline funcional vigente del Portal de Seguros MAPS. Define alcance, actores, 
 | Cliente | MAPS - Organización de seguros |
 | Equipo de desarrollo | Kondor |
 | Proyecto | Portal de Seguros MAPS |
-| Fecha | 15 de septiembre de 2026 |
+| Fecha | 17 de septiembre de 2026 |
 
 ## 0.1 Definición vigente
 
@@ -16,7 +16,7 @@ El producto es un Portal de Solicitudes de Seguros: publica productos, permite i
 ```text
 Catálogo → Producto → Registro/Login → InsuranceRequest(BORRADOR)
 → completar / guardar / retomar → ENVIADA → bandeja Admin
-→ ASIGNADA → email transaccional → acceso autenticado del Productor → DERIVADA
+→ ASIGNADA → derivación/notificación con entrega exitosa → DERIVADA → acceso autenticado del Productor
 ```
 
 `BORRADOR` es un trámite iniciado y no presentado; `ENVIADA` es una solicitud formal presentada a MAPS. El borrador existe sólo para preservar progreso, permitir retomarlo, mantener la `FormVersion` utilizada y habilitar su envío posterior; no inicia un proceso comercial paralelo.
@@ -25,10 +25,11 @@ Catálogo → Producto → Registro/Login → InsuranceRequest(BORRADOR)
 
 - El catálogo es público. Registro/login es obligatorio antes de crear una `InsuranceRequest(BORRADOR)`; Fase 2 define solamente cómo presentar esa exigencia.
 - Los estados funcionales son **BORRADOR**, **ENVIADA**, **ASIGNADA**, **DERIVADA** y **CANCELADA**. Estados de entrega de email no forman parte de la solicitud.
-- MAPS administra productos y formularios por producto sin cambios de código. Una `FormVersion` PUBLICADA es inmutable; el borrador conserva su versión de creación sin migración automática o silenciosa.
+- MAPS administra productos y formularios por producto sin cambios de código. Una `FormVersion` PUBLICADA es inmutable; el borrador conserva su versión de creación sin migración automática o silenciosa. Todo Product disponible/publicado tiene al menos una `FormVersion` utilizable.
 - Todo Product publicado del MVP es un seguro enlatado con precio fijo vigente. Admin crea y edita ese precio; el Portal no calcula precios y no admite la alternativa “sujeto a evaluación”.
 - La asignación es manual. El email transaccional al email verificado del productor contiene sólo identificador, producto, fecha, nombre autorizado y un enlace de acceso al Portal.
 - El productor accede read-only sólo a solicitudes asignadas, desde su propia cuenta autenticada en el Portal, con aislamiento por identidad, accesos auditables y sin navegación a otros casos.
+- El Cliente autenticado consulta y actualiza los datos de perfil habilitados para autogestión básica.
 - Las notificaciones son mínimas, relevantes, no redundantes y preferentemente accionables.
 
 ### Cambios controlados de baseline
@@ -51,6 +52,7 @@ Esta baseline conserva los cambios controlados ya aprobados de autenticación ob
 - Administración de productores por MAPS (ABM: alta, edición y baja) y habilitación/inhabilitación para recibir asignaciones.
 - Formularios dinámicos, versionados y configurables por producto.
 - Registro/login, borradores recuperables y envío formal de `InsuranceRequest`.
+- Perfil básico autogestionable del Cliente, limitado a los datos habilitados.
 - Bandeja Admin; asignación y reasignación manual de productores.
 - Email transaccional, trazabilidad de derivación e incidencias conocidas.
 - Cuenta autenticada del productor y consulta read-only de sus solicitudes asignadas desde **Mis solicitudes**.
@@ -80,13 +82,13 @@ Los roles operativos internos de MAPS en el MVP son **ADMIN** y **PRODUCTOR**. E
 
 | Actor | Responsabilidad confirmada |
 | --- | --- |
-| Cliente | Registrarse/iniciar sesión, iniciar, guardar, retomar y enviar una solicitud; consultar **Mis solicitudes** (borradores y enviadas con producto, fecha y estado funcional). |
-| Admin | Gestionar ENVIADA, asignar/reasignar productor, intervenir ante fallos de email, administrar productores, clientes, productos, categorías del catálogo y formularios/versiones, y operar incidencias previas a DERIVADA. |
+| Cliente | Registrarse/iniciar sesión, iniciar, guardar, retomar y enviar una solicitud; consultar **Mis solicitudes** (borradores y enviadas con producto, fecha y estado funcional) y actualizar los datos de perfil habilitados. |
+| Admin | Gestionar ENVIADA, asignar/reasignar productor, intervenir ante fallos de email, administrar productores, clientes, productos, categorías del catálogo y formularios/versiones, operar incidencias previas a DERIVADA y decidir solicitudes de cancelación DERIVADA. |
 | Productor | Iniciar sesión en el Portal y consultar en **Mis solicitudes** únicamente las solicitudes asignadas a él, acceder read-only al expediente autorizado y continuar la gestión comercial fuera del Portal. |
 
 **Regla de ownership:** todo problema previo a la correcta entrega al productor es responsabilidad del Admin: ENVIADA sin asignar, productor incorrecto/inhabilitado, reasignación, email fallido o rebotado y cambios de producto/formulario. Después de DERIVADA, la gestión comercial es responsabilidad del Productor fuera del Portal.
 
-No toda solicitud ENVIADA es visible al productor. Sólo se habilita su acceso tras la asignación.
+No toda solicitud ENVIADA es visible al productor. Sólo se habilita su acceso tras la asignación y la entrega requerida exitosa que permite `ASIGNADA → DERIVADA`.
 
 ## 0.5 Solicitudes, derivación y estados
 
@@ -98,14 +100,14 @@ No toda solicitud ENVIADA es visible al productor. Sólo se habilita su acceso t
 | DERIVADA | Se registró la correcta derivación al productor. |
 | CANCELADA | Estado final sin transiciones salientes. Registra actor, fecha y motivo. |
 
-La trazabilidad de entrega registra destinatario, fecha/hora, resultado conocido, fallas y reintentos. Pendiente/aceptado-enviado/entregado/rebotado/fallido son estados técnicos diferidos a Fase 3.
+La trazabilidad de entrega registra destinatario, fecha/hora, resultado conocido, fallas y reintentos. Pendiente/aceptado-enviado/entregado/rebotado/fallido son estados técnicos diferidos a Fase 3; si la entrega requerida falla, la solicitud permanece ASIGNADA y Admin puede intervenir o reintentar.
 
 ### Cancelación
 
-- **BORRADOR:** el cliente puede descartarlo; no es solicitud formal y descartarlo no implica necesariamente `CANCELADA`.
+- **BORRADOR:** el cliente puede descartarlo; no es solicitud formal, descartarlo no implica necesariamente `CANCELADA` y no requiere motivo obligatorio.
 - **ENVIADA:** el cliente puede cancelar directamente (`ENVIADA → CANCELADA`); se registra actor, fecha y motivo y se notifica una sola vez al Admin.
 - **ASIGNADA:** el cliente puede cancelar directamente (`ASIGNADA → CANCELADA`); se registra actor, fecha y motivo, se notifica una sola vez a Admin y Productor y se revoca el acceso del productor a esa solicitud.
-- **DERIVADA:** el cliente sólo puede solicitar cancelación. Admin confirma tras considerar la gestión comercial externa y recién entonces ocurre `DERIVADA → CANCELADA`; se registra solicitante, Admin confirmante, fecha y motivo, se notifica una vez al Productor y se revoca su acceso a esa solicitud.
+- **DERIVADA:** el cliente sólo puede solicitar cancelación con motivo. Admin confirma o rechaza tras considerar la gestión comercial externa. Al confirmar ocurre `DERIVADA → CANCELADA`; se registra solicitante, Admin confirmante, fecha y motivo, se notifica una vez al Productor y se revoca su acceso a esa solicitud. Al rechazar, la solicitud permanece `DERIVADA`, se registra la decisión y el Cliente puede conocer el resultado.
 - El Productor no cancela desde el Portal; comunica la situación al Admin.
 
 ### Precio y solicitud
@@ -118,7 +120,8 @@ Si Admin modifica el precio mientras existe un BORRADOR, el cliente es informado
 - Consentimientos, respuestas, documentos y versión de formulario auditables.
 - El email no expone fotografías, archivos, respuestas completas, documentos ni datos sensibles innecesarios.
 - El acceso del productor exige sesión autenticada, se restringe por identidad a sus solicitudes asignadas, puede revocarse por solicitud o por cuenta, usa transporte cifrado y registra accesos relevantes.
-- Si una `FormVersion` se retira por razones legales, de seguridad, comerciales o de vigencia, el borrador no puede seguir utilizándola: el usuario será informado e iniciará con la versión vigente. UX y eventual reutilización de datos compatibles son F2/F3.
+- El retiro normal de la última `FormVersion` utilizable está bloqueado: Admin crea, publica y confirma una versión de reemplazo antes de retirarla. Excepcionalmente, por razón urgente legal, de seguridad, vigencia u otra situación crítica aprobada, Admin puede retirar esa última versión mediante confirmación fuerte; el Product pasa inmediatamente a no disponible y no admite nuevas solicitudes hasta que exista otra `FormVersion` utilizable. Un Product disponible/publicado nunca queda sin versión utilizable, aunque un Product no disponible puede quedar temporalmente sin ella.
+- Si una `FormVersion` se retira, el borrador deja de ser utilizable por el Cliente: será informado e iniciará un BORRADOR nuevo con la versión vigente, sin migración, reutilización ni copia de respuestas. La versión retirada se conserva históricamente y no se restaura/reactiva en el MVP. Retención, eliminación, auditoría e historial quedan diferidos a F3 y a las reglas legales/retención que MAPS confirme.
 
 ## 0.7 Analítica de funnel
 
@@ -131,8 +134,8 @@ Métricas deseadas: Product view → Start, Start → BORRADOR, BORRADOR → ENV
 | Fase | Alcance |
 | --- | --- |
 | F1 | Contrato funcional de Product, formularios acotados, lifecycle de InsuranceRequest, estados, roles, asignación/reasignación, incidencias y RF/RNF. |
-| F2 | Cliente: catálogo, producto, login/register, formulario, aviso/confirmación de precio, revisión, envío, Mis solicitudes, retomar BORRADOR, cancelar ENVIADA/ASIGNADA y solicitar cancelación DERIVADA. Admin: bandeja, asignación/reasignación, incidencias, productos/precio/formularios, categorías del catálogo, administración de clientes y confirmación de cancelación DERIVADA. Productor: login, **Mis solicitudes** asignadas, detalle read-only y aviso de cancelación. Excluye recovery, Leads, Intranet, pólizas y PDF. |
-| F3 | Auth/identity, Product/precio/snapshot histórico, Category, Customer administrable, FormDefinition/FormVersion, state machine y cancellation flow, respuestas, documentos, email/Delivery, RBAC Admin/Productor/Cliente, auditoría, analytics, APIs y observabilidad. PostgreSQL, Lead, Policy/PDF y sus integraciones quedan fuera del Architecture Decision Pack del MVP. |
+| F2 | Cliente: catálogo, producto, login/register, formulario, aviso/confirmación de precio, revisión, envío, Mis solicitudes, retomar o descartar BORRADOR sin motivo obligatorio, cancelar ENVIADA/ASIGNADA, solicitar cancelación DERIVADA, conocer la decisión administrativa y editar perfil básico. Admin: bandeja, asignación/reasignación, incidencias y reintentos de entrega, productos/precio/formularios, categorías del catálogo, administración de clientes y confirmación o rechazo de cancelación DERIVADA. Productor: login, **Mis solicitudes** asignadas, detalle read-only y aviso de cancelación. Excluye recovery, Leads, Intranet, pólizas y PDF. |
+| F3 | Auth/identity, Product/precio/snapshot histórico, Category, Customer administrable y perfil autogestionable habilitado, FormDefinition/FormVersion, state machine y cancellation flow con trazabilidad de solicitud/decisión, respuestas, documentos, email/Delivery con estado técnico separado, RBAC Admin/Productor/Cliente, auditoría, analytics, APIs y observabilidad. PostgreSQL, Lead, Policy/PDF y sus integraciones quedan fuera del Architecture Decision Pack del MVP. |
 
 ## 0.9 Riesgos y decisiones pendientes
 
@@ -174,6 +177,8 @@ Métricas deseadas: Product view → Start, Start → BORRADOR, BORRADOR → ENV
 | 2026-09-16 | Categorías y Clientes (ABM) | Cambio controlado: se incorporan al MVP la administración (ABM) de categorías del catálogo y de clientes como capacidades del Admin. Motivo: consecuencia funcional de la gestión autónoma del catálogo sin cambios de código y de la operación de solicitudes; ambas ya presentes en el prototipo y no explicitadas en la baseline. Consecuencia: F2 diseña su UX y F3 su modelo (Category, Customer administrable). | CONFIRMADO |
 | 2026-09-16 | Acceso del productor | Cambio controlado: se revoca el enlace seguro por solicitud y el productor pasa a acceder desde su cuenta autenticada, consultando en **Mis solicitudes** sólo las asignadas a él. Motivo: la fricción de abrir un email y un enlace distinto por cada asignación crece con el volumen y el aislamiento se resuelve por autorización de identidad. Consecuencia: se agrega el login de Productor, F2 diseña su UX y F3 reemplaza el mecanismo de enlace vencible por RBAC y auditoría de accesos. | CONFIRMADO |
 | 2026-09-16 | Administración de productores | Cambio controlado: se explicita el ABM de productores (alta, edición y baja) como capacidad del Admin, ya implícita en su responsabilidad de asignación y en la administración de roles internos. Consecuencia: F2 diseña su UX y F3 su modelo (Producer administrable). | CONFIRMADO |
+| 2026-09-17 | Alineación F1 y UX previa a F2 | Se alinean descarte de BORRADOR sin motivo obligatorio, entrega exitosa como precondición de DERIVADA, confirmación/rechazo de cancelación DERIVADA y perfil básico autogestionable del Cliente. | CONFIRMADO / técnico F3 |
+| 2026-09-21 | Retiro urgente de última FormVersion | Cambio controlado: el retiro normal de la última versión utilizable se bloquea; por urgencia legal, seguridad, vigencia u otra situación crítica aprobada, puede retirarse mediante confirmación fuerte y el Product pasa a no disponible hasta publicar reemplazo. BORRADORES afectados no se reutilizan ni migran. | CONFIRMADO / técnico F3 |
 
 ## 0.12 Documentación histórica
 
