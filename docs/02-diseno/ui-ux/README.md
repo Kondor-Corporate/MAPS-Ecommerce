@@ -49,7 +49,7 @@ Pendiente / fuera del alcance actual (no habilitado en el prototipo):
 | **Categorías** (ABM) | MAPS administra las categorías del catálogo (crear, editar, renombrar) para agrupar productos sin cambios de código. | F0 §0.2/§0.4/§0.11, F1 §4/§9 (RF-CAT-01), RN-13 |
 | **Clientes** (ABM) | El Admin administra clientes (alta, edición, baja) y los consulta desde el panel, con búsqueda, paginado y detalle de las solicitudes asociadas. | F0 §0.2/§0.4/§0.11, F1 §9 (RF-CLI-01), RN-14 |
 | **Productores** (ABM) | El Admin administra productores (alta, edición, baja) y habilita o inhabilita su disponibilidad para recibir asignaciones. | F0 §0.2/§0.11, F1 §9 (RF-PRODUCER-03), RN-15 |
-| **Acceso del productor** | Se revoca el enlace seguro por solicitud. El productor accede desde su cuenta autenticada y ve sólo las solicitudes DERIVADAS asignadas a él. | F0 §0.1/§0.6/§0.11, F1 §5/§9 (RF-PRODUCER-01, RF-PRODUCER-02), RN-05, RN-16 |
+| **Acceso del productor** | El enlace individual por solicitud dejó de ser un mecanismo de acceso. El email transaccional sólo dirige al Portal; el Productor accede mediante su cuenta autenticada y ve únicamente las solicitudes DERIVADAS asignadas a él. | F0 §0.1/§0.6/§0.11, F1 §5/§9 (RF-PRODUCER-01, RF-PRODUCER-02), RN-05, RN-16 |
 
 Todas quedan como alcance **CONFIRMADO**; su UX se diseña en F2 y su modelo (Category, Customer y Producer administrables, RBAC) en F3.
 

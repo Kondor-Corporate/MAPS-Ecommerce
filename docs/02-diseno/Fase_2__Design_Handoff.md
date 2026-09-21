@@ -88,7 +88,7 @@ Productor
 Portal productor
 ├── Mis solicitudes
 │   └── Detalle read-only
-└── Sesión/perfil
+└── Cerrar sesión
 ```
 
 Es arquitectura de información; no prescribe rutas HTTP.
@@ -170,7 +170,7 @@ Estados generales aplicables: loading, empty, error, unauthorized y forbidden. T
 | ADM-06 Categorías | Nombre, estado y asociación visible | Crear, editar, renombrar | Admin; backoffice → lista | Vacío, inválido, conflicto de uso, error | RF-CAT-01, RN-13; persistencia F3 |
 | ADM-07 Productos | Información comercial, categoría, precio, publicación y formulario asociado | Crear/editar, definir precio, publicar y abrir la configuración del formulario asociado | Admin; `ADM-07 → ADM-08` sobre el Product seleccionado | Inválido, precio requerido, error | RF-PROD-01, RN-09; Product F3 |
 | ADM-08 Formularios | Formulario asociado al Product, campos candidatos, borrador y versión publicada | Crear/configurar DRAFT, validar y publicar `FormVersion` | Admin y Product seleccionado; `ADM-07 → ADM-08 → DRAFT → publicar` | Sin campos, inválido, sin cambios, error | RF-FORM-01, RN-08; schema F3 |
-| ADM-09 Versiones | Versión publicada, utilizables e histórico disponible | Consultar, crear nueva desde el formulario o retirar una versión con causa válida | Admin; formularios → formulario; no retirar la última versión utilizable | Vacío, bloqueo por última versión utilizable, error | RN-08; no incluye rollback/diff/restore MVP |
+| ADM-09 Versiones | Versión publicada, utilizables e histórico disponible | Consultar, crear nueva desde el formulario o retirar una versión | Retiro normal de última versión bloqueado; retiro urgente sólo con causa aprobada y confirmación fuerte, deja el Product no disponible | Vacío, bloqueo normal, confirmación urgente, Product no disponible, error | RN-08; no incluye rollback/diff/restore MVP |
 | ADM-10 Clientes | Cliente y solicitudes asociadas autorizadas | Alta, edición, baja, buscar, abrir detalle | Admin; confirmación informa efectos pendientes de definición MAPS | Vacío, inválido, decisión funcional pendiente, error | RF-CLI-01, RN-14; modelo F3 |
 | ADM-11 Productores | Datos, disponibilidad y asignaciones | Alta, edición, baja, habilitar/inhabilitar | Admin; inhabilitar sólo evita nuevas asignaciones; otros efectos requieren definición MAPS | Vacío, inválido, decisión funcional pendiente, error | RF-PRODUCER-03, RN-15; modelo F3 |
 | PRO-01 Login | Acceso de Productor | Autenticarse y salir a Mis solicitudes | Productor; guarda → lista | Credenciales inválidas, unauthorized | RN-05/16; auth F3 |
@@ -181,7 +181,7 @@ Estados generales aplicables: loading, empty, error, unauthorized y forbidden. T
 
 | Área | Estados UX | Regla de presentación |
 | --- | --- | --- |
-| Producto | Publicado, no disponible, precio actualizado | No iniciar sobre producto no disponible; mostrar precio vigente sin cálculo personalizado. |
+| Producto | Publicado/disponible, no disponible, precio actualizado | Todo Product disponible tiene al menos una `FormVersion` utilizable. Ante retiro urgente de la última, pasa a no disponible y no permite iniciar solicitudes hasta publicar reemplazo. |
 | Formulario | Loading, guardado, error de guardado, cambios sin guardar, inválido, versión retirada, cambio de precio | Guardado manual; ante versión retirada se informa: “Este formulario ya no está disponible y no puede continuar esta solicitud. Debe iniciar una nueva solicitud con la versión vigente.” Sólo se ofrecen volver a Mis solicitudes o iniciar una nueva solicitud si hay versión vigente. |
 | Solicitud | BORRADOR, ENVIADA, ASIGNADA, DERIVADA, CANCELADA | Mostrar estado funcional y acciones permitidas, sin sexto estado. |
 | Derivación | Procesando, exitosa, fallida, reintento | Es trazabilidad/incidencia de entrega, no estado de `InsuranceRequest`. |
@@ -207,7 +207,13 @@ Product utilizable → `ADM-07` → `ADM-08` formulario asociado → DRAFT → e
 
 Admin crea o edita el Product, define su precio y publicación, y desde `ADM-07` abre `ADM-08` para crear o configurar el formulario asociado. Cada Product publicado y utilizable en el journey de solicitud tiene un formulario administrado por MAPS y al menos una `FormVersion` utilizable; el detalle de schema queda para F3.
 
-La publicada es inmutable, el histórico se conserva y el Cliente no selecciona versiones. Publicar una nueva versión no retira la anterior: los BORRADORES existentes continúan con la versión con que fueron creados mientras siga utilizable. Sólo Admin puede retirar una versión, por razón legal, de seguridad, comercial o de vigencia. Al retirarla, los BORRADORES vinculados dejan de ser utilizables por el Cliente, que recibe un aviso e inicia un nuevo BORRADOR con la versión vigente; no hay migración, reutilización ni copia de respuestas. No se puede retirar la última versión utilizable de un Product: la UI bloquea la acción y explica que antes debe crear una nueva versión, publicarla y confirmar que existe otro reemplazo utilizable. El retiro no afirma eliminación física del BORRADOR; su representación técnica, retención, eliminación, auditoría e historial quedan para F3 y las reglas legales/retención de MAPS. Quedan fuera rollback, restore, diff, branching y comparación de versiones.
+La publicada es inmutable, el histórico se conserva y el Cliente no selecciona versiones. Publicar una nueva versión no retira la anterior: los BORRADORES existentes continúan con la versión con que fueron creados mientras siga utilizable.
+
+**Retiro normal.** Sólo Admin puede retirar una versión por razón legal, de seguridad, comercial o de vigencia. Si es la última `FormVersion` utilizable, la UI bloquea el retiro y guía a crear una nueva versión, editarla, publicarla y confirmar que existe otro reemplazo utilizable antes de retirar la anterior. Un Product disponible/publicado nunca queda sin una `FormVersion` utilizable.
+
+**Retiro urgente.** Ante una razón urgente legal, de seguridad, vigencia u otra situación crítica aprobada, Admin puede retirar la única versión utilizable mediante confirmación fuerte. La UI advierte: “Esta es la única versión utilizable del producto. Si la retira de urgencia, el producto dejará de estar disponible hasta que publique una versión de reemplazo.” Las acciones conceptuales son crear versión de reemplazo o retirar de urgencia. Al confirmar, la `FormVersion` queda retirada, el Product pasa inmediatamente a no disponible, no se inician nuevas solicitudes y los BORRADORES asociados dejan de ser utilizables. Cuando Admin publica otra `FormVersion` utilizable, el Product puede volver a estar disponible. Un Product no disponible puede quedar temporalmente sin versiones utilizables.
+
+Una versión retirada se conserva históricamente, no puede ser seleccionada por el Cliente ni se restaura/reactiva en el MVP. Sus BORRADORES asociados muestran el aviso, inician uno nuevo con la versión vigente cuando exista y no migran, reutilizan ni copian respuestas. El retiro no afirma eliminación física del BORRADOR; su representación técnica, retención, eliminación, auditoría e historial quedan para F3 y las reglas legales/retención de MAPS. Quedan fuera rollback, restore, diff, branching y comparación de versiones.
 
 ### Precio
 
@@ -238,7 +244,7 @@ La inhabilitación de un Productor confirmada para el MVP sólo lo deja indispon
 | Ver catálogo/detalle | Sí | Sí | Sí | Sí |
 | Crear solicitud / editar BORRADOR | No | Propia | No | No |
 | Ver solicitudes propias | No | Sí | Operación autorizada | Sólo DERIVADAS asignadas a su identidad y con autorización vigente |
-| Editar perfil básico | No | Sí | Sesión/perfil propio | Sesión/perfil propio |
+| Editar perfil básico | No | Sí | Sólo mediante ABM de Productores; no se define perfil propio | No / no definido en MVP |
 | Cancelar ENVIADA/ASIGNADA | No | Propia | No como flujo de Cliente | No |
 | Solicitar cancelación DERIVADA | No | Propia | No | No |
 | Asignar, reasignar, reintentar | No | No | Sí | No |
@@ -256,7 +262,7 @@ Esta matriz expresa permisos UX; RBAC técnico y enforcement quedan en F3.
 - Journeys, lifecycle visible, acciones por estado y matriz de permisos.
 - Validaciones, errores, estados UX, formulario dinámico, versionado y precio.
 - Autogestión de perfil, cancelaciones e incidencia de derivación.
-- Un BORRADOR referencia su `FormVersion`; si ésta se retira, deja de ser utilizable para el Cliente, que inicia una nueva solicitud con la versión vigente sin migración, reutilización ni copia de respuestas.
+- Un BORRADOR referencia su `FormVersion`; si ésta se retira, deja de ser utilizable para el Cliente, que inicia una nueva solicitud con la versión vigente sin migración, reutilización ni copia de respuestas. F3 implementa la regla: retiro normal de última versión bloqueado; retiro urgente aprobado deja el Product no disponible hasta publicar reemplazo.
 
 ### F2 no decide
 
@@ -271,7 +277,8 @@ Esta primera versión no declara F2 cerrada. Para cierre requiere:
 
 - [x] Inventario, sitemap, journeys y matriz acción × estado.
 - [x] Matriz de pantallas, estados UX, permisos y handoff F3.
-- [x] Contrato UX de formulario, versionado, precio, perfil, derivación y cancelación.
+- [x] Contrato UX de formulario, versionado, precio, derivación y cancelación; comportamiento general de **Mi perfil** de Cliente definido.
+- [ ] Campos definitivos visibles/editables/obligatorios/no editables de Mi perfil confirmados por MAPS.
 - [x] Regla UX para BORRADOR con `FormVersion` retirada, sin migración/reutilización de respuestas ni eliminación física declarada.
 - [ ] Validación del contrato dinámico con 1–2 formularios reales.
 - [ ] Revisión interna del equipo y validación visual/funcional de MAPS sobre el prototipo.
