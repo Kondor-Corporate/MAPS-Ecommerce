@@ -28,7 +28,7 @@ Catálogo → Producto → Registro/Login → InsuranceRequest(BORRADOR)
 - MAPS administra productos y formularios por producto sin cambios de código. Una `FormVersion` PUBLICADA es inmutable; el borrador conserva su versión de creación sin migración automática o silenciosa. Todo Product disponible/publicado tiene al menos una `FormVersion` utilizable.
 - Todo Product publicado del MVP es un seguro enlatado con precio fijo vigente. Admin crea y edita ese precio; el Portal no calcula precios y no admite la alternativa “sujeto a evaluación”.
 - La asignación es manual. El email transaccional al email verificado del productor contiene sólo identificador, producto, fecha, nombre autorizado y un enlace de acceso al Portal.
-- El productor accede read-only sólo a solicitudes asignadas, desde su propia cuenta autenticada en el Portal, con aislamiento por identidad, accesos auditables y sin navegación a otros casos.
+- El productor accede read-only sólo a solicitudes DERIVADAS asignadas a él, desde su propia cuenta autenticada en el Portal, con aislamiento por identidad, accesos auditables y sin navegación a otros casos.
 - El Cliente autenticado consulta y actualiza los datos de perfil habilitados para autogestión básica.
 - Las notificaciones son mínimas, relevantes, no redundantes y preferentemente accionables.
 
@@ -106,7 +106,7 @@ La trazabilidad de entrega registra destinatario, fecha/hora, resultado conocido
 
 - **BORRADOR:** el cliente puede descartarlo; no es solicitud formal, descartarlo no implica necesariamente `CANCELADA` y no requiere motivo obligatorio.
 - **ENVIADA:** el cliente puede cancelar directamente (`ENVIADA → CANCELADA`); se registra actor, fecha y motivo y se notifica una sola vez al Admin.
-- **ASIGNADA:** el cliente puede cancelar directamente (`ASIGNADA → CANCELADA`); se registra actor, fecha y motivo, se notifica una sola vez a Admin y Productor y se revoca el acceso del productor a esa solicitud.
+- **ASIGNADA:** el cliente puede cancelar directamente (`ASIGNADA → CANCELADA`); se registra actor, fecha y motivo, se notifica una sola vez a Admin y Productor. El productor no tiene acceso al expediente en ASIGNADA, por lo que no hay acceso que revocar.
 - **DERIVADA:** el cliente sólo puede solicitar cancelación con motivo. Admin confirma o rechaza tras considerar la gestión comercial externa. Al confirmar ocurre `DERIVADA → CANCELADA`; se registra solicitante, Admin confirmante, fecha y motivo, se notifica una vez al Productor y se revoca su acceso a esa solicitud. Al rechazar, la solicitud permanece `DERIVADA`, se registra la decisión y el Cliente puede conocer el resultado.
 - El Productor no cancela desde el Portal; comunica la situación al Admin.
 
@@ -179,6 +179,7 @@ Métricas deseadas: Product view → Start, Start → BORRADOR, BORRADOR → ENV
 | 2026-09-16 | Administración de productores | Cambio controlado: se explicita el ABM de productores (alta, edición y baja) como capacidad del Admin, ya implícita en su responsabilidad de asignación y en la administración de roles internos. Consecuencia: F2 diseña su UX y F3 su modelo (Producer administrable). | CONFIRMADO |
 | 2026-09-17 | Alineación F1 y UX previa a F2 | Se alinean descarte de BORRADOR sin motivo obligatorio, entrega exitosa como precondición de DERIVADA, confirmación/rechazo de cancelación DERIVADA y perfil básico autogestionable del Cliente. | CONFIRMADO / técnico F3 |
 | 2026-09-21 | Retiro urgente de última FormVersion | Cambio controlado: el retiro normal de la última versión utilizable se bloquea; por urgencia legal, seguridad, vigencia u otra situación crítica aprobada, puede retirarse mediante confirmación fuerte y el Product pasa a no disponible hasta publicar reemplazo. BORRADORES afectados no se reutilizan ni migran. | CONFIRMADO / técnico F3 |
+| 2026-09-21 | Aclaración del acceso del productor | Aclaración sin cambio de alcance: el productor accede read-only sólo a solicitudes DERIVADAS asignadas a él; en ASIGNADA no tiene acceso al expediente, por lo que la cancelación de una ASIGNADA sólo le notifica y no requiere revocar acceso. Alinea F0/F1 con la matriz de F2 §6. | CONFIRMADO |
 
 ## 0.12 Documentación histórica
 
