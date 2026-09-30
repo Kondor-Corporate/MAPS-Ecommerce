@@ -23,8 +23,11 @@ El repositorio mantiene estructura inicial de monorepo. Esta baseline es exclusi
 - [Fase 0 — Baseline funcional vigente](./docs/00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md)
 - [Fase 1 — Discovery y Relevamiento](./docs/01-producto/Fase_1__Discovery_y_Relevamiento.md)
 - [Fase 2 — Design Handoff](./docs/02-diseno/Fase_2__Design_Handoff.md)
+- [Fase 3 — Arquitectura (estructura y trabajo en curso)](./docs/03-arquitectura/README.md)
 
-`docs/estructura.md`, los TDDs y el material UI/UX previo se conservan como históricos: no definen el alcance vigente cuando contradicen Fase 0/Fase 1.
+`docs/estructura.md`, `docs/tdd/` y el material UI/UX previo se conservan como históricos: no definen el alcance vigente cuando contradicen Fase 0/Fase 1.
+
+Fase 3 organiza las decisiones y diseños técnicos a partir de F0/F1/F2. La estructura documental no implica que una propuesta arquitectónica esté aceptada ni que F1/F2 estén cerradas.
 
 ## Convenciones
 
