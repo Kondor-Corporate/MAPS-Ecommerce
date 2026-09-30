@@ -29,8 +29,8 @@ La dirección de trabajo incluye como **propuestas**, todavía sujetas a ADR, un
 
 | Área | Responsable principal | Revisión cruzada |
 | --- | --- | --- |
-| Software/dominio | Compañero de Santiago | Santiago revisa impactos en runtime, datos, seguridad, operaciones y despliegue. |
-| Cloud/plataforma | Santiago | Responsable software revisa impactos en dominio, contratos, transacciones y operación de la aplicación. |
+| Software/dominio | Joaquin Rodriguez | Revisa impactos en runtime, datos, seguridad, operaciones y despliegue. |
+| Cloud/plataforma | Santiago Talavera | Revisa impactos en dominio, contratos, transacciones y operación de la aplicación. |
 
 Ownership no es aislamiento. La decisión de identidad y autorización de negocio pertenece a software; IAM y cuentas de servicio a cloud. El modelo de adjuntos pertenece a software; buckets y permisos GCS a cloud. La semántica de Assignment/Delivery/Outbox pertenece a software; la ejecución y los reintentos del worker a cloud. Se enlazan los documentos dependientes en lugar de duplicar la decisión.
 

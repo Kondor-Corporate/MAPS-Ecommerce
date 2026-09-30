@@ -2,7 +2,7 @@
 
 > **Estado:** catálogo previsto; todavía no hay ADR/TDD de software redactados o aprobados en esta estructura.
 
-**Owner principal:** compañero de Santiago. Santiago realiza revisión cruzada cuando la decisión afecta cloud, runtime, datos, seguridad, operaciones o despliegue. La [baseline F0/F1/F2](../README.md) y la [trazabilidad](../traceability.md) rigen el alcance.
+**Owner principal:** Joaquin Rodriguez. Santiago realiza revisión cruzada cuando la decisión afecta cloud, runtime, datos, seguridad, operaciones o despliegue. La [baseline F0/F1/F2](../README.md) y la [trazabilidad](../traceability.md) rigen el alcance.
 
 El área diseña límites de módulos, dominio, transacciones, persistencia desde la aplicación, API, identidad y autorización funcional, adjuntos, Delivery/Outbox, auditoría y analytics. Monolito modular, arquitectura hexagonal, TypeScript, API única, PostgreSQL y Prisma como adaptador son **propuestas a evaluar**, no decisiones aceptadas.
 
