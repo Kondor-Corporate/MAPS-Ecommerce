@@ -32,4 +32,5 @@ Fase 3 organiza las decisiones y diseños técnicos a partir de F0/F1/F2. La est
 ## Convenciones
 
 - Commits y PRs: `tipo(scope): descripcion`.
+- [Guía de contribución y workflow Jira → GitHub](./CONTRIBUTING.md): ramas, commits, PR, reviews y criterios de cierre de Historias.
 - Esta baseline no modifica `apps/web`, `apps/api` ni infraestructura.
