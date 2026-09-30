@@ -4,6 +4,14 @@
 
 ---
 
+## Jira
+
+<!-- Reemplazar por el work item real antes de publicar. No inventar ni dejar MAPS-XXX. Si la PR es parcial, indicar que entrega, que queda pendiente y si la Historia continua abierta. Ver CONTRIBUTING.md. -->
+
+MAPS-XXX
+
+---
+
 ## Tipo de cambio
 
 <!-- Marcar con una X lo que corresponda. -->
@@ -74,7 +82,7 @@ Notas:
 
 ## Checklist del autor
 
-- [ ] La rama parte de `development` actualizado
+- [ ] La rama y la base del PR corresponden a la etapa: F0-F3 → `main`; F4+ → `development`
 - [ ] El titulo del PR sigue `tipo(scope): descripcion`
 - [ ] Los commits siguen `tipo(scope): descripcion`
 - [ ] Los commits son atomicos y descriptivos
@@ -96,6 +104,6 @@ Notas:
 
 ## Issue / ticket relacionado
 
-<!-- Ejemplo: Cierra MAPS-XXX. Borrar si no aplica. -->
+<!-- Referencias adicionales, si existen. La Historia Jira principal va en la sección Jira. Usar "Cierra" sólo cuando esta PR efectivamente completa el resultado. -->
 
-Cierra MAPS-XXX
+No aplica.
