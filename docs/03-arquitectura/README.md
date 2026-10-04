@@ -1,6 +1,6 @@
 # Fase 3 — Arquitectura
 
-> **Estado:** estructura documental inicial; ADR y TDD por elaborar. La creación de esta carpeta no aprueba decisiones técnicas ni cierra F1/F2.
+> **Estado:** estructura documental inicial con `ADR-CLD-000` en `PROPUESTO`; los demás artefactos conservan el estado indicado en sus áreas y PR respectivas. Esto no aprueba decisiones técnicas ni cierra F1/F2.
 
 F3 traduce la [baseline funcional F0](../00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md), el [discovery F1](../01-producto/Fase_1__Discovery_y_Relevamiento.md) y el [Design Handoff F2](../02-diseno/Fase_2__Design_Handoff.md) en decisiones y diseños técnicos que permitan preparar un backlog implementable en F4. Si una propuesta contradice esas fuentes, debe señalar la contradicción y tramitarla como cambio controlado; no reinterpretarla silenciosamente.
 
@@ -13,6 +13,7 @@ F3 traduce la [baseline funcional F0](../00-proyecto/Fase_0__Kickoff__Gobierno_d
 | [Plantilla TDD](./templates/TDD-template.md) | Diseñar cómo se materializa una decisión en MAPS. |
 | [Software y dominio](./software/README.md) | Alcance, ownership y catálogo previsto de ADR/TDD software. |
 | [Cloud y plataforma](./cloud/README.md) | Alcance, ownership y catálogo previsto de ADR/TDD cloud. |
+| [Cloud Strategy](./cloud/STRATEGY.md) | Principios y capacidades de plataforma previos a decisiones ADR/TDD Cloud, sin aceptar proveedor ni servicios. |
 
 La dirección de trabajo incluye como **propuestas**, todavía sujetas a ADR, un monolito modular con límites hexagonales y TypeScript; y GCP con Cloud Run, Cloud SQL PostgreSQL, Cloud Storage, Terraform, CI/CD y observabilidad. PostgreSQL histórico de MAPS sigue fuera como dependencia funcional del MVP: evaluar una base nueva para el Portal es una decisión distinta. Ni Prisma, ni hosting frontend, ni topología de ambientes quedan aceptados por figurar aquí.
 
