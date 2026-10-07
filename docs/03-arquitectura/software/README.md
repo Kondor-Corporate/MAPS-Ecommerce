@@ -1,6 +1,6 @@
 # F3 — Software y dominio
 
-> **Estado:** catálogo previsto; todavía no hay ADR/TDD de software redactados o aprobados en esta estructura.
+> **Estado:** en curso. Redactados sin aprobar: [ADR-SW-001](./adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-001-monolito-modular-y-limites.md), [ADR-SW-002](./adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-002-arquitectura-hexagonal-y-capas.md) y [ADR-SW-003](./adr/MAPS-108-persistencia-fronteras-transaccionales/ADR-SW-003-persistencia-y-fronteras-transaccionales.md) (`PROPUESTO`); [TDD-SW-001](./tdd/MAPS-109-modelo-dominio-datos/TDD-SW-001-modelo-de-dominio-y-datos.md) (`BORRADOR`). El resto del catálogo sigue previsto.
 
 **Owner principal:** Joaquin Rodriguez. Santiago realiza revisión cruzada cuando la decisión afecta cloud, runtime, datos, seguridad, operaciones o despliegue. La [baseline F0/F1/F2](../README.md) y la [trazabilidad](../traceability.md) rigen el alcance.
 
