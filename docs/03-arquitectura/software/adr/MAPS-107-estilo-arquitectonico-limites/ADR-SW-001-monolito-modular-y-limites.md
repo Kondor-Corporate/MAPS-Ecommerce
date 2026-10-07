@@ -94,7 +94,7 @@ Esta decisión **no** resuelve la estructura interna de cada módulo (ADR-SW-002
 | Impacto | Documento cloud afectado | Estado de revisión |
 | --- | --- | --- |
 | Una única aplicación lógica/codebase modular; la separación de API, worker y jobs en workloads o entrypoints queda abierta | ADR-CLD-003, TDD-CLD-002 (previstos) | Pendiente — Santiago Talavera |
-| Una base relacional compartida por todos los módulos: conexiones y concurrencia del proceso único | TDD-CLD-003 (previsto) | Pendiente — Santiago Talavera |
+| Una base relacional compartida por los módulos: conexiones y concurrencia de los workloads/entrypoints que accedan a ella | TDD-CLD-003 (previsto) | Pendiente — Santiago Talavera |
 | Documentos privados accedidos sólo mediante el módulo Documents | TDD-CLD-004 (previsto) | Pendiente — Santiago Talavera |
 
 ## Riesgos y pendientes
