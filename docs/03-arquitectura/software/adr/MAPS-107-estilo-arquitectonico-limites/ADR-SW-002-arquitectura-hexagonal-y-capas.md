@@ -63,7 +63,7 @@ Se **propone** organizar cada módulo con arquitectura hexagonal:
 - `application` depende de `domain` y de `ports`; no conoce adaptadores concretos.
 - `ports/in` representa los contratos que la aplicación ofrece y es implementado/expuesto por los casos de uso de `application`; `adapters/in` (HTTP, jobs o consumidores) invoca esos casos de uso. `ports/out` representa las dependencias que `application` necesita; `adapters/out` implementa esos puertos (persistencia, email, storage, etc.). Los adaptadores dependen hacia adentro y no sustituyen la capa `application`.
 - Otros módulos sólo consumen `ports/in` del módulo owner ([ADR-SW-001](./ADR-SW-001-monolito-modular-y-limites.md)).
-- La composición (qué adaptador implementa qué puerto) se resuelve en un único punto de arranque de la aplicación.
+- La composición (qué adaptador implementa qué puerto) se resuelve en composition roots controlados por entrypoint, reutilizando wiring común cuando corresponda.
 - Las reglas se verifican automáticamente con reglas de imports en el lint del repositorio.
 
 ### Criterio de proporcionalidad
