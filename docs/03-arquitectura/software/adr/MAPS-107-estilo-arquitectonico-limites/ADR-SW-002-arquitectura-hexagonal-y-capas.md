@@ -61,7 +61,7 @@ Se **propone** organizar cada módulo con arquitectura hexagonal:
 
 - `domain` no depende de ninguna otra capa ni de librerías de infraestructura (Express, ORM, SDK de GCP, cliente de email).
 - `application` depende de `domain` y de `ports`; no conoce adaptadores concretos.
-- `adapters` implementa `ports` y depende hacia adentro; nunca al revés.
+- `ports/in` representa los contratos que la aplicación ofrece y es implementado/expuesto por los casos de uso de `application`; `adapters/in` (HTTP, jobs o consumidores) invoca esos casos de uso. `ports/out` representa las dependencias que `application` necesita; `adapters/out` implementa esos puertos (persistencia, email, storage, etc.). Los adaptadores dependen hacia adentro y no sustituyen la capa `application`.
 - Otros módulos sólo consumen `ports/in` del módulo owner ([ADR-SW-001](./ADR-SW-001-monolito-modular-y-limites.md)).
 - La composición (qué adaptador implementa qué puerto) se resuelve en un único punto de arranque de la aplicación.
 - Las reglas se verifican automáticamente con reglas de imports en el lint del repositorio.
