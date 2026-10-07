@@ -151,7 +151,7 @@ Cuando exista una decisión `ACEPTADO`, revisar ante cambio de requisitos de res
 
 - [F0 — baseline](../../../../00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md), [F1 — Discovery](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md), [F2 — Design Handoff](../../../../02-diseno/Fase_2__Design_Handoff.md): alcance, roles, solicitud, datos y pendientes funcionales.
 - [Cloud Strategy](../../STRATEGY.md): TARGET, principios, gate y derivaciones condicionadas; permanece `BORRADOR ESTRATÉGICO`.
-- [Evidencia ADR-CLD-000](./EVIDENCE-CLD-000-comparacion-plataformas.md): baseline `v0`, arquitectura mínima equivalente, gates y registro de costeo todavía en elaboración; no acepta plataforma ni servicios.
+- [Evidencia ADR-CLD-000](./EVIDENCE-CLD-000-comparacion-plataformas.md): baseline `v1`, arquitectura mínima equivalente, gates y registro de costeo todavía en elaboración; no acepta plataforma ni servicios.
 - [PR #14 de Software](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/14): `ADR-SW-001/002/003` propuestos y `TDD-SW-001` borrador, consultada el 2026-10-04. No se modificó aquí.
 - MAPS-Landingpage: antecedente de uso GCP **informado** para el mismo cliente; el checkout local revisado no contiene evidencia suficiente para afirmar despliegue, operación ni costos actuales. Validación pendiente.
 - [Fila transversal en traceability.md](../../../traceability.md): «Desplegar el Portal con aislamiento, seguridad y operación verificables».
