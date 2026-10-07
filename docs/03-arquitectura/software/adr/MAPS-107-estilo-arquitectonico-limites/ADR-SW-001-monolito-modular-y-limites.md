@@ -22,7 +22,7 @@
 
 El Portal MVP debe soportar catálogo, formularios versionados, solicitudes de seguros (`InsuranceRequest`), asignación y derivación a productores, documentos adjuntos, administración (ABM) y trazabilidad ([F1 §2/3](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md)). El dominio es acotado, lo opera un equipo chico y sus capacidades comparten reglas y transacciones: enviar una solicitud toca catálogo, formulario y solicitud; asignar toca solicitud y entrega.
 
-Hay que decidir la **unidad de despliegue** y los **límites entre módulos**. La estructura documentada en [estructura.md](../../../../estructura.md) y el scaffold actual de `apps/api/src/modules/` están organizados por capas horizontales (rutas, controladores, servicios, repositorios con acceso directo al ORM) e incluyen módulos fuera del MVP (`checkout`, `payments`, `policies`, `contracts`, `leads`), que [F0 §0.2](../../../../00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md) y [F1 §1](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md) excluyen expresamente.
+Hay que decidir la **forma de organizar una única aplicación lógica/codebase modular** y los **límites entre módulos**, dejando la topología de runtime y la cantidad de workloads/entrypoints para Cloud. La estructura documentada en [estructura.md](../../../../estructura.md) y el scaffold actual de `apps/api/src/modules/` están organizados por capas horizontales (rutas, controladores, servicios, repositorios con acceso directo al ORM) e incluyen módulos fuera del MVP (`checkout`, `payments`, `policies`, `contracts`, `leads`), que [F0 §0.2](../../../../00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md) y [F1 §1](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md) excluyen expresamente.
 
 La organización interna de cada módulo (hexagonal, capas y dirección de dependencias) se decide aparte en [ADR-SW-002](./ADR-SW-002-arquitectura-hexagonal-y-capas.md). La persistencia y las transacciones, en [ADR-SW-003](../MAPS-108-persistencia-fronteras-transaccionales/ADR-SW-003-persistencia-y-fronteras-transaccionales.md). La topología de runtime (API, worker, jobs) pertenece a cloud (ADR-CLD-003, previsto).
 
@@ -42,11 +42,11 @@ La organización interna de cada módulo (hexagonal, capas y dirección de depen
 | --- | --- | --- | --- |
 | Microservicios desde el inicio | Escalado y despliegue independientes | Consistencia distribuida, más infraestructura, coordinación y observabilidad desproporcionadas para el MVP | Descartada |
 | Monolito por capas horizontales (scaffold actual) | Estructura conocida, arranque rápido | Dependencias implícitas entre funcionalidades, acceso cruzado a datos, módulos fuera de alcance | Descartada |
-| Monolito modular por capacidad de negocio | Un despliegue, límites explícitos, transacciones locales | Requiere disciplina y controles para que los límites no se erosionen | Propuesta elegida |
+| Monolito modular por capacidad de negocio | Una aplicación lógica/codebase modular, límites explícitos, transacciones locales | Requiere disciplina y controles para que los límites no se erosionen | Propuesta elegida |
 
 ## Decisión
 
-Se **propone** construir la API del Portal como un **monolito modular**: una única unidad de despliegue lógica, dividida en módulos por capacidad de negocio con ownership explícito de sus datos y reglas.
+Se **propone** construir la API del Portal como una **única aplicación lógica/codebase modular**: una base de código dividida en módulos por capacidad de negocio, con ownership explícito de sus datos y reglas. La cantidad de workloads, entrypoints y unidades de despliegue queda abierta para ADR-CLD-003.
 
 ### Mapa de módulos propuesto
 
@@ -78,7 +78,7 @@ Esta decisión **no** resuelve la estructura interna de cada módulo (ADR-SW-002
 
 ### Positivas
 
-- Un único artefacto de aplicación y operación inicial más simple.
+- Una única aplicación lógica/codebase y una operación inicial más simple; la topología de despliegue queda abierta a Cloud.
 - Transacciones locales para operaciones que cruzan capacidades.
 - Límites funcionales alineados con F1 y trazables a los TDD de F3.
 - Camino de extracción si un módulo necesita escalar u operar por separado.
@@ -86,14 +86,14 @@ Esta decisión **no** resuelve la estructura interna de cada módulo (ADR-SW-002
 ### Negativas y riesgos
 
 - Los límites pueden erosionarse si no se controlan con revisión y herramientas (reglas de imports en lint).
-- Los módulos comparten proceso y base: una falla o migración impacta a todos.
+- Los módulos comparten codebase y base cuando la topología elegida por Cloud así lo determine; una falla o migración de esos componentes puede impactar a varios módulos.
 - El scaffold actual de `apps/api` debe reorganizarse antes de F4.
 
 ## Revisión cruzada cloud
 
 | Impacto | Documento cloud afectado | Estado de revisión |
 | --- | --- | --- |
-| Un único artefacto de aplicación; API y worker podrían desplegarse del mismo código con distinto entrypoint | ADR-CLD-003, TDD-CLD-002 (previstos) | Pendiente — Santiago Talavera |
+| Una única aplicación lógica/codebase modular; la separación de API, worker y jobs en workloads o entrypoints queda abierta | ADR-CLD-003, TDD-CLD-002 (previstos) | Pendiente — Santiago Talavera |
 | Una base relacional compartida por todos los módulos: conexiones y concurrencia del proceso único | TDD-CLD-003 (previsto) | Pendiente — Santiago Talavera |
 | Documentos privados accedidos sólo mediante el módulo Documents | TDD-CLD-004 (previsto) | Pendiente — Santiago Talavera |
 
