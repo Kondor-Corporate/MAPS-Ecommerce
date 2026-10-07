@@ -106,7 +106,7 @@ Sólo normaliza vocabulario para comparar; **ninguna celda selecciona un product
 
 ### Costo, región y portabilidad: cómo cerrar la comparación
 
-`TCO = infraestructura + operación + tiempo humano + complejidad + incidentes + riesgo + downtime`. Preparar **tres escenarios de carga iguales** para los tres proveedores, con patrón HTTP, frecuencia de worker/jobs, tamaño/conexiones de DB, objetos/egreso, emails, logs/retención, ambientes y backups. Separar costos fijos potenciales (DB, mínimos, balanceo/red), variables (CPU, solicitudes, almacenamiento, transferencia, observabilidad), aprendizaje/operación y costo de salida. Usar calculadoras oficiales y tarifa contractual vigente cuando exista; hoy no hay datos para afirmar un ganador económico ni fijar precios. El sizing y precio exactos pertenecen a TDD/estimación posterior.
+`TCO = infraestructura + operación + tiempo humano + complejidad + incidentes + riesgo + downtime`. La [baseline y comparación de plataformas](./EVIDENCE-CLD-000-comparacion-plataformas.md) congela tres escenarios de carga iguales para los tres proveedores, con patrón HTTP, frecuencia de worker/jobs, tamaño/conexiones de DB, objetos/egreso, emails, logs/retención, ambientes y backups. Separar costos fijos potenciales (DB, mínimos, balanceo/red), variables (CPU, solicitudes, almacenamiento, transferencia, observabilidad), aprendizaje/operación y costo de salida. Usar calculadoras oficiales y tarifa contractual vigente cuando exista; todavía no hay datos para afirmar un ganador económico ni fijar precios. El sizing y precio exactos pertenecen a TDD/estimación posterior.
 
 La lista oficial de regiones acredita existencia de regiones potencialmente cercanas, **no** disponibilidad conjunta de todos los productos, latencia, residencia requerida ni cumplimiento. Antes de seleccionar, comprobar por servicio y región la colocalización de runtime/DB/storage, ruta del usuario argentino, egreso, backup/restore y cualquier requisito de residencia que MAPS confirme. No se asigna región aquí.
 
@@ -151,6 +151,7 @@ Cuando exista una decisión `ACEPTADO`, revisar ante cambio de requisitos de res
 
 - [F0 — baseline](../../../../00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md), [F1 — Discovery](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md), [F2 — Design Handoff](../../../../02-diseno/Fase_2__Design_Handoff.md): alcance, roles, solicitud, datos y pendientes funcionales.
 - [Cloud Strategy](../../STRATEGY.md): TARGET, principios, gate y derivaciones condicionadas; permanece `BORRADOR ESTRATÉGICO`.
+- [Evidencia ADR-CLD-000](./EVIDENCE-CLD-000-comparacion-plataformas.md): baseline `v0`, arquitectura mínima equivalente, gates y registro de costeo todavía en elaboración; no acepta plataforma ni servicios.
 - [PR #14 de Software](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/14): `ADR-SW-001/002/003` propuestos y `TDD-SW-001` borrador, consultada el 2026-10-04. No se modificó aquí.
 - MAPS-Landingpage: antecedente de uso GCP **informado** para el mismo cliente; el checkout local revisado no contiene evidencia suficiente para afirmar despliegue, operación ni costos actuales. Validación pendiente.
 - [Fila transversal en traceability.md](../../../traceability.md): «Desplegar el Portal con aislamiento, seguridad y operación verificables».
