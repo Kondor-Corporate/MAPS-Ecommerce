@@ -61,7 +61,7 @@ No fija nombres definitivos de tablas ni el esquema de campos de formularios, qu
 | Assignment | Assignment | Asignación de una solicitud a un Productor; historial de reasignaciones |
 | DeliveryAttempt | Assignment | Intento técnico de derivación/notificación y su resultado |
 | AuditEvent | Audit | Registro de acciones de negocio relevantes (actor, acción, entidad, fecha) |
-| OutboxEvent | Transversal (semántica en ADR-SW-004) | Intención de efecto externo registrada en la misma transacción del cambio |
+| OutboxEvent | Owner técnico pendiente; lo define ADR-SW-004 | Intención de efecto externo registrada en la misma transacción del cambio; este TDD no asume un repositorio compartido escribible por todos los módulos |
 
 El rol Admin es un rol de `UserIdentity`, no una entidad aparte. No se modelan Lead, Policy, Payment ni Contract ([F0 §0.2](../../../../00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md)).
 
@@ -82,7 +82,7 @@ InsuranceRequest 1 ── * Document
 InsuranceRequest 1 ── * Assignment            (a lo sumo una vigente)
 Producer     1 ── *    Assignment
 Assignment   1 ── *    DeliveryAttempt
-InsuranceRequest 1 ── 0..1 CancellationRequest (sólo desde DERIVADA; a lo sumo una pendiente)
+InsuranceRequest 1 ── 0..* CancellationRequest (sólo desde DERIVADA; a lo sumo una pendiente simultánea)
 ```
 
 ## Contratos y flujos
@@ -106,7 +106,7 @@ InsuranceRequest 1 ── 0..1 CancellationRequest (sólo desde DERIVADA; a lo s
 
 | Situación | Dónde vive | Valores |
 | --- | --- | --- |
-| Solicitud de cancelación DERIVADA | CancellationRequest | Solicitada, aprobada, rechazada ([F2 §8](../../../../02-diseno/Fase_2__Design_Handoff.md)). Rechazo conserva DERIVADA y registra la decisión |
+| Solicitudes de cancelación DERIVADA | CancellationRequest | Historial de solicitudes solicitadas, aprobadas o rechazadas ([F2 §8](../../../../02-diseno/Fase_2__Design_Handoff.md)); puede existir como máximo una pendiente simultánea. Un rechazo conserva DERIVADA y no impide una nueva solicitud posterior |
 | Entrega/derivación | DeliveryAttempt | Estados técnicos de [F1 §5](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md): pendiente, aceptado/enviado, entregado, rebotado, fallido |
 | Incidencia de derivación | Derivada del último DeliveryAttempt fallido/rebotado en una ASIGNADA | Visible al Admin; la solicitud sigue ASIGNADA |
 
@@ -124,7 +124,7 @@ FormVersion: borrador (editable) → publicada (inmutable) → retirada (histór
 | --- | --- | --- |
 | Precio confirmado | BORRADOR → ENVIADA | RN-09: ENVIADA conserva el precio aunque cambie el vigente |
 | Referencia a FormVersion | Creación del BORRADOR | RN-03/08: la versión es inmutable, basta la referencia |
-| Nombre/datos comerciales del Product mostrados al enviar | BORRADOR → ENVIADA | Reconstruir lo que vio el Cliente si el Product se edita |
+| Nombre/datos comerciales del Product mostrados al enviar | BORRADOR → ENVIADA | **Decisión técnica propuesta**, no requisito confirmado por F0/F1/F2; los campos concretos y su justificación quedan para TDD-SW-002 |
 | Texto/versión del consentimiento aceptado | Al otorgarse | Auditabilidad ([F0 §0.6](../../../../00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md)) |
 
 Para mostrar el aviso de cambio de precio, el BORRADOR guarda el último precio que el Cliente vio o confirmó.
@@ -138,7 +138,7 @@ Para mostrar el aviso de cambio de precio, el BORRADOR guarda el último precio 
 - Hay a lo sumo un Assignment vigente por solicitud, y sólo con un Producer disponible al asignar.
 - DERIVADA exige un DeliveryAttempt exitoso del Assignment vigente.
 - El Productor accede sólo si la solicitud está DERIVADA, el Assignment vigente es suyo y el acceso no fue revocado.
-- Hay a lo sumo una CancellationRequest pendiente por solicitud, y sólo en DERIVADA.
+- Una InsuranceRequest puede conservar un historial de CancellationRequest (`0..*`), sólo para solicitudes DERIVADA; hay como máximo una pendiente simultánea. Un rechazo no impide un nuevo intento, salvo decisión funcional explícita de MAPS.
 - Assignment, DeliveryAttempt, OutboxEvent e InsuranceRequest no se colapsan en un único campo de estado.
 
 ### Fronteras transaccionales
@@ -153,8 +153,8 @@ Esquema versionado en el repositorio con estrategia expand/contract ([ADR-SW-003
 
 | Tema | Owner | Documento | Qué toma de este TDD |
 | --- | --- | --- | --- |
-| Instancia PostgreSQL gestionada (Cloud SQL propuesto), conexiones, backups, restore y ejecución de migraciones | Cloud | TDD-CLD-003 (previsto) | Base única del Portal, ownership lógico, migraciones expand/contract |
-| Storage privado de documentos (Cloud Storage propuesto), permisos y ciclo de vida | Cloud | TDD-CLD-004 (previsto) | Document guarda metadata y referencia; el acceso pasa por el módulo Documents |
+| Capacidad PostgreSQL administrada / relacional gestionada, conexiones, backups, restore y ejecución de migraciones | Cloud | ADR-CLD-000 y TDD-CLD-003 (previstos) | Base única del Portal, ownership lógico, migraciones expand/contract |
+| Object storage privado administrado, permisos y ciclo de vida | Cloud | ADR-CLD-000 y TDD-CLD-004 (previstos) | Document guarda metadata y referencia; el acceso pasa por el módulo Documents |
 | Worker de entrega, email y reintentos | Cloud | TDD-CLD-005 (previsto) | DeliveryAttempt y OutboxEvent como contrato de datos |
 
 Este TDD no decide servicio, tamaño, región ni configuración; al redactarse esos documentos se reemplaza "previsto" por el enlace real.
