@@ -38,7 +38,7 @@ No fija nombres definitivos de tablas ni el esquema de campos de formularios, qu
 | Productor inhabilitado no recibe nuevas asignaciones | RN-15, [F2 §12](../../../../02-diseno/Fase_2__Design_Handoff.md) — CONFIRMADO | Flag de disponibilidad en Producer |
 | Campos definitivos de formularios | `PENDIENTE FUNCIONAL MAPS` | Se modela estructura y versionado, no el contrato final |
 | Campos de Mi perfil | `PENDIENTE FUNCIONAL MAPS` | Customer con perfil extensible; campos a confirmar |
-| Confirmación de la reasignación de DERIVADA y alcance de inhabilitación | `PENDIENTE FUNCIONAL MAPS` | Baja lógica de Cliente/Productor confirmada (RN-18/RN-19), sin borrado físico. Reasignación propuesta sin estado nuevo: nueva asignación con historial, efectiva al entregar; bloqueo vs. cola y efectos de inhabilitación condicionados. Alta posterior del Cliente: fuera del MVP |
+| Alcance de inhabilitación | `PENDIENTE FUNCIONAL MAPS` | Baja lógica de Cliente/Productor confirmada (RN-18/RN-19), sin borrado físico. Decisión de alcance Kondor MVP: solicitudes activas se tratan antes de completar la baja; DERIVADA conserva estado con nueva asignación e historial, efectiva al entregar. MAPS indicó una futura solicitud de alta del Cliente, diferida por alcance del MVP |
 | Retención y eliminación de solicitudes/archivos; textos de consentimiento | `PENDIENTE FUNCIONAL MAPS` | Sin borrado físico en el MVP hasta definir plazos |
 | PostgreSQL histórico MAPS | Descartado como dependencia ([ADR-SW-003](../../adr/MAPS-108-persistencia-fronteras-transaccionales/ADR-SW-003-persistencia-y-fronteras-transaccionales.md)) | El modelo vive en la base nueva del Portal |
 
@@ -191,7 +191,7 @@ Secuencia sugerida: Identity y Catalog → Forms → Requests (BORRADOR/ENVIADA)
 | --- | --- | --- | --- |
 | Propiedades definitivas de formularios | MAPS + Kondor | Versionado, ownership, relaciones y referencia de respuestas | Validar 1–2 casos reales (TDD-SW-002) |
 | Campos de Mi perfil | MAPS | Identity, roles y ownership | Lista aprobada de campos visibles/editables |
-| Confirmación de reasignación de DERIVADA e inhabilitación ampliada | MAPS | Disponibilidad para nuevas asignaciones; baja lógica confirmada (RN-18/RN-19) | Bloqueo vs. cola de DERIVADAS en la baja; efectividad de la reasignación; efectos de inhabilitación sobre casos existentes |
+| Inhabilitación ampliada | MAPS | Disponibilidad para nuevas asignaciones; baja lógica y tratamiento de solicitudes activas definidos en RN-18/RN-19 | Efectos de inhabilitación sobre casos existentes |
 | Retención de solicitudes, BORRADORES descartados/no utilizables y documentos | MAPS | Metadata, marcas y autorización | Plazos y eliminación física |
 | Textos y versiones de consentimiento | MAPS (legal) | Entidad Consent y su snapshot | Textos aprobados |
 | Estado técnico que acredita entrega exitosa | Software | Separación DeliveryAttempt/InsuranceRequest | ADR-SW-004 y TDD-SW-005 |

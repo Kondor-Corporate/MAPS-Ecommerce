@@ -77,7 +77,7 @@ La versión publicada es inmutable: lo que se edita en el panel queda en un borr
 El prototipo no resuelve decisiones que F2 deja abiertas; las muestra como pendientes:
 
 - campos definitivos de **Mi perfil** (F2 §11);
-- confirmación de la reasignación de DERIVADA en la baja de Productor, plazos de retención y eliminación física, y alcance de la inhabilitación (F2 §12);
+- plazos de retención y eliminación física, y alcance de la inhabilitación (F2 §12). La reasignación de DERIVADA y el diferimiento de la solicitud de alta del Cliente se rigen por las decisiones de alcance del MVP en F1 RN-18/RN-19;
 - si el Cliente puede volver a pedir la cancelación de una DERIVADA después de un rechazo (F2 CLI-08, no definido): el prototipo lo permite;
 - contrato definitivo del formulario dinámico (F2 §9).
 
