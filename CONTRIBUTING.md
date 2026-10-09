@@ -105,7 +105,7 @@ Pares típicos: RBAC de aplicación ↔ IAM cloud; adjuntos ↔ Cloud Storage; O
 
 ## 8. Pendientes funcionales de MAPS
 
-Una decisión técnica **no puede cerrar silenciosamente** una decisión funcional pendiente. La [matriz de trazabilidad](./docs/03-arquitectura/traceability.md) mantiene visibles, entre otros, el contrato definitivo de formularios, campos de Mi perfil, baja de Cliente/Productor, efectos adicionales de inhabilitación, retención/eliminación y SLA o tratamiento operativo de derivación.
+Una decisión técnica **no puede cerrar silenciosamente** una decisión funcional pendiente. La [matriz de trazabilidad](./docs/03-arquitectura/traceability.md) mantiene visibles, entre otros, el contrato definitivo de formularios, campos de Mi perfil, alcance de la inhabilitación, plazos de retención/eliminación física y SLA o tratamiento operativo de derivación.
 
 Si una Historia puede avanzar parcialmente, indicar qué se resuelve, qué queda condicionado, quién debe decidirlo y qué Historia o pendiente bloquea el resto. No inventar comportamiento funcional para desbloquear arquitectura ni dar por cerradas F1/F2 por avanzar en F3.
 
