@@ -33,7 +33,7 @@ El prototipo está alineado con la baseline funcional vigente (Fase 0), el Disco
 - productos con estado de publicación (publicado, no publicado, no disponible) y acceso directo a su formulario;
 - configuración de formularios por producto, con borrador separado de la versión publicada, validación antes de publicar e histórico de versiones (vigente, publicada, retirada);
 - retiro de versiones por causa legal, de seguridad, comercial o de vigencia. El retiro normal de la última versión utilizable está bloqueado; el retiro urgente exige confirmación fuerte y deja el producto no disponible hasta publicar un reemplazo;
-- ABM de categorías (crear, editar, renombrar), clientes (alta, edición, baja) y productores (alta, edición, baja, habilitación para asignaciones). Las bajas e inhabilitaciones piden confirmación e informan que sus efectos están pendientes de definición de MAPS.
+- ABM de categorías (crear, editar, renombrar), clientes (alta, edición, baja) y productores (alta, edición, baja, habilitación para asignaciones). Las bajas son lógicas (sin borrado de información) y piden confirmación; se rigen por F1 RN-18/RN-19. La inhabilitación pide confirmación y sólo impide nuevas asignaciones (RN-20, alcance pendiente).
 
 **Productor**
 
@@ -77,7 +77,7 @@ La versión publicada es inmutable: lo que se edita en el panel queda en un borr
 El prototipo no resuelve decisiones que F2 deja abiertas; las muestra como pendientes:
 
 - campos definitivos de **Mi perfil** (F2 §11);
-- efectos de la baja de Cliente/Productor y de la inhabilitación de Productor más allá de excluirlo de nuevas asignaciones (F2 §12);
+- confirmación de la reasignación de DERIVADA en la baja de Productor, plazos de retención y eliminación física, y alcance de la inhabilitación (F2 §12);
 - si el Cliente puede volver a pedir la cancelación de una DERIVADA después de un rechazo (F2 CLI-08, no definido): el prototipo lo permite;
 - contrato definitivo del formulario dinámico (F2 §9).
 

@@ -171,8 +171,8 @@ Estados generales aplicables: loading, empty, error, unauthorized y forbidden. T
 | ADM-07 Productos | Información comercial, categoría, precio, publicación y formulario asociado | Crear/editar, definir precio, publicar y abrir la configuración del formulario asociado | Admin; `ADM-07 → ADM-08` sobre el Product seleccionado | Inválido, precio requerido, error | RF-PROD-01, RN-09; Product F3 |
 | ADM-08 Formularios | Formulario asociado al Product, campos candidatos, borrador y versión publicada | Crear/configurar DRAFT, validar y publicar `FormVersion` | Admin y Product seleccionado; `ADM-07 → ADM-08 → DRAFT → publicar` | Sin campos, inválido, sin cambios, error | RF-FORM-01, RN-08; schema F3 |
 | ADM-09 Versiones | Versión publicada, utilizables e histórico disponible | Consultar, crear nueva desde el formulario o retirar una versión | Retiro normal de última versión bloqueado; retiro urgente sólo con causa aprobada y confirmación fuerte, deja el Product no disponible | Vacío, bloqueo normal, confirmación urgente, Product no disponible, error | RN-08; no incluye rollback/diff/restore MVP |
-| ADM-10 Clientes | Cliente y solicitudes asociadas autorizadas | Alta, edición, baja, buscar, abrir detalle | Admin; confirmación informa efectos pendientes de definición MAPS | Vacío, inválido, decisión funcional pendiente, error | RF-CLI-01, RN-14; modelo F3 |
-| ADM-11 Productores | Datos, disponibilidad y asignaciones | Alta, edición, baja, habilitar/inhabilitar | Admin; inhabilitar sólo evita nuevas asignaciones; otros efectos requieren definición MAPS | Vacío, inválido, decisión funcional pendiente, error | RF-PRODUCER-03, RN-15; modelo F3 |
+| ADM-10 Clientes | Cliente y solicitudes asociadas autorizadas | Alta, edición, baja, buscar, abrir detalle | Admin; la confirmación informa los efectos de baja confirmados (RN-18) | Vacío, inválido, decisión funcional pendiente, error | RF-CLI-01, RN-14, RN-18; modelo F3 |
+| ADM-11 Productores | Datos, disponibilidad y asignaciones | Alta, edición, baja, habilitar/inhabilitar | Admin; baja con reasignación previa de ASIGNADAS (RN-19); inhabilitar sólo evita nuevas asignaciones (RN-20, alcance pendiente) | Vacío, inválido, decisión funcional pendiente, error | RF-PRODUCER-03, RN-15, RN-19, RN-20; modelo F3 |
 | PRO-01 Login | Acceso de Productor | Autenticarse y salir a Mis solicitudes | Productor; guarda → lista | Credenciales inválidas, unauthorized | RN-05/16; auth F3 |
 | PRO-02 Mis solicitudes | Solicitudes DERIVADAS asignadas y estado | Abrir detalle | Productor autenticado; sólo DERIVADAS asignadas a su identidad y con autorización vigente | Loading, vacío, error, forbidden | RF-PRODUCER-01, RN-05/16; autorización F3 |
 | PRO-03 Detalle read-only | Expediente DERIVADO autorizado y avisos relevantes | Volver; no editar ni cancelar | Solicitud DERIVADA asignada a ese Productor y acceso vigente | Forbidden/revocado, no encontrada, error | RF-PRODUCER-01/02, RN-05/16; RBAC/auditoría F3 |
@@ -235,7 +235,30 @@ En cancelación, BORRADOR se descarta sin motivo obligatorio. En ENVIADA y ASIGN
 
 ### Baja e inhabilitación
 
-La inhabilitación de un Productor confirmada para el MVP sólo lo deja indisponible para **nuevas asignaciones**. No se presume su efecto sobre inicio de sesión, solicitudes existentes, ASIGNADAS, DERIVADAS, historial, reactivación, notificaciones ni sobre la baja/eliminación de Cliente o Productor. Estos efectos y sus mensajes de confirmación quedan como **PENDIENTE FUNCIONAL MAPS**, con trazabilidad requerida; la estrategia técnica de persistencia queda para F3.
+Confirmado por MAPS (respuestas registradas en `Relevamiento-MAPS-Ecommerce (1).pdf`; ver F1 RN-18 y RN-19):
+
+- **Baja de Cliente:** pierde el inicio de sesión de forma inmediata. Sus solicitudes ENVIADA, ASIGNADA y DERIVADA siguen su curso. Su historial queda visible para Admin y recibe notificación. Es una baja lógica: desactiva el acceso operativo y no borra su información.
+- **Baja de Productor:** pierde de inmediato el acceso al Portal y a las DERIVADAS asignadas. Las ASIGNADAS no derivadas bloquean la baja hasta reasignarse. Las DERIVADAS no bloquean la baja: quedan en cola de reasignación visible para Admin, y el sistema informa a la Org para analizar cada caso (mecánica en el apartado siguiente). La baja es lógica (sin borrado de su información), reversible, conserva al Productor en historial y auditoría, y se le notifica.
+
+**Inhabilitación de Productor:** la única regla confirmada es que lo deja indisponible para **nuevas asignaciones**. La respuesta de MAPS indica que no van a existir casos inhabilitados; su alcance queda como **PENDIENTE FUNCIONAL MAPS** (RN-20).
+
+Fuera del MVP: la alta posterior de un Cliente dado de baja queda desestimada por ahora; no se diseña flujo para ella.
+
+**Reasignación de DERIVADA en la baja de Productor** (propuesta de Kondor, pendiente de confirmación MAPS):
+
+1. Admin resuelve antes cualquier cancelación solicitada sobre la DERIVADA.
+2. Admin cierra la asignación anterior (fecha, Admin, motivo) y crea una nueva al Productor habilitado elegido.
+3. La solicitud permanece DERIVADA; no hay estado nuevo ni transición a ASIGNADA. Cliente y Productor ven el estado sin cambios.
+4. La reasignación es efectiva cuando la entrega al nuevo Productor es exitosa (RN-07). Si falla, la incidencia queda visible para Admin, que reintenta o vuelve a reasignar.
+5. El Productor dado de baja pierde el acceso de inmediato. El nuevo Productor lo obtiene al hacerse efectiva la asignación, por autorización de identidad (RN-16).
+
+Quedan como **PENDIENTE FUNCIONAL MAPS**, con trazabilidad requerida:
+
+- confirmar la propuesta de reasignación: si las DERIVADAS bloquean la baja o sólo se encolan, y si la reasignación es efectiva al entregar;
+- plazos de conservación y eliminación física de solicitudes y archivos (la baja de Cliente/Productor no borra información);
+- alcance de la inhabilitación y su efecto sobre casos existentes.
+
+La estrategia técnica de persistencia queda para F3.
 
 ## 13. Matriz de permisos UX
 
@@ -294,7 +317,7 @@ La revisión dejó reglas confirmadas sobre acceso del Productor, cancelación, 
 | --- | --- | --- | --- | --- |
 | Formulario dinámico | **PENDIENTE FUNCIONAL** | MAPS + Kondor | Validación funcional F2 | Validar 1–2 formularios representativos y aprobar el contrato acotado. |
 | Campos de perfil | **PENDIENTE FUNCIONAL** | MAPS; Kondor releva/documenta | Definición funcional posterior | Lista de campos visibles, editables, obligatorios y no editables aprobada por MAPS. |
-| Baja de Cliente/Productor e inhabilitación | **PENDIENTE FUNCIONAL** | MAPS | Definición funcional posterior | Reglas aprobadas para acceso, solicitudes existentes, asignaciones, historial, reactivación, avisos y retención. |
+| Reasignación de DERIVADA, inhabilitación y plazos de retención | **PENDIENTE FUNCIONAL** | MAPS | Definición funcional posterior | Confirmación de la propuesta de reasignación (RN-19: bloqueo vs. cola y efectividad), efectos de inhabilitación y plazos de conservación/eliminación física. La baja lógica de Cliente/Productor ya está confirmada (RN-18/RN-19); la alta posterior del Cliente queda fuera del MVP. |
 | Auth / RBAC | **DIFERIDO TÉCNICO F3** | Kondor | F3 | Diseño e implementación técnica alineados con la matriz de permisos UX. |
 | Persistencia y versionado | **DIFERIDO TÉCNICO F3** | Kondor | F3 | Modelo de datos, snapshots, auditoría, enforcement de versiones y representación/retención del BORRADOR afectado implementados según reglas MAPS. |
 | Email, entrega y reintentos | **DIFERIDO TÉCNICO F3** | Kondor | F3 | Integración de delivery, trazabilidad técnica, reintentos e incidencias implementada. |

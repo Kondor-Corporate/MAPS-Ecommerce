@@ -12,7 +12,7 @@
 | URL del work item | https://santitalavera.atlassian.net/browse/MAPS-107 |
 | Fase origen | [F0 §0.2/0.4/0.8](../../../../00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md), [F1 §2/3/7, RN-01/04/13/14/15](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md), [F2 §5/12/13](../../../../02-diseno/Fase_2__Design_Handoff.md) |
 | Decisiones relacionadas | [ADR-SW-002](./ADR-SW-002-arquitectura-hexagonal-y-capas.md); [ADR-SW-003](../MAPS-108-persistencia-fronteras-transaccionales/ADR-SW-003-persistencia-y-fronteras-transaccionales.md); [TDD-SW-001](../../tdd/MAPS-109-modelo-dominio-datos/TDD-SW-001-modelo-de-dominio-y-datos.md); ADR-CLD-003 (previsto, sin redactar) |
-| Depende de | Ninguna decisión previa. Condicionado por pendientes funcionales MAPS de baja/inhabilitación y perfil (ver Riesgos) |
+| Depende de | Ninguna decisión previa. Condicionado por pendientes funcionales MAPS de inhabilitación, confirmación de la reasignación de DERIVADA y perfil (ver Riesgos) |
 | Reemplaza | No aplica |
 | Reemplazado por | No aplica |
 
@@ -102,7 +102,7 @@ Esta decisión **no** resuelve la estructura interna de cada módulo (ADR-SW-002
 | Riesgo o pendiente | Responsable | Acción / condición de cierre |
 | --- | --- | --- |
 | Ownership ambiguo entre Identity y Assignment sobre disponibilidad del Productor | Software | Confirmar en TDD-SW-001 que Identity es owner y Assignment la consulta |
-| Efectos de baja de Cliente/Productor e inhabilitación más allá de nuevas asignaciones | `PENDIENTE FUNCIONAL MAPS` | Los límites pueden definirse; los efectos sobre casos existentes quedan condicionados |
+| Alcance de la inhabilitación y confirmación de la reasignación de DERIVADA | `PENDIENTE FUNCIONAL MAPS` | Los límites pueden definirse; baja lógica confirmada (RN-18/RN-19); la reasignación propuesta no crea estados nuevos; el resto queda condicionado |
 | Campos de Mi perfil | `PENDIENTE FUNCIONAL MAPS` | Identity queda definido como owner; los campos esperan aprobación MAPS |
 | Scaffold con módulos fuera de alcance | Software | Reorganizar `apps/api/src/modules` según este mapa al aceptarse el ADR |
 | Revisión cruzada cloud sin completar | Santiago Talavera | Completar la tabla de revisión antes de pasar a `ACEPTADO` |

@@ -8,7 +8,7 @@
 | Fase | 1 - Discovery y Relevamiento |
 | Estado | En curso |
 | Insumo rector | Fase 0 — baseline funcional vigente |
-| Última actualización | 21 de septiembre de 2026 |
+| Última actualización | 9 de octubre de 2026 |
 
 ## 1. Objetivo y alcance vigente
 
@@ -127,6 +127,9 @@ El modelo no introduce clases técnicas adicionales. Cardinalidades, esquema y p
 | RN-15 | El Admin administra (ABM) los productores (alta, edición y baja) y habilita o inhabilita su disponibilidad para recibir asignaciones. | CONFIRMADO |
 | RN-16 | El acceso del productor no depende de un enlace vencible: exige sesión autenticada y autorización por identidad sobre las solicitudes asignadas. | CONFIRMADO |
 | RN-17 | Cliente autenticado consulta y actualiza sólo los datos de perfil habilitados para autogestión básica; identidad avanzada, sincronización y reglas técnicas se difieren a F3. | CONFIRMADO / técnico F3 |
+| RN-18 | Baja de Cliente: MAPS da de baja lógica su cuenta. Desactiva su acceso operativo y no borra su información (sin eliminación física). El Cliente deja de poder iniciar sesión de forma inmediata; sus solicitudes ENVIADA, ASIGNADA y DERIVADA siguen su curso; su historial permanece visible para Admin y recibe notificación de la baja. La alta posterior de un Cliente dado de baja queda **fuera del MVP** (desestimada por ahora). | CONFIRMADO (respuesta MAPS, relevamiento PDF); plazos de conservación y eliminación física PENDIENTE MAPS |
+| RN-19 | Baja de Productor: deja de ser actor operativo activo. Pierde de inmediato el acceso al Portal y a las DERIVADAS asignadas. Las ASIGNADAS no derivadas bloquean la baja hasta reasignarse. Las DERIVADAS no bloquean la baja: quedan en cola de reasignación visible para Admin, y el sistema informa a la Org para analizar cada caso. **Reasignar una DERIVADA:** (a) Admin resuelve antes cualquier cancelación solicitada; (b) se cierra la asignación anterior con fecha, Admin y motivo, y se crea una nueva al Productor habilitado elegido; (c) la solicitud permanece DERIVADA, sin estado nuevo ni transición a ASIGNADA; (d) la reasignación es efectiva cuando la entrega al nuevo Productor es exitosa (RN-07); si falla, la incidencia queda visible para Admin; (e) el Productor dado de baja pierde el acceso de inmediato. La baja es lógica (sin borrado de su información), reversible, conserva al Productor en historial y auditoría, y se le notifica. | CONFIRMADO (respuesta MAPS, relevamiento PDF). Mecánica de reasignación: PROPUESTA Kondor, PENDIENTE MAPS (si las DERIVADAS bloquean o sólo se encolan, y momento de efectividad) |
+| RN-20 | Inhabilitación de Productor: suspende su capacidad operativa sin dejar de reconocerlo como Productor. Respuesta MAPS: "no van a existir casos inhabilitados" con solicitudes en curso ni reactivación sin consecuencias. Antes de cerrar F1 debe confirmarse si la inhabilitación se mantiene como capacidad del MVP y qué efecto tiene sobre nuevas asignaciones. | PENDIENTE MAPS (aclarar alcance) |
 
 ## 9. Requerimientos preliminares
 
@@ -140,12 +143,12 @@ El modelo no introduce clases técnicas adicionales. Cardinalidades, esquema y p
 | RF-FORM-01 | MAPS configura y publica formularios por producto con contrato acotado preliminar, validado contra uno o dos casos reales antes del cierre F1. | CONFIRMADO / detalle PENDIENTE MAPS |
 | RF-PROD-01 | MAPS administra productos, precio fijo vigente, información comercial y publicación. | CONFIRMADO |
 | RF-CAT-01 | MAPS administra (ABM) las categorías del catálogo: crear, editar y renombrar. | CONFIRMADO |
-| RF-CLI-01 | El Admin administra (ABM) clientes: alta, edición y baja, y su consulta desde el panel. | CONFIRMADO |
+| RF-CLI-01 | El Admin administra (ABM) clientes: alta, edición y baja, y su consulta desde el panel. La baja aplica RN-18. | CONFIRMADO |
 | RF-CLI-PROFILE-01 | El Cliente autenticado puede consultar y actualizar los datos de perfil habilitados para autogestión básica. | CONFIRMADO; detalle técnico F3 |
 | RF-ADM-01 | Admin consulta ENVIADA, asigna/reasigna, opera incidencias previas a DERIVADA y decide solicitudes de cancelación DERIVADA. | CONFIRMADO |
 | RF-PRODUCER-01 | Productor inicia sesión y consulta read-only, desde **Mis solicitudes**, únicamente las asignadas a él. | CONFIRMADO |
 | RF-PRODUCER-02 | El productor recibe aviso cuando una solicitud asignada a él se cancela y pierde el acceso a esa solicitud. | CONFIRMADO |
-| RF-PRODUCER-03 | MAPS administra (ABM) productores: alta, edición, baja y habilitación para recibir asignaciones. | CONFIRMADO |
+| RF-PRODUCER-03 | MAPS administra (ABM) productores: alta, edición, baja y habilitación para recibir asignaciones. La baja aplica RN-19 y se notifica al Productor; la inhabilitación aplica RN-20. | CONFIRMADO; RN-20 PENDIENTE MAPS |
 | RF-DELIVERY-01 | Se registra derivación, resultado conocido, fallas y reintentos; DERIVADA sólo se alcanza después de la entrega requerida exitosa. | CONFIRMADO |
 | RF-ANALYTICS-01 | Se miden eventos y conversiones del funnel sin entidad Lead, PII innecesaria ni automatismos comerciales. | CONFIRMADO / técnico F3 |
 | RF-GOV-01 | Cambios controlados, pendientes y criterios de cierre preservan dueño, fase destino, condición de cierre e histórico. | CONFIRMADO |
@@ -188,6 +191,8 @@ F3 recibe auth/identity, Product/precio/snapshot histórico, Category, Customer 
 | 2026-09-17 | Alineación F1 y UX previa a F2 | Se formalizan descarte de BORRADOR sin motivo obligatorio, entrega exitosa como precondición de DERIVADA, confirmación/rechazo de cancelación DERIVADA y perfil básico autogestionable del Cliente. | CONFIRMADO / técnico F3 |
 | 2026-09-21 | Retiro urgente de última FormVersion | Cambio controlado: el retiro normal de la última versión utilizable se bloquea; por urgencia aprobada puede retirarse y el Product pasa a no disponible hasta publicar reemplazo. BORRADORES afectados no se migran, reutilizan ni copian. La representación, retención, eliminación, auditoría e historial quedan para F3 y reglas MAPS. | CONFIRMADO / técnico F3 |
 | 2026-09-21 | Aclaración del acceso del productor | Aclaración sin cambio de alcance: el productor accede read-only sólo a solicitudes DERIVADAS asignadas a él; en ASIGNADA no tiene acceso al expediente, por lo que la cancelación de una ASIGNADA sólo le notifica y no requiere revocar acceso. Alinea F0/F1 con la matriz de F2 §6. | CONFIRMADO |
+| 2026-10-09 | Bajas de Cliente y Productor; inhabilitación | Respuestas de MAPS registradas en `Relevamiento-MAPS-Ecommerce (1).pdf` (sin fecha de respuesta en el PDF; fecha de registro en este documento). Se fijan efectos de baja de Cliente (RN-18) y de Productor (RN-19), ambas bajas lógicas sin borrado de información. La inhabilitación queda como RN-20. Alta posterior del Cliente: desestimada, fuera del MVP por ahora. Siguen abiertos: plazos de conservación y eliminación física y alcance de la inhabilitación. | CONFIRMADO parcial / PENDIENTE MAPS |
+| 2026-10-09 | Reasignación de DERIVADA en baja de Productor | Propuesta de Kondor adoptada en RN-19: reasignar mediante nueva asignación, sin estado nuevo ni transición DERIVADA → ASIGNADA. Motivo: en ASIGNADA el Cliente cancela sin revisión de Admin (RN-10), lo que dejaría sin control una solicitud en gestión externa. Efectividad al entregar al nuevo Productor (RN-07). | PROPUESTA / PENDIENTE MAPS (bloqueo vs. cola y momento de efectividad) |
 
 ## 14. Evidencia histórica
 
