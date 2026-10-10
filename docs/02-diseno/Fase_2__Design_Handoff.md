@@ -136,6 +136,8 @@ DERIVADA → Cliente solicita cancelación → Admin revisa
   └── rechaza → permanece DERIVADA → informar Cliente
 ```
 
+Los avisos a Admin y Productor se realizan mediante **email transaccional** al correo registrado (RN-18). El contenido y plantillas de estos emails quedan como especificación de F3.
+
 ## 6. Matriz acción × estado
 
 | Estado | Cliente | Admin | Productor |
@@ -164,7 +166,7 @@ Estados generales aplicables: loading, empty, error, unauthorized y forbidden. T
 | CLI-08 Cancelación DERIVADA | Contexto, motivo y resultado de decisión si existe | Enviar solicitud con motivo; ver aprobada/rechazada | DERIVADA propia; detalle → detalle | Motivo requerido, ya solicitada, error | RF-SOL-05, RN-10; trazabilidad/notificación F3 |
 | ADM-01 Bandeja | Solicitudes, estado, Product, cliente, filtros y paginado | Buscar, filtrar, abrir detalle | Admin autenticado; backoffice → detalle | Loading, vacío, error, forbidden | RF-ADM-01; consulta/paginado F3 |
 | ADM-02 Detalle | Expediente autorizado, Product, historial, Productor y entrega | Abrir asignación, reintentar, reasignar, decidir cancelación | Admin; bandeja → bandeja/acciones | No encontrada, error, forbidden | RF-ADM-01, RF-DELIVERY-01; auditoría F3 |
-| ADM-03 Asignación | Productores habilitados y asignación actual | Seleccionar, confirmar, reasignar | ENVIADA/ASIGNADA; no asignar inhabilitado | Sin productores, inválido, error | RN-04, RN-15; reglas de disponibilidad F3 |
+| ADM-03 Asignación | Productores activos y asignación actual | Seleccionar, confirmar, reasignar | ENVIADA/ASIGNADA; no asignar dado de baja | Sin productores, inválido, error | RN-04, RN-15; reglas de disponibilidad F3 |
 | ADM-04 Incidencia derivación | Productor, último intento, resultado/error conocido | Reintentar o reasignar | ASIGNADA; volver al detalle | Procesando, fallida, reintento, error | RN-06/07, RF-DELIVERY-01; delivery técnico F3 |
 | ADM-05 Cancelación DERIVADA | Motivo, fecha y solicitante | Confirmar o rechazar; feedback trazable | DERIVADA con solicitud; detalle → DERIVADA/CANCELADA | Sin solicitud, error, acción ya resuelta | RN-10, RF-SOL-05; notificación F3 |
 | ADM-06 Categorías | Nombre, estado y asociación visible | Crear, editar, renombrar | Admin; backoffice → lista | Vacío, inválido, conflicto de uso, error | RF-CAT-01, RN-13; persistencia F3 |
@@ -172,7 +174,7 @@ Estados generales aplicables: loading, empty, error, unauthorized y forbidden. T
 | ADM-08 Formularios | Formulario asociado al Product, campos candidatos, borrador y versión publicada | Crear/configurar DRAFT, validar y publicar `FormVersion` | Admin y Product seleccionado; `ADM-07 → ADM-08 → DRAFT → publicar` | Sin campos, inválido, sin cambios, error | RF-FORM-01, RN-08; schema F3 |
 | ADM-09 Versiones | Versión publicada, utilizables e histórico disponible | Consultar, crear nueva desde el formulario o retirar una versión | Retiro normal de última versión bloqueado; retiro urgente sólo con causa aprobada y confirmación fuerte, deja el Product no disponible | Vacío, bloqueo normal, confirmación urgente, Product no disponible, error | RN-08; no incluye rollback/diff/restore MVP |
 | ADM-10 Clientes | Cliente y solicitudes asociadas autorizadas | Alta, edición, baja, buscar, abrir detalle | Admin; confirmación informa efectos pendientes de definición MAPS | Vacío, inválido, decisión funcional pendiente, error | RF-CLI-01, RN-14; modelo F3 |
-| ADM-11 Productores | Datos, disponibilidad y asignaciones | Alta, edición, baja, habilitar/inhabilitar | Admin; inhabilitar sólo evita nuevas asignaciones; otros efectos requieren definición MAPS | Vacío, inválido, decisión funcional pendiente, error | RF-PRODUCER-03, RN-15; modelo F3 |
+| ADM-11 Productores | Datos, disponibilidad y asignaciones | Alta, edición, baja, reactivar | Admin; la baja sólo evita nuevas asignaciones; otros efectos requieren definición MAPS | Vacío, inválido, decisión funcional pendiente, error | RF-PRODUCER-03, RN-15; modelo F3 |
 | PRO-01 Login | Acceso de Productor | Autenticarse y salir a Mis solicitudes | Productor; guarda → lista | Credenciales inválidas, unauthorized | RN-05/16; auth F3 |
 | PRO-02 Mis solicitudes | Solicitudes DERIVADAS asignadas y estado | Abrir detalle | Productor autenticado; sólo DERIVADAS asignadas a su identidad y con autorización vigente | Loading, vacío, error, forbidden | RF-PRODUCER-01, RN-05/16; autorización F3 |
 | PRO-03 Detalle read-only | Expediente DERIVADO autorizado y avisos relevantes | Volver; no editar ni cancelar | Solicitud DERIVADA asignada a ese Productor y acceso vigente | Forbidden/revocado, no encontrada, error | RF-PRODUCER-01/02, RN-05/16; RBAC/auditoría F3 |
@@ -233,9 +235,9 @@ Ante fallo de email/derivación, la solicitud **permanece ASIGNADA**. Admin visu
 
 En cancelación, BORRADOR se descarta sin motivo obligatorio. En ENVIADA y ASIGNADA, el Cliente indica motivo y confirma la acción: la transición a `CANCELADA` es inmediata, sin aprobación de Admin, y registra actor, fecha y motivo. DERIVADA exige solicitud con motivo y revisión de Admin; si la rechaza, permanece DERIVADA. `CANCELADA` es final y read-only. El Productor no cancela desde el Portal.
 
-### Baja e inhabilitación
+### Baja y reactivación de Productor
 
-La inhabilitación de un Productor confirmada para el MVP sólo lo deja indisponible para **nuevas asignaciones**. No se presume su efecto sobre inicio de sesión, solicitudes existentes, ASIGNADAS, DERIVADAS, historial, reactivación, notificaciones ni sobre la baja/eliminación de Cliente o Productor. Estos efectos y sus mensajes de confirmación quedan como **PENDIENTE FUNCIONAL MAPS**, con trazabilidad requerida; la estrategia técnica de persistencia queda para F3.
+La baja de un Productor confirmada para el MVP sólo lo deja indisponible para **nuevas asignaciones**; la reactivación lo vuelve disponible. No se presume su efecto sobre inicio de sesión, solicitudes existentes, ASIGNADAS, DERIVADAS, historial, notificaciones ni sobre la baja/eliminación de Cliente. Estos efectos y sus mensajes de confirmación quedan como **PENDIENTE FUNCIONAL MAPS**, con trazabilidad requerida; la estrategia técnica de persistencia queda para F3.
 
 ## 13. Matriz de permisos UX
 
@@ -286,7 +288,7 @@ Esta primera versión no declara F2 cerrada. Para cierre requiere:
 
 ## 16. Trazabilidad y observaciones
 
-Las referencias rectoras de este handoff son RN-02 a RN-10, RN-13 a RN-17; RF-SOL-01 a RF-SOL-05, RF-FORM-01, RF-PROD-01, RF-CAT-01, RF-CLI-01, RF-CLI-PROFILE-01, RF-ADM-01, RF-PRODUCER-01 a RF-PRODUCER-03, RF-DELIVERY-01 y RNF-SEC-01/RNF-COM-01 de Fase 1.
+Las referencias rectoras de este handoff son RN-02 a RN-10, RN-13 a RN-18; RF-SOL-01 a RF-SOL-05, RF-FORM-01, RF-PROD-01, RF-CAT-01, RF-CLI-01, RF-CLI-PROFILE-01, RF-ADM-01, RF-PRODUCER-01 a RF-PRODUCER-03, RF-DELIVERY-01 y RNF-SEC-01/RNF-COM-01 de Fase 1.
 
 La revisión dejó reglas confirmadas sobre acceso del Productor, cancelación, guardado manual, asociación Product/FormVersion y retirada de versiones. Esta aprobación de PR no cierra F2: los pendientes siguientes permanecen visibles y separan definición funcional de implementación técnica.
 
@@ -294,7 +296,7 @@ La revisión dejó reglas confirmadas sobre acceso del Productor, cancelación, 
 | --- | --- | --- | --- | --- |
 | Formulario dinámico | **PENDIENTE FUNCIONAL** | MAPS + Kondor | Validación funcional F2 | Validar 1–2 formularios representativos y aprobar el contrato acotado. |
 | Campos de perfil | **PENDIENTE FUNCIONAL** | MAPS; Kondor releva/documenta | Definición funcional posterior | Lista de campos visibles, editables, obligatorios y no editables aprobada por MAPS. |
-| Baja de Cliente/Productor e inhabilitación | **PENDIENTE FUNCIONAL** | MAPS | Definición funcional posterior | Reglas aprobadas para acceso, solicitudes existentes, asignaciones, historial, reactivación, avisos y retención. |
+| Baja de Cliente/Productor | **PENDIENTE FUNCIONAL** | MAPS | Definición funcional posterior | Reglas aprobadas para acceso, solicitudes existentes, asignaciones, historial, reactivación, avisos y retención. |
 | Auth / RBAC | **DIFERIDO TÉCNICO F3** | Kondor | F3 | Diseño e implementación técnica alineados con la matriz de permisos UX. |
 | Persistencia y versionado | **DIFERIDO TÉCNICO F3** | Kondor | F3 | Modelo de datos, snapshots, auditoría, enforcement de versiones y representación/retención del BORRADOR afectado implementados según reglas MAPS. |
 | Email, entrega y reintentos | **DIFERIDO TÉCNICO F3** | Kondor | F3 | Integración de delivery, trazabilidad técnica, reintentos e incidencias implementada. |

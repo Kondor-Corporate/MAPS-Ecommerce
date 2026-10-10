@@ -49,7 +49,7 @@ Catálogo → Producto → Registro/Login → BORRADOR
 | Admin | Gestionar ENVIADA, asignar/reasignar, intervenir por email fallido, confirmar o rechazar solicitudes de cancelación DERIVADA, administrar (ABM) productores, clientes, productos, categorías del catálogo y formularios/versiones. |
 | Productor | Iniciar sesión y ver en **Mis solicitudes** únicamente las asignadas a él, consultar read-only el expediente autorizado y continuar gestión comercial fuera del Portal. |
 
-No toda ENVIADA es visible al productor. La asignación lleva la solicitud a ASIGNADA; sólo una entrega/derivación requerida exitosa permite `ASIGNADA → DERIVADA`. Todo problema previo a DERIVADA es ownership del Admin: pendiente de asignación, productor incorrecto/inhabilitado, reasignación, email fallido/rebotado o incidencia de producto/formulario.
+No toda ENVIADA es visible al productor. La asignación lleva la solicitud a ASIGNADA; sólo una entrega/derivación requerida exitosa permite `ASIGNADA → DERIVADA`. Todo problema previo a DERIVADA es ownership del Admin: pendiente de asignación, productor incorrecto/dado de baja, reasignación, email fallido/rebotado o incidencia de producto/formulario.
 
 `CANCELADA` es final y no tiene transiciones salientes. BORRADOR puede descartarse sin ser necesariamente CANCELADA ni requerir motivo obligatorio. Cliente cancela directamente ENVIADA o ASIGNADA, registrando actor, fecha y motivo; ASIGNADA notifica una vez a Admin/Productor; el productor no tiene acceso al expediente en ASIGNADA, por lo que no hay acceso que revocar. En DERIVADA el cliente solicita cancelación con motivo; esa solicitud es una situación asociada al expediente, no un estado nuevo. Admin la confirma tras considerar gestión externa y recién ocurre `DERIVADA → CANCELADA`, registrando solicitante, Admin, fecha y motivo, notificando una vez al Productor y revocando su acceso a esa solicitud. Si Admin la rechaza, InsuranceRequest permanece DERIVADA; se registra la decisión administrativa y el Cliente puede conocer que su solicitud no fue aceptada. Productor no cancela desde el Portal: comunica la situación a Admin.
 
@@ -124,9 +124,10 @@ El modelo no introduce clases técnicas adicionales. Cardinalidades, esquema y p
 | RN-12 | Recovery/Potenciales clientes se reevalúa sólo con evidencia real de abandono. | Evolución futura |
 | RN-13 | MAPS administra (ABM) las categorías del catálogo para agrupar productos, sin cambios de código. | CONFIRMADO |
 | RN-14 | El Admin administra (ABM) los clientes (alta, edición y baja) y los consulta desde el panel. | CONFIRMADO |
-| RN-15 | El Admin administra (ABM) los productores (alta, edición y baja) y habilita o inhabilita su disponibilidad para recibir asignaciones. | CONFIRMADO |
+| RN-15 | El Admin administra (ABM) los productores (alta, edición, baja y reactivación). Un productor dado de baja no está disponible para nuevas asignaciones; la reactivación lo vuelve disponible. | CONFIRMADO |
 | RN-16 | El acceso del productor no depende de un enlace vencible: exige sesión autenticada y autorización por identidad sobre las solicitudes asignadas. | CONFIRMADO |
 | RN-17 | Cliente autenticado consulta y actualiza sólo los datos de perfil habilitados para autogestión básica; identidad avanzada, sincronización y reglas técnicas se difieren a F3. | CONFIRMADO / técnico F3 |
+| RN-18 | Los avisos a Admin y Productor (cancelación, cambios de asignación y otros eventos de gestión) se realizan mediante email transaccional al correo registrado. Contenido y plantillas son F3. | CONFIRMADO / técnico F3 |
 
 ## 9. Requerimientos preliminares
 
@@ -145,7 +146,7 @@ El modelo no introduce clases técnicas adicionales. Cardinalidades, esquema y p
 | RF-ADM-01 | Admin consulta ENVIADA, asigna/reasigna, opera incidencias previas a DERIVADA y decide solicitudes de cancelación DERIVADA. | CONFIRMADO |
 | RF-PRODUCER-01 | Productor inicia sesión y consulta read-only, desde **Mis solicitudes**, únicamente las asignadas a él. | CONFIRMADO |
 | RF-PRODUCER-02 | El productor recibe aviso cuando una solicitud asignada a él se cancela y pierde el acceso a esa solicitud. | CONFIRMADO |
-| RF-PRODUCER-03 | MAPS administra (ABM) productores: alta, edición, baja y habilitación para recibir asignaciones. | CONFIRMADO |
+| RF-PRODUCER-03 | MAPS administra (ABM) productores: alta, edición, baja y reactivación. La baja excluye de nuevas asignaciones; la reactivación lo vuelve disponible. | CONFIRMADO |
 | RF-DELIVERY-01 | Se registra derivación, resultado conocido, fallas y reintentos; DERIVADA sólo se alcanza después de la entrega requerida exitosa. | CONFIRMADO |
 | RF-ANALYTICS-01 | Se miden eventos y conversiones del funnel sin entidad Lead, PII innecesaria ni automatismos comerciales. | CONFIRMADO / técnico F3 |
 | RF-GOV-01 | Cambios controlados, pendientes y criterios de cierre preservan dueño, fase destino, condición de cierre e histórico. | CONFIRMADO |
@@ -184,7 +185,7 @@ F3 recibe auth/identity, Product/precio/snapshot histórico, Category, Customer 
 | 2026-09-15 | Formularios, gobierno y analytics | Contrato de campos preliminar validable con casos reales, gobierno mínimo y analítica con minimización de datos. | CONFIRMADO / PENDIENTE MAPS / F3 |
 | 2026-09-16 | Categorías y Clientes (ABM) | Cambio controlado: se incorporan al MVP la administración (ABM) de categorías del catálogo y de clientes como capacidades del Admin (RF-CAT-01, RF-CLI-01, RN-13, RN-14). | CONFIRMADO |
 | 2026-09-16 | Acceso del productor | Cambio controlado: se revoca el enlace seguro por solicitud; el productor accede desde cuenta autenticada y consulta en **Mis solicitudes** sólo las asignadas a él (RF-PRODUCER-01, RF-PRODUCER-02, RN-05, RN-16). Motivo: fricción creciente de un enlace por asignación; el aislamiento se resuelve por autorización de identidad. | CONFIRMADO |
-| 2026-09-16 | Productores (ABM) | Cambio controlado: se explicita el ABM de productores como capacidad del Admin (RF-PRODUCER-03, RN-15), ya implícita en la asignación y en la gestión de roles internos. | CONFIRMADO |
+| 2026-09-16 | Productores (ABM) | Cambio controlado: se explicita el ABM de productores (alta, edición, baja y reactivación) como capacidad del Admin (RF-PRODUCER-03, RN-15), ya implícita en la asignación y en la gestión de roles internos. | CONFIRMADO |
 | 2026-09-17 | Alineación F1 y UX previa a F2 | Se formalizan descarte de BORRADOR sin motivo obligatorio, entrega exitosa como precondición de DERIVADA, confirmación/rechazo de cancelación DERIVADA y perfil básico autogestionable del Cliente. | CONFIRMADO / técnico F3 |
 | 2026-09-21 | Retiro urgente de última FormVersion | Cambio controlado: el retiro normal de la última versión utilizable se bloquea; por urgencia aprobada puede retirarse y el Product pasa a no disponible hasta publicar reemplazo. BORRADORES afectados no se migran, reutilizan ni copian. La representación, retención, eliminación, auditoría e historial quedan para F3 y reglas MAPS. | CONFIRMADO / técnico F3 |
 | 2026-09-21 | Aclaración del acceso del productor | Aclaración sin cambio de alcance: el productor accede read-only sólo a solicitudes DERIVADAS asignadas a él; en ASIGNADA no tiene acceso al expediente, por lo que la cancelación de una ASIGNADA sólo le notifica y no requiere revocar acceso. Alinea F0/F1 con la matriz de F2 §6. | CONFIRMADO |

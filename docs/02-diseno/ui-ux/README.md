@@ -33,13 +33,17 @@ El prototipo está alineado con la baseline funcional vigente (Fase 0), el Disco
 - productos con estado de publicación (publicado, no publicado, no disponible) y acceso directo a su formulario;
 - configuración de formularios por producto, con borrador separado de la versión publicada, validación antes de publicar e histórico de versiones (vigente, publicada, retirada);
 - retiro de versiones por causa legal, de seguridad, comercial o de vigencia. El retiro normal de la última versión utilizable está bloqueado; el retiro urgente exige confirmación fuerte y deja el producto no disponible hasta publicar un reemplazo;
-- ABM de categorías (crear, editar, renombrar), clientes (alta, edición, baja) y productores (alta, edición, baja, habilitación para asignaciones). Las bajas e inhabilitaciones piden confirmación e informan que sus efectos están pendientes de definición de MAPS.
+- ABM de categorías (crear, editar, renombrar), clientes (alta, edición, baja) y productores (alta, edición, baja y reactivación). Las bajas piden confirmación e informan que sus efectos están pendientes de definición de MAPS.
 
 **Productor**
 
 - inicia sesión con su cuenta y consulta en **Mis solicitudes** únicamente las solicitudes **DERIVADAS** asignadas a él, con búsqueda, filtro por producto, orden y paginado para un alto volumen de casos;
 - detalle read-only del expediente autorizado, sin navegación a otros casos; si la solicitud deja de estar autorizada se muestra acceso denegado;
 - aviso único, descartable, cuando una solicitud asignada se cancela, con pérdida del acceso al expediente y sin exponer el motivo del cliente.
+
+**Avisos a la organización**
+
+Los avisos al Admin y al Productor se realizan mediante **email transaccional** al correo registrado. El sistema envía notificaciones automáticas ante eventos relevantes: cancelación de solicitud asignada, cambios de asignación y otros eventos de gestión. El contenido y plantillas de estos emails quedan como especificación de F3.
 
 Fuera del alcance actual (no incluido en el prototipo): **Mis pólizas** / Portal del Asegurado (Fase 0 §0.2), **Potenciales clientes / leads** e Intranet.
 
@@ -58,7 +62,7 @@ Fuera del alcance actual (no incluido en el prototipo): **Mis pólizas** / Porta
 | --- | --- | --- |
 | **Categorías** (ABM) | MAPS administra las categorías del catálogo (crear, editar, renombrar) para agrupar productos sin cambios de código. | F0 §0.2/§0.4/§0.11, F1 §4/§9 (RF-CAT-01), RN-13 |
 | **Clientes** (ABM) | El Admin administra clientes (alta, edición, baja) y los consulta desde el panel, con búsqueda, paginado y detalle de las solicitudes asociadas. | F0 §0.2/§0.4/§0.11, F1 §9 (RF-CLI-01), RN-14 |
-| **Productores** (ABM) | El Admin administra productores (alta, edición, baja) y habilita o inhabilita su disponibilidad para recibir asignaciones. | F0 §0.2/§0.11, F1 §9 (RF-PRODUCER-03), RN-15 |
+| **Productores** (ABM) | El Admin administra productores (alta, edición, baja y reactivación). Un productor dado de baja no está disponible para nuevas asignaciones; la reactivación lo vuelve disponible. | F0 §0.2/§0.11, F1 §9 (RF-PRODUCER-03), RN-15 |
 | **Acceso del productor** | El enlace individual por solicitud dejó de ser un mecanismo de acceso. El email transaccional sólo dirige al Portal; el Productor accede mediante su cuenta autenticada y ve únicamente las solicitudes DERIVADAS asignadas a él. | F0 §0.1/§0.6/§0.11, F1 §5/§9 (RF-PRODUCER-01, RF-PRODUCER-02), RN-05, RN-16 |
 | **Retiro urgente de última FormVersion** | El retiro normal de la última versión utilizable se bloquea; el retiro urgente aprobado deja el producto no disponible hasta publicar un reemplazo. Los borradores afectados no se migran, reutilizan ni copian. | F0 §0.6/§0.11, F1 §4/§13, F2 §10 |
 
@@ -77,7 +81,7 @@ La versión publicada es inmutable: lo que se edita en el panel queda en un borr
 El prototipo no resuelve decisiones que F2 deja abiertas; las muestra como pendientes:
 
 - campos definitivos de **Mi perfil** (F2 §11);
-- efectos de la baja de Cliente/Productor y de la inhabilitación de Productor más allá de excluirlo de nuevas asignaciones (F2 §12);
+- efectos de la baja de Cliente/Productor más allá de excluirlo de nuevas asignaciones (F2 §12);
 - si el Cliente puede volver a pedir la cancelación de una DERIVADA después de un rechazo (F2 CLI-08, no definido): el prototipo lo permite;
 - contrato definitivo del formulario dinámico (F2 §9).
 
