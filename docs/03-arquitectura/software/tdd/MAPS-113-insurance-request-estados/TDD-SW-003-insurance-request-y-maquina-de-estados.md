@@ -4,7 +4,7 @@
 | --- | --- |
 | ID | `TDD-SW-003` |
 | Título | InsuranceRequest, snapshots y máquina de estados |
-| Estado | `BORRADOR` |
+| Estado | `APROBADO` |
 | Fecha | 2026-10-01 |
 | Autor | Joaquin Rodriguez |
 | Revisores | Santiago Talavera (revisión cruzada cloud); pendiente de validación final |
@@ -12,7 +12,7 @@
 | URL del work item | https://santitalavera.atlassian.net/browse/MAPS-113 |
 | Fase origen | [F1 §2/3/4, RN-02/03/06/07/08/09/10/18/19, RF-SOL-01 a 05](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md), [F2 §5/6/8/10/12](../../../../02-diseno/Fase_2__Design_Handoff.md) |
 | Decisiones relacionadas | [ADR-SW-001](../../adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-001-monolito-modular-y-limites.md); [ADR-SW-002](../../adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-002-arquitectura-hexagonal-y-capas.md); [ADR-SW-003](../../adr/MAPS-108-persistencia-fronteras-transaccionales/ADR-SW-003-persistencia-y-fronteras-transaccionales.md); [ADR-SW-004](../../adr/MAPS-110-asincronia-outbox-idempotencia/ADR-SW-004-outbox-asincronia-e-idempotencia.md); [ADR-SW-005](../../adr/MAPS-111-identidad-autorizacion/ADR-SW-005-identidad-y-autorizacion.md); [TDD-SW-001](../MAPS-109-modelo-dominio-datos/TDD-SW-001-modelo-de-dominio-y-datos.md); TDD-SW-002 y TDD-SW-005 (previstos, sin redactar) |
-| Depende de | ADR-SW-001/002/003/004/005 (`PROPUESTO`) y TDD-SW-001 (`BORRADOR`): este TDD queda condicionado a su aceptación |
+| Depende de | ADR-SW-001/002/003/004/005 (`ACEPTADO`) y TDD-SW-001 (`APROBADO`) |
 | Reemplaza | No aplica |
 | Reemplazado por | No aplica |
 

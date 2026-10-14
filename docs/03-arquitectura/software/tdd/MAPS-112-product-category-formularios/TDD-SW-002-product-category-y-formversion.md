@@ -4,7 +4,7 @@
 | --- | --- |
 | ID | `TDD-SW-002` |
 | Título | Product, Category, formularios y FormVersion |
-| Estado | `BORRADOR` |
+| Estado | `APROBADO` |
 | Fecha | 2026-10-12 |
 | Autor | Joaquin Rodriguez |
 | Revisores | Santiago Talavera (revisión cruzada cloud sobre publicación, almacenamiento y consistencia); pendiente de validación final |
@@ -12,7 +12,7 @@
 | URL del work item | https://santitalavera.atlassian.net/browse/MAPS-112 |
 | Fase origen | [F0 §0.2/0.3](../../../../00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md), [F1 §4/7, RN-08/09/13, RF-PROD-01, RF-CAT-01, RF-FORM-01, RF-SOL-04](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md), [F2 §9/10](../../../../02-diseno/Fase_2__Design_Handoff.md) |
 | Decisiones relacionadas | [ADR-SW-001](../../adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-001-monolito-modular-y-limites.md); [ADR-SW-002](../../adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-002-arquitectura-hexagonal-y-capas.md); [ADR-SW-003](../../adr/MAPS-108-persistencia-fronteras-transaccionales/ADR-SW-003-persistencia-y-fronteras-transaccionales.md); [ADR-SW-004](../../adr/MAPS-110-asincronia-outbox-idempotencia/ADR-SW-004-outbox-asincronia-e-idempotencia.md); [TDD-SW-001](../MAPS-109-modelo-dominio-datos/TDD-SW-001-modelo-de-dominio-y-datos.md); [TDD-SW-003](../MAPS-113-insurance-request-estados/TDD-SW-003-insurance-request-y-maquina-de-estados.md); TDD-SW-004, TDD-SW-006 y TDD-SW-008 (previstos, sin redactar) |
-| Depende de | ADR-SW-001, ADR-SW-002 y ADR-SW-003 (`PROPUESTO`); TDD-SW-001 (`BORRADOR`). Contrato definitivo de formularios: `PENDIENTE FUNCIONAL MAPS` |
+| Depende de | ADR-SW-001, ADR-SW-002 y ADR-SW-003 (`ACEPTADO`); TDD-SW-001 (`APROBADO`). Contrato definitivo de formularios: `PENDIENTE FUNCIONAL MAPS` |
 | Reemplaza | No aplica |
 | Reemplazado por | No aplica |
 

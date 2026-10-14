@@ -4,7 +4,7 @@
 | --- | --- |
 | ID | `ADR-SW-004` |
 | Título | Outbox transaccional, asincronía e idempotencia de efectos externos |
-| Estado | `PROPUESTO` |
+| Estado | `ACEPTADO` |
 | Fecha | 2026-10-01 |
 | Autor | Joaquin Rodriguez |
 | Revisores | Santiago Talavera (revisión cruzada cloud); pendiente de validación final |
@@ -12,7 +12,7 @@
 | URL del work item | https://santitalavera.atlassian.net/browse/MAPS-110 |
 | Fase origen | [F0 §0.4/0.5](../../../../00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md), [F1 §3/5, RN-06/07/10, RF-DELIVERY-01, RNF-COM-01](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md), [F2 §5/12](../../../../02-diseno/Fase_2__Design_Handoff.md) |
 | Decisiones relacionadas | [ADR-SW-001](../MAPS-107-estilo-arquitectonico-limites/ADR-SW-001-monolito-modular-y-limites.md); [ADR-SW-002](../MAPS-107-estilo-arquitectonico-limites/ADR-SW-002-arquitectura-hexagonal-y-capas.md); [ADR-SW-003](../MAPS-108-persistencia-fronteras-transaccionales/ADR-SW-003-persistencia-y-fronteras-transaccionales.md); [TDD-SW-001](../../tdd/MAPS-109-modelo-dominio-datos/TDD-SW-001-modelo-de-dominio-y-datos.md); [TDD-SW-003](../../tdd/MAPS-113-insurance-request-estados/TDD-SW-003-insurance-request-y-maquina-de-estados.md); TDD-SW-005, ADR-CLD-003 y TDD-CLD-005 (previstos, sin redactar) |
-| Depende de | [ADR-SW-003](../MAPS-108-persistencia-fronteras-transaccionales/ADR-SW-003-persistencia-y-fronteras-transaccionales.md) (`PROPUESTO`) |
+| Depende de | [ADR-SW-003](../MAPS-108-persistencia-fronteras-transaccionales/ADR-SW-003-persistencia-y-fronteras-transaccionales.md) (`ACEPTADO`) |
 | Reemplaza | No aplica |
 | Reemplazado por | No aplica |
 
@@ -170,7 +170,7 @@ Revisar si el volumen de eventos o la latencia requerida justifican un broker ge
 
 | Fecha | Decisión | Participantes | Observaciones |
 | --- | --- | --- | --- |
-| — | Pendiente: `ACEPTADO` o `RECHAZADO` | — | Requiere validar contrato de outbox, idempotencia, reintentos, descarte de eventos obsoletos y revisión cruzada cloud |
+| 2026-10-14 | `ACEPTADO` | Joaquin Rodriguez (owner de software) | Aceptado por decisión del owner. La revisión cruzada cloud con Santiago Talavera (tabla superior) sigue pendiente; esta entrada no registra su conformidad. |
 
 ## Referencias y trazabilidad
 
