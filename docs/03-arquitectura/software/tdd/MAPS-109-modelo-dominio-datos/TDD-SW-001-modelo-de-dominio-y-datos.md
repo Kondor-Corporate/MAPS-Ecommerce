@@ -4,7 +4,7 @@
 | --- | --- |
 | ID | `TDD-SW-001` |
 | Título | Modelo de dominio y datos del MVP |
-| Estado | `BORRADOR` |
+| Estado | `APROBADO` |
 | Fecha | 2026-09-30 |
 | Autor | Joaquin Rodriguez |
 | Revisores | Santiago Talavera (revisión cruzada cloud); pendiente de validación final |
@@ -12,7 +12,7 @@
 | URL del work item | https://santitalavera.atlassian.net/browse/MAPS-109 |
 | Fase origen | [F0 §0.4/0.5/0.6](../../../../00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md), [F1 §2/3/4/5/7, RN-02 a RN-17](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md), [F2 §5/6/8/9/10/12/13](../../../../02-diseno/Fase_2__Design_Handoff.md) |
 | Decisiones relacionadas | [ADR-SW-001](../../adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-001-monolito-modular-y-limites.md); [ADR-SW-002](../../adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-002-arquitectura-hexagonal-y-capas.md); [ADR-SW-003](../../adr/MAPS-108-persistencia-fronteras-transaccionales/ADR-SW-003-persistencia-y-fronteras-transaccionales.md); TDD-SW-002/003/004/005/006 y TDD-CLD-003/004 (previstos, sin redactar) |
-| Depende de | ADR-SW-001, ADR-SW-002 y ADR-SW-003, todos `PROPUESTO`: este TDD queda condicionado a su aceptación |
+| Depende de | ADR-SW-001, ADR-SW-002 y ADR-SW-003, todos `ACEPTADO` |
 | Reemplaza | No aplica |
 | Reemplazado por | No aplica |
 
