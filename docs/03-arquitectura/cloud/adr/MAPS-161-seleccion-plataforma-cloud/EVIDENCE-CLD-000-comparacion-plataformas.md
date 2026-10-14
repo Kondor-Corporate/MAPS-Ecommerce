@@ -3,7 +3,8 @@
 | Dato | Valor |
 | --- | --- |
 | Estado | **EN ELABORACIÓN** — evidencia de apoyo; no acepta plataforma ni servicios |
-| Corte | 2026-10-07 |
+| Corte de precios | 2026-10-07 |
+| Última actualización documental | 2026-10-13 |
 | Work items | Historia [MAPS-161](https://santitalavera.atlassian.net/browse/MAPS-161); subtask [MAPS-162](https://santitalavera.atlassian.net/browse/MAPS-162) |
 | Decisión relacionada | [ADR-CLD-000 — Selección de plataforma cloud](./ADR-CLD-000-seleccion-plataforma-cloud.md) (`PROPUESTO`) |
 | Fuentes de alcance | [F0](../../../../00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md), [F1](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md), [F2](../../../../02-diseno/Fase_2__Design_Handoff.md) y [Cloud Strategy](../../STRATEGY.md) |
@@ -17,7 +18,7 @@ Este anexo congela una baseline comparable para reunir evidencia de `ADR-CLD-000
 - Comparar costo bruto sin créditos; registrar créditos o descuentos por separado.
 - Mantener `TCO` como concepto general: costo monetario directo, esfuerzo humano, complejidad, incidentes, riesgo y salida. Para un scoring futuro, separar esos componentes en criterios no superpuestos.
 - No premiar cantidad de servicios ni familiaridad sin evidencia operacional.
-- No desplegar recursos para esta etapa documental. Cualquier spike posterior tendrá alcance, presupuesto, teardown y datos sintéticos explícitos.
+- No desplegar recursos para esta etapa documental. Cualquier spike posterior tendrá alcance, financiación, teardown y datos sintéticos explícitos.
 - Registrar fuente y fecha de cada precio o disponibilidad regional; una lista de regiones no prueba disponibilidad conjunta ni cuota efectiva en una cuenta.
 
 ## 2. Baseline congelada v1
@@ -429,15 +430,73 @@ El [protocolo reproducible](./PROTOCOL-CLD-000-pruebas-y-auditoria.md) queda `PR
 - identidad CI/CD federada desde GitHub Actions mediante OIDC, con acción permitida, acción denegada, expiración y auditoría, sin secrets estáticos;
 - Bajo/Esperado/Alto con igual cantidad de iteraciones y ventanas comparables;
 - esquema CSV de resultados, correlation id y manifiesto de herramientas;
-- presupuesto, teardown y prohibición de datos reales.
+- financiación verificada, teardown y prohibición de datos reales.
 
 No se desplegó ningún recurso ni se ejecutó ningún benchmark en esta iteración. Los SKUs de capacidad continúan provisionales hasta obtener mediciones.
+
+### 8.1 Evaluation funding policy
+
+El presupuesto propio para evaluación experimental es **USD 0 out-of-pocket**. Un spike sintético sólo podrá autorizarse si su costo bruto estimado y el margen de seguridad quedan cubiertos al 100% por una combinación verificada de créditos, franquicias permanentes/free tier aplicables, sponsorship/promoción u otra financiación externa confirmada, sin exposición de facturación propia aceptada por el proyecto. Una alerta de costo sigue siendo obligatoria como control de detección, pero no constituye un hard spending cap ni garantiza por sí sola que no exista facturación.
+
+La regla conceptual es:
+
+```text
+estimated cost fully covered
++ safety margin covered
++ no accepted out-of-pocket exposure
+= FUNDED
+```
+
+Antes de autorizar cada spike se deben registrar: costo bruto estimado, financiación disponible, franquicias aplicables, expiración y restricciones, margen de seguridad y riesgo de excedente. Disponer de saldo suficiente según la estimación no alcanza si el overage no está controlado o no se pueden verificar expiración, servicios cubiertos o retrasos de metering. La decisión será exactamente:
+
+- `FUNDED`: se cumplen conjuntamente los tres términos de la regla, con protección verificable suficiente para no aceptar exposición out-of-pocket; esta clasificación no afirma que el proveedor garantice costo matemáticamente cero;
+- `NOT FUNDED`: la cobertura es insuficiente o existe una exposición de facturación propia identificada que el proyecto no acepta; o
+- `UNKNOWN`: no puede determinarse la cobertura o protección por falta de información verificable sobre excedentes, expiración, servicios cubiertos, metering u otra condición relevante.
+
+Únicamente `FUNDED` junto con autorización explícita habilita la ejecución.
+
+Los créditos temporales permiten obtener evidencia; **no son una ventaja estructural del proveedor**, no reducen la baseline productiva list-price y no forman parte de los criterios técnicos ni del gate económico.
+
+### 8.2 Niveles de evidencia
+
+| Nivel | Carácter | Evidencia admisible | Uso en ADR-CLD-000 |
+| --- | --- | --- | --- |
+| **1 — Documental y comparable** | Obligatorio | Documentación oficial, calculators, price APIs/catálogos, regiones y disponibilidad de servicios, IAM, PostgreSQL, object storage, runtime, jobs, observabilidad, CI/CD, recuperación y modelo reproducible. | Base mínima homogénea para comparar las tres plataformas. Los artifacts de calculators continúan siendo obligatorios antes de declarar `evidence frozen`. |
+| **2 — Operacional existente** | Cuando esté disponible | Auditoría read-only del staging MAPS-Landingpage en GCP, experiencia del equipo verificada, despliegues, incidentes y costos históricos. | Reduce incertidumbre operacional, pero no equivale a un benchmark comparativo AWS/Azure ni se extrapola sin límites. |
+| **3 — Spike sintético** | Opcional y condicionado | Runtime/latencia, DB, jobs, storage, workload identity/OIDC, backup y restore bajo el protocolo común. | Produce evidencia `MEDIDO` sólo si está totalmente financiado y autorizado. La ausencia de financiación suficiente se registra como `NO MEDIDO — no sufficient free funding` y no bloquea por sí sola el ADR. |
+
+### 8.3 Matriz de financiación de spikes
+
+Ningún crédito o allowance se presume disponible hasta verificar cuenta, región, servicio, vigencia, restricciones y consumo compartido. La mención previa de un potencial crédito GCP de USD 300 continúa sin verificar y por eso no se registra como saldo disponible.
+
+| Proveedor | Costo bruto estimado del spike | Free allowance aplicable | Créditos disponibles | Expiración | Restricciones del crédito | Margen de seguridad | Riesgo out-of-pocket | Decisión |
+| --- | ---: | --- | --- | --- | --- | ---: | --- | --- |
+| GCP | PENDIENTE preestimación | PENDIENTE verificación | NO VERIFICADO (potencial USD 300 informado) | PENDIENTE | PENDIENTE | PENDIENTE | UNKNOWN | `UNKNOWN` |
+| AWS | PENDIENTE preestimación | PENDIENTE verificación | NO VERIFICADO | PENDIENTE | PENDIENTE | PENDIENTE | UNKNOWN | `UNKNOWN` |
+| Azure | PENDIENTE preestimación | PENDIENTE verificación | NO VERIFICADO | PENDIENTE | PENDIENTE | PENDIENTE | UNKNOWN | `UNKNOWN` |
+
+### 8.4 Asimetría experimental y suficiencia
+
+Para cada capacidad se distinguirá `MEDIDO` de `NO MEDIDO — no sufficient free funding`. `NO MEDIDO` **no significa** `FALLA`, no asigna automáticamente cero puntos y no genera una penalización por disponibilidad desigual de créditos. Sólo se realizará una comparación directa de mediciones cuando configuración, workload, región, ventana y procedimiento sean equivalentes.
+
+En un scoring futuro se usará evidencia documental cuando resulte suficiente; donde no alcance, se registrará incertidumbre explícita. Si esa incertidumbre pudiera cambiar al ganador, se realizará análisis de sensibilidad o se expresará un rango, sin inventar una medición ni convertir créditos en criterio técnico.
+
+`PROTOCOL EXECUTION COMPLETE` y `ADR EVIDENCE SUFFICIENT` son estados independientes. El protocolo puede quedar `NOT EXECUTED` o `PARTIAL` y el ADR aun disponer de evidencia suficiente si:
+
+- los calculators y el script quedan reconciliados;
+- los gates pueden verificarse, aunque todavía no se apliquen;
+- las capacidades relevantes están comparadas documentalmente;
+- los riesgos y límites de la evidencia operacional están documentados;
+- la incertidumbre restante está explícita; y
+- la sensibilidad demuestra que esa incertidumbre no cambia materialmente la decisión o el riesgo residual es aceptado de forma explícita.
 
 ## 9. Auditoría GCP staging pendiente
 
 La checklist read-only detallada está en el mismo [protocolo](./PROTOCOL-CLD-000-pruebas-y-auditoria.md#8-checklist-read-only-para-gcp-staging). **No se ejecutó porque el acceso todavía no está disponible.**
 
 Cuando exista acceso, relevará proyecto/región, Cloud Run, Cloud SQL, Storage, Secret Manager, service accounts, jobs, networking, observabilidad, backups, costos históricos, despliegues, incidentes, errores y tiempo humano. Cada evidencia será `VERIFICADO`, `DOCUMENTADO NO VERIFICADO` o `NO DISPONIBLE`; no se copiarán secretos, PII, logs sensibles ni contenido de buckets.
+
+Esta auditoría de MAPS-Landingpage es la prioridad de evidencia operacional existente (Nivel 2). Puede demostrar condiciones reales de GCP y experiencia del equipo, pero no constituye un benchmark equivalente contra AWS o Azure.
 
 ## 10. Estado de gates, scoring y sesgo
 
@@ -446,6 +505,8 @@ Cuando exista acceso, relevará proyecto/región, Cloud Run, Cloud SQL, Storage,
 - No se asignaron puntos ni se agregaron resultados ponderados.
 - Los pesos permanecen congelados en 30/25/15/15/10/5 antes de ver scoring.
 - Experiencia GCP no equivale a decisión GCP; la auditoría sólo puede reducir incertidumbre o aprendizaje demostrados.
+- `NO MEDIDO` no equivale a `FALLA` ni a cero puntos; la incertidumbre se conserva y se somete a sensibilidad cuando pueda cambiar el resultado.
+- La disponibilidad de créditos no es un criterio técnico ni una ventaja estructural; sólo habilita o impide una medición opcional bajo la política experimental.
 - Ninguna ventaja secundaria podrá compensar en el futuro un gate incumplido.
 
 Riesgos visibles sin eliminar alternativas:
@@ -455,7 +516,7 @@ Riesgos visibles sin eliminar alternativas:
 - **Tolerancia zonal:** supera USD 200 para AWS y Azure desde Mes 1, y para GCP cerca de Mes 12; su obligatoriedad sigue pendiente de MAPS.
 - **AWS referencia:** evita NAT/endpoints usando public task IP; puede no superar una revisión de seguridad y su alternativa privada elevaría TCO.
 - **Capacity risk:** CPU burstable, latencia, conexiones y autoscaling no están probados; un precio bajo no demuestra suficiencia.
-- **Presupuesto del spike:** USD 20/proveedor continúa como tope, pero su suficiencia no está demostrada después de agregar restore temporal; requiere preestimación y autorización antes de ejecutar.
+- **Financiación del spike:** el presupuesto propio es USD 0; hoy las tres decisiones permanecen `UNKNOWN` hasta verificar costo bruto, cobertura total, margen de seguridad y riesgo de excedente. Esto puede impedir mediciones, pero no constituye una falla técnica ni bloquea por sí solo el ADR.
 
 ## 11. Incertidumbres abiertas exactas
 
@@ -475,7 +536,7 @@ Riesgos visibles sin eliminar alternativas:
 14. Impuestos, moneda de pago, soporte y costo humano.
 15. Share links/exports/capturas oficiales de calculator todavía no generados.
 16. Arquitectura pública de entrada definida por el futuro `ADR-CLD-001`; frontend, dominio, routing, CDN, LB/edge o backend privado pueden exigir recalcular costos.
-17. Duración mínima, almacenamiento y costo residual de la prueba backup/restore en cada proveedor frente al tope USD 20.
+17. Duración mínima, almacenamiento y costo residual de la prueba backup/restore en cada proveedor, y posibilidad de cubrirlos totalmente sin gasto propio.
 18. Políticas reales de organización/repositorio necesarias para habilitar OIDC y principals temporales de CI/CD.
 
 ## 12. Fuentes oficiales del corte
@@ -493,11 +554,12 @@ Riesgos visibles sin eliminar alternativas:
 | `v1` | 2026-10-07 | Mantiene workload y presupuesto; agrega horizonte, conversión GB/GiB, headroom 30%, peaks, conexiones, topología AWS, staging reproducible, tiers corregidos, Bajo/Alto y sensibilidad zonal. | Reemplaza sólo el modelo de cálculo v0; no cambia requisitos MAPS ni acepta plataforma. |
 | `v1.1` | 2026-10-07 | Explicita sensibilidad de conexiones Azure, separa cloud spend de carga operacional, corrige cold/provisioning, calcula net-of-allowance y registra dependencia con ADR-CLD-001. | No cambia workload, totales list-price principales, gates, pesos ni estado de decisión. |
 | `v1.2` | 2026-10-07 | Agrega restore y CI/CD federado, congela el gate económico y las fronteras de scoring, explicita RPO/RTO no definidos e inputs de runtime, y cierra controles de reproducibilidad. | No aplica gates/scoring ni cambia workloads, pesos o totales principales. |
+| `v1.3` | 2026-10-13 | Evaluation funding policy: USD 0 out-of-pocket; synthetic spikes become optional and conditional on fully funded credits/free allowances. | Separa ejecución del protocolo de suficiencia del ADR; no modifica costos productivos, workloads, gates, pesos ni estado de decisión. |
 
 Una corrección de fuente debe registrar su efecto. Un cambio futuro de workload, presupuesto, continuidad o alcance crea `v2` con fecha y motivo; no se sobrescriben silenciosamente supuestos usados para una comparación anterior.
 
 ## 14. Madurez metodológica
 
-Con `v1.2`, el modelo documental se considera **suficientemente maduro para pasar a obtención de evidencia real**: auditoría GCP read-only, artifacts de calculators y spikes sintéticos autorizados. Nuevos refinamientos basados sólo en supuestos deberían evitarse salvo que corrijan un error demostrado; las próximas variaciones de sizing, costo o capacidad deben originarse en mediciones, configuración observada, estimates guardados o decisiones MAPS pendientes.
+Con `v1.3`, el modelo documental se considera **suficientemente maduro para pasar a obtención de evidencia real**: artifacts de calculators obligatorios, auditoría GCP read-only prioritaria y spikes sintéticos opcionales sólo cuando estén totalmente financiados y autorizados. Nuevos refinamientos basados sólo en supuestos deberían evitarse salvo que corrijan un error demostrado; las próximas variaciones de sizing, costo o capacidad deben originarse en mediciones, configuración observada, estimates guardados o decisiones MAPS pendientes.
 
 Esto no congela evidencia, no aplica gates ni convierte la comparación en una recomendación. `ADR-CLD-000` permanece `PROPUESTO` y este anexo `EN ELABORACIÓN`.

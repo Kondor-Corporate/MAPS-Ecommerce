@@ -3,7 +3,8 @@
 | Dato | Valor |
 | --- | --- |
 | Estado | **PREPARADO — NO AUTORIZADO PARA EJECUCIÓN** |
-| Corte | 2026-10-07 |
+| Fecha original del diseño | 2026-10-07 |
+| Última actualización | 2026-10-13 |
 | Evidencia relacionada | [EVIDENCE-CLD-000](./EVIDENCE-CLD-000-comparacion-plataformas.md) |
 | Decisión relacionada | [ADR-CLD-000](./ADR-CLD-000-seleccion-plataforma-cloud.md) (`PROPUESTO`) |
 
@@ -15,7 +16,7 @@ Antes de ejecutar un spike deben existir:
 
 - autorización explícita para crear recursos en cada plataforma;
 - cuenta/proyecto/subscripción de prueba separados o resource group/proyecto etiquetado y aislado;
-- presupuesto máximo de **USD 20 por proveedor** y alertas de costo; antes de autorizar, una preestimación debe incluir DB restaurada temporal, storage, backup/PITR, tiempo mínimo facturable y 48 h de costo residual;
+- decisión de financiación `FUNDED` según la política USD 0 out-of-pocket de la sección 2.1 y alertas de costo configuradas como control de detección, no como hard spending cap;
 - owner, fecha de expiración y procedimiento de teardown;
 - regiones primarias congeladas: GCP `southamerica-east1`, AWS `sa-east-1`, Azure `brazilsouth`;
 - imagen OCI común fijada por digest `sha256`, arquitectura `linux/amd64` y código fuente versionado;
@@ -56,7 +57,34 @@ tests/cloud-platform/
 
 La implementación debe usar variables equivalentes y producir un manifiesto con commit, digest, región, SKU, configuración, timestamp UTC y versión de cada herramienta.
 
-El tope USD 20/proveedor continúa siendo una restricción, no una estimación validada. Es plausible para recursos pequeños y teardown rápido, pero la nueva restauración puede exigir una instancia adicional, storage y espera de disponibilidad del backup. La autorización del spike queda condicionada a una preestimación por proveedor; si no cabe, se consulta presupuesto o se reduce alcance de forma explícita.
+### 2.1 Política de financiación y autorización
+
+El presupuesto propio para evaluación experimental es **USD 0 out-of-pocket**. Antes de ejecutar cualquier spike se deben calcular y registrar:
+
+1. costo bruto estimado, incluidos DB temporal/restaurada, storage, backup/PITR, facturación mínima, networking, observabilidad y 48 h de costo residual;
+2. franquicias/free tier aplicables y verificadas para cuenta, región y servicio;
+3. créditos, sponsorship, promoción u otra financiación externa confirmada, con saldo, expiración y restricciones;
+4. margen de seguridad frente a duración, consumo o teardown mayores a los previstos; y
+5. riesgo material de excedente que pudiera generar facturación propia.
+
+La regla conceptual es:
+
+```text
+estimated cost fully covered
++ safety margin covered
++ no accepted out-of-pocket exposure
+= FUNDED
+```
+
+La decisión previa será exactamente:
+
+- `FUNDED`: se cumplen conjuntamente los tres términos de la regla mediante financiación y protecciones verificadas; esta clasificación no afirma que el proveedor garantice costo matemáticamente cero;
+- `NOT FUNDED`: la cobertura es insuficiente o existe una exposición de facturación propia identificada que el proyecto no acepta;
+- `UNKNOWN`: no puede determinarse la cobertura o protección por falta de información verificable sobre excedentes, expiración, servicios cubiertos, retrasos de metering u otra condición relevante.
+
+Disponer de créditos suficientes para el costo estimado no basta si existe un riesgo de overage no controlado. Sólo `FUNDED`, junto con autorización explícita, habilita la ejecución. `NOT FUNDED` y `UNKNOWN` conservan el spike como `NO MEDIDO — no sufficient free funding`. Las alertas son obligatorias, pero no son hard spending caps, no garantizan corte de consumo y no reemplazan la evaluación previa. Los créditos temporales habilitan evidencia; no son una ventaja estructural del proveedor ni un criterio técnico.
+
+La matriz canónica de financiación por proveedor está en [EVIDENCE-CLD-000, sección 8.3](./EVIDENCE-CLD-000-comparacion-plataformas.md#83-matriz-de-financiación-de-spikes). No se presume ningún crédito o allowance hasta verificarlo.
 
 ## 3. Workload HTTP congelado para el spike
 
@@ -136,7 +164,7 @@ restore_ready_time, restore_elapsed_time, validation_time,
 validation_result, manual_steps, errors, temporary_resource_deleted
 ```
 
-`restore_elapsed_time` es tiempo técnico observado del mecanismo, **no RTO MAPS**. RPO y RTO no están definidos por MAPS y continúan `PENDIENTE MAPS`; el backup diario de comparación tampoco establece un RPO. Si la preestimación total, incluyendo la base restaurada y el tiempo requerido para disponer del backup/PITR, supera USD 20, se detiene la autorización y se plantea una pregunta presupuestaria; el protocolo no aumenta el tope silenciosamente.
+`restore_elapsed_time` es tiempo técnico observado del mecanismo, **no RTO MAPS**. RPO y RTO no están definidos por MAPS y continúan `PENDIENTE MAPS`; el backup diario de comparación tampoco establece un RPO. Si la preestimación total, incluyendo la base restaurada y el tiempo requerido para disponer del backup/PITR más el margen de seguridad, no queda totalmente cubierta por financiación verificada, el spike se clasifica `NOT FUNDED` o `UNKNOWN` y no se ejecuta.
 
 ### 5.2 Prueba de identidad CI/CD federada
 
@@ -168,7 +196,7 @@ No se guardan tokens, assertions OIDC completas ni credenciales temporales en lo
 
 ## 6. Ventana y orden de ejecución
 
-1. Cerrar preestimación bajo USD 20 y configurar OIDC/federación sin credenciales estáticas.
+1. Cerrar preestimación bruta, completar la matriz de financiación con decisión `FUNDED` y configurar OIDC/federación sin credenciales estáticas.
 2. Ejecutar smoke test y verificar teardown en cada plataforma.
 3. Ejecutar Bajo, Esperado y Alto en ventanas equivalentes, evitando incidentes globales conocidos.
 4. Ejecutar backup/restore sólo cuando exista punto recuperable y tiempo/costo restante suficiente.
@@ -242,4 +270,18 @@ No copiar secretos, PII, contenido de buckets, tokens, variables sensibles ni lo
 
 ## 9. Condiciones de salida
 
-El protocolo se considera ejecutado sólo cuando existen resultados equivalentes de las tres plataformas, teardown verificado, costo real del spike y registro de desviaciones. Hasta entonces aporta un diseño de prueba, no una medición ni un criterio de selección.
+### 9.1 Estado de ejecución del protocolo
+
+El protocolo registra uno de estos estados sin inferir un resultado técnico para lo no ejecutado:
+
+- `NOT EXECUTED`: no existe ninguna medición autorizada;
+- `PARTIAL`: existe al menos una medición válida, pero no se completó todo el alcance comparable previsto;
+- `PROTOCOL EXECUTION COMPLETE`: se ejecutó todo el alcance autorizado y financiado, con teardown verificado, costo real y desviaciones registradas.
+
+Una capacidad queda `MEDIDO` sólo cuando produjo evidencia reproducible conforme a este protocolo. La falta de financiación suficiente se registra `NO MEDIDO — no sufficient free funding`: no significa `FALLA`, no equivale a cero puntos y no autoriza una comparación directa contra otro proveedor medido. Las mediciones sólo se comparan directamente cuando workload, configuración, región, ventana y procedimiento son equivalentes.
+
+### 9.2 Suficiencia de evidencia del ADR
+
+`PROTOCOL EXECUTION COMPLETE` no es requisito automático para `ADR EVIDENCE SUFFICIENT`. El protocolo puede quedar `NOT EXECUTED` o `PARTIAL` y el ADR resolverse con evidencia documental y operacional suficiente conforme a [EVIDENCE-CLD-000, sección 8.4](./EVIDENCE-CLD-000-comparacion-plataformas.md#84-asimetría-experimental-y-suficiencia).
+
+La auditoría read-only del staging MAPS-Landingpage en GCP es evidencia operacional existente prioritaria, no un benchmark equivalente contra AWS o Azure. Los artifacts de calculators y su reconciliación con el modelo local continúan siendo obligatorios antes de declarar `evidence frozen`.
