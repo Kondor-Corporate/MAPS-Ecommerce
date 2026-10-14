@@ -8,10 +8,10 @@
 | Fecha | 2026-10-04 |
 | Autor | Santiago Talavera |
 | Revisores | Joaquin Rodriguez — revisión cruzada Software/Domain pendiente |
-| Work item | Historia [MAPS-161](https://santitalavera.atlassian.net/browse/MAPS-161); subtask documental [MAPS-162](https://santitalavera.atlassian.net/browse/MAPS-162), ambas «Por hacer» al redactar |
+| Work item | Historia [MAPS-161](https://santitalavera.atlassian.net/browse/MAPS-161); subtask documental [MAPS-162](https://santitalavera.atlassian.net/browse/MAPS-162), ambas «En curso» |
 | URL del work item | [MAPS-161](https://santitalavera.atlassian.net/browse/MAPS-161); [MAPS-162](https://santitalavera.atlassian.net/browse/MAPS-162) |
 | Fase origen | [F3 — Arquitectura](../../../README.md), [F0](../../../../00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md), [F1](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md), [F2](../../../../02-diseno/Fase_2__Design_Handoff.md), [Cloud Strategy](../../STRATEGY.md) |
-| Decisiones relacionadas | `ADR-CLD-001` a `ADR-CLD-007` previstos, no redactados; `ADR-SW-001/002/003` **PROPUESTO** y `TDD-SW-001` **BORRADOR** en [PR #14](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/14), sin aceptación ni aprobación |
+| Decisiones relacionadas | `ADR-CLD-001` a `ADR-CLD-007` previstos, no redactados; `ADR-SW-001/002/003` **PROPUESTO** y `TDD-SW-001` **BORRADOR**, incorporados a `main` mediante [PR #14](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/14), sin aceptación ni aprobación |
 | Depende de | Baseline F0/F1/F2 y [Cloud Strategy](../../STRATEGY.md); no depende de un ADR Cloud aceptado previo |
 | Reemplaza | No aplica |
 | Reemplazado por | No aplica |
@@ -26,7 +26,7 @@ El Portal del MVP necesita alojar el journey de solicitudes, la autorización po
 
 El [TARGET conceptual](../../STRATEGY.md) a soportar es: Internet → entrada pública → frontend → API → base relacional, object storage y outbox/estado → worker asíncrono → proveedor de email. IAM, secrets, observabilidad, CI/CD, IaC, ambientes, backup/recuperación y controles de costo son transversales. El TARGET **no** prescribe una relación uno-a-uno entre cajas y productos cloud.
 
-Software define semántica, contratos, datos y fronteras transaccionales; Cloud seleccionará y operará su materialización. Los ADR Software de [PR #14](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/14) siguen `PROPUESTO`, y su TDD `BORRADOR`: son contexto de integración, no restricciones aceptadas. `ADR-CLD-000` es gate para aceptar decisiones dependientes del proveedor; los análisis neutrales pueden continuar.
+Software define semántica, contratos, datos y fronteras transaccionales; Cloud seleccionará y operará su materialización. Los ADR Software incorporados a `main` mediante [PR #14](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/14) siguen `PROPUESTO`, y su TDD `BORRADOR`: son contexto de integración, no restricciones aceptadas. `ADR-CLD-000` es gate para aceptar decisiones dependientes del proveedor; los análisis neutrales pueden continuar.
 
 ## Drivers y criterios
 
@@ -36,7 +36,7 @@ La importancia expresa el impacto en esta elección, **no** una ponderación num
 | --- | --- | --- |
 | Managed-first y operación proporcional para equipo pequeño | Alta | [Strategy](../../STRATEGY.md); comparar tareas retenidas por el equipo, no sólo servicios disponibles. |
 | Runtime de contenedores para API, worker y jobs | Alta | TARGET de Strategy; patrón real de ejecución y volumen aún por medir. |
-| Persistencia relacional nueva; PostgreSQL gestionado como hipótesis | Alta | [F1](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md) excluye PostgreSQL histórico; `ADR-SW-003` aún `PROPUESTO` en PR #14. |
+| Persistencia relacional nueva; PostgreSQL gestionado como hipótesis | Alta | [F1](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md) excluye PostgreSQL histórico; `ADR-SW-003`, incorporado a `main` mediante PR #14, continúa `PROPUESTO`. |
 | Object storage privado y control de adjuntos | Alta | [F0](../../../../00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md), [F2](../../../../02-diseno/Fase_2__Design_Handoff.md); retención MAPS pendiente. |
 | IAM, identidades de workload y secretos | Alta | Aislamiento de Cliente/Productor/Admin y protección operacional; detalle de identidad de aplicación corresponde a Software. |
 | Seguridad, auditoría y observabilidad sin PII innecesaria | Alta | F0/F1/F2 y Strategy; definir señales y retención técnica después. |
@@ -138,7 +138,7 @@ Si `ADR-SW-003` llega a `ACEPTADO` y confirma una base PostgreSQL **nueva**, la 
 | Experiencia GCP en MAPS-Landingpage sólo informada | Cloud + equipo de MAPS-Landingpage | Relevar despliegue, recursos, incidentes, permisos, costos y esfuerzo real; no confundir configuración documentada con operación verificada. |
 | TCO no cuantificado | Cloud + MAPS | Presupuestar mismo workload en calculadoras oficiales, incluir operación y salida; registrar supuestos y fecha. |
 | Compatibilidad regional y latencia no demostradas | Cloud | Verificar disponibilidad de cada capacidad crítica en región candidata y medir rutas desde Argentina. |
-| Contratos Software aún propuestos | Software + Cloud | Revisar PR #14 y decisiones posteriores sin tratarlas como aceptadas; adaptar mapeo sólo al contrato validado. |
+| Contratos Software aún propuestos | Software + Cloud | Revisar los documentos incorporados a `main` mediante PR #14 y decisiones posteriores sin tratarlos como aceptados; adaptar mapeo sólo al contrato validado. |
 | Seguridad/IAM y costo de salida | Cloud + Software | Prototipo acotado de identidad, secrets, acceso privado y export/reconstrucción; revisión cruzada pendiente. |
 
 ## Criterios de revisión futura
@@ -151,8 +151,8 @@ Cuando exista una decisión `ACEPTADO`, revisar ante cambio de requisitos de res
 
 - [F0 — baseline](../../../../00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md), [F1 — Discovery](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md), [F2 — Design Handoff](../../../../02-diseno/Fase_2__Design_Handoff.md): alcance, roles, solicitud, datos y pendientes funcionales.
 - [Cloud Strategy](../../STRATEGY.md): TARGET, principios, gate y derivaciones condicionadas; permanece `BORRADOR ESTRATÉGICO`.
-- [Evidencia ADR-CLD-000](./EVIDENCE-CLD-000-comparacion-plataformas.md): baseline `v1`, arquitectura mínima equivalente, gates y registro de costeo todavía en elaboración; no acepta plataforma ni servicios.
-- [PR #14 de Software](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/14): `ADR-SW-001/002/003` propuestos y `TDD-SW-001` borrador, consultada el 2026-10-04. No se modificó aquí.
+- [Evidencia ADR-CLD-000](./EVIDENCE-CLD-000-comparacion-plataformas.md): baseline documental `v1.3`, arquitectura mínima equivalente, gates y registro de costeo todavía en elaboración; no acepta plataforma ni servicios.
+- [PR #14 de Software](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/14), incorporada a `main`: `ADR-SW-001/002/003` propuestos y `TDD-SW-001` borrador. No se modifican aquí.
 - MAPS-Landingpage: antecedente de uso GCP **informado** para el mismo cliente; el checkout local revisado no contiene evidencia suficiente para afirmar despliegue, operación ni costos actuales. Validación pendiente.
 - [Fila transversal en traceability.md](../../../traceability.md): «Desplegar el Portal con aislamiento, seguridad y operación verificables».
 
