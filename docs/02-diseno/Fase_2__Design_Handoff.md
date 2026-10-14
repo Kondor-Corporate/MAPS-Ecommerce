@@ -1,6 +1,6 @@
 # Fase 2 — Design Handoff
 
-> **Estado:** Primera versión para revisión interna / propuesta para revisión interna.  
+> **Estado:** Aprobado (primera versión). F2 no está cerrada; los pendientes de §16 siguen abiertos.  
 > **Baseline:** Fase 0 y Fase 1 vigentes; el prototipo standalone es referencia visual e interactiva.  
 > **Propósito:** especificar cómo se experimenta el Portal de Solicitudes sin definir su implementación técnica.
 
