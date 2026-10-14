@@ -4,7 +4,7 @@
 | --- | --- |
 | ID | `TDD-SW-005` |
 | Título | Assignment, DeliveryAttempt y coordinación con Outbox |
-| Estado | `APROBADO` |
+| Estado | `BORRADOR` |
 | Fecha | 2026-10-12 |
 | Autor | Joaquin Rodriguez |
 | Revisores | Santiago Talavera (revisión cruzada cloud sobre proveedor de email, webhooks y procesador); pendiente de validación final |
@@ -12,7 +12,7 @@
 | URL del work item | https://santitalavera.atlassian.net/browse/MAPS-114 |
 | Fase origen | [F0 §0.4/0.5](../../../../00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md), [F1 §3/5, RN-04/05/06/07/10/16/19, RF-DELIVERY-01, RF-ADM-01, RF-PRODUCER-02](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md), [F2 §5/6/12](../../../../02-diseno/Fase_2__Design_Handoff.md) |
 | Decisiones relacionadas | [ADR-SW-003](../../adr/MAPS-108-persistencia-fronteras-transaccionales/ADR-SW-003-persistencia-y-fronteras-transaccionales.md); [ADR-SW-004](../../adr/MAPS-110-asincronia-outbox-idempotencia/ADR-SW-004-outbox-asincronia-e-idempotencia.md); [ADR-SW-005](../../adr/MAPS-111-identidad-autorizacion/ADR-SW-005-identidad-y-autorizacion.md); [TDD-SW-001](../MAPS-109-modelo-dominio-datos/TDD-SW-001-modelo-de-dominio-y-datos.md); [TDD-SW-003](../MAPS-113-insurance-request-estados/TDD-SW-003-insurance-request-y-maquina-de-estados.md); ADR-CLD-003, TDD-CLD-003, TDD-CLD-005 (previstos, sin redactar) |
-| Depende de | ADR-SW-003, ADR-SW-004 y ADR-SW-005 (`ACEPTADO`); TDD-SW-003 (`APROBADO`). Estado técnico que acredita la entrega: decisión abierta 1 |
+| Depende de | ADR-SW-003, ADR-SW-004 y ADR-SW-005 (`PROPUESTO`); TDD-SW-003 (`BORRADOR`). Estado técnico que acredita la entrega: decisión abierta 1 |
 | Reemplaza | No aplica |
 | Reemplazado por | No aplica |
 

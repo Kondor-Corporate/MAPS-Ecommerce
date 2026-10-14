@@ -4,7 +4,7 @@
 | --- | --- |
 | ID | `ADR-SW-005` |
 | Título | Identidad, autenticación y autorización funcional (RBAC + ownership) |
-| Estado | `ACEPTADO` |
+| Estado | `PROPUESTO` |
 | Fecha | 2026-10-01 |
 | Autor | Joaquin Rodriguez |
 | Revisores | Santiago Talavera (revisión cruzada cloud/seguridad); pendiente de validación final |
@@ -177,7 +177,7 @@ Revisar si aparecen roles adicionales o sub-roles de Admin, cuentas con más de 
 
 | Fecha | Decisión | Participantes | Observaciones |
 | --- | --- | --- | --- |
-| 2026-10-14 | `ACEPTADO` | Joaquin Rodriguez (owner de software) | Aceptado por decisión del owner. La revisión cruzada cloud con Santiago Talavera (tabla superior) sigue pendiente; esta entrada no registra su conformidad. |
+| — | Pendiente: `ACEPTADO` o `RECHAZADO` | — | Requiere validar modelo de identidad, políticas de acceso, efectos de baja registrados y revisión cruzada cloud |
 
 ## Referencias y trazabilidad
 
