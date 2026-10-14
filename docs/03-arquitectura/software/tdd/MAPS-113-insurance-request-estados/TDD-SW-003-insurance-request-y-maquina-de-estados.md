@@ -4,15 +4,15 @@
 | --- | --- |
 | ID | `TDD-SW-003` |
 | Título | InsuranceRequest, snapshots y máquina de estados |
-| Estado | `BORRADOR` |
+| Estado | `APROBADO` |
 | Fecha | 2026-10-01 |
 | Autor | Joaquin Rodriguez |
-| Revisores | Santiago Talavera (revisión cruzada cloud); pendiente de validación final |
+| Revisores | Santiago Talavera (revisión cruzada cloud); validación final en el PR #17 |
 | Work item | [MAPS-113](https://santitalavera.atlassian.net/browse/MAPS-113) · subtarea [MAPS-140](https://santitalavera.atlassian.net/browse/MAPS-140) |
 | URL del work item | https://santitalavera.atlassian.net/browse/MAPS-113 |
 | Fase origen | [F1 §2/3/4, RN-02/03/06/07/08/09/10/18/19, RF-SOL-01 a 05](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md), [F2 §5/6/8/10/12](../../../../02-diseno/Fase_2__Design_Handoff.md) |
 | Decisiones relacionadas | [ADR-SW-001](../../adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-001-monolito-modular-y-limites.md); [ADR-SW-002](../../adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-002-arquitectura-hexagonal-y-capas.md); [ADR-SW-003](../../adr/MAPS-108-persistencia-fronteras-transaccionales/ADR-SW-003-persistencia-y-fronteras-transaccionales.md); [ADR-SW-004](../../adr/MAPS-110-asincronia-outbox-idempotencia/ADR-SW-004-outbox-asincronia-e-idempotencia.md); [ADR-SW-005](../../adr/MAPS-111-identidad-autorizacion/ADR-SW-005-identidad-y-autorizacion.md); [TDD-SW-001](../MAPS-109-modelo-dominio-datos/TDD-SW-001-modelo-de-dominio-y-datos.md); TDD-SW-002 y TDD-SW-005 (previstos, sin redactar) |
-| Depende de | ADR-SW-001/002/003/004/005 (`PROPUESTO`) y TDD-SW-001 (`BORRADOR`): este TDD queda condicionado a su aceptación |
+| Depende de | ADR-SW-001/002/003/004/005 (`ACEPTADO`) y TDD-SW-001 (`APROBADO`) |
 | Reemplaza | No aplica |
 | Reemplazado por | No aplica |
 
@@ -38,7 +38,7 @@ No define el esquema de campos ni la validación por tipo de campo (TDD-SW-002, 
 | Entrega exitosa antes de DERIVADA; falla conserva ASIGNADA | RN-06/07 — CONFIRMADO | Transición disparada por resultado de Delivery, revalidada |
 | Versión retirada vuelve no utilizable al BORRADOR | [F2 §5/10](../../../../02-diseno/Fase_2__Design_Handoff.md) — CONFIRMADO | Condición derivada, no estado |
 | Baja de Cliente: las solicitudes ENVIADA, ASIGNADA y DERIVADA siguen su ciclo | RN-18 — CONFIRMADO; baja lógica sin borrado | Ninguna transición de esas solicitudes depende del estado de cuenta del Cliente; RN-18 no define comportamiento adicional para BORRADOR |
-| Baja de Productor: ASIGNADAS y DERIVADAS requieren tratamiento por Admin antes de completar la baja | RN-19 — decisión de alcance Kondor MVP | Reasignación de ASIGNADA cubierta; la DERIVADA conserva su estado y se reasigna mediante una nueva asignación auditable, efectiva tras entrega exitosa |
+| Baja de Productor: ASIGNADAS y DERIVADAS requieren tratamiento por Admin antes de completar la baja | RN-19, [F2 §12](../../../../02-diseno/Fase_2__Design_Handoff.md) — decisión de alcance Kondor MVP | ASIGNADA: `Reassign`. DERIVADA: `ReassignDerived`, que conserva el estado y crea una nueva asignación auditable, efectiva tras entrega exitosa |
 | Tipos/propiedades de campos de formulario | `PENDIENTE FUNCIONAL MAPS` | Completitud se delega a un puerto de Forms |
 | Retención de BORRADORES descartados y no utilizables | `PENDIENTE FUNCIONAL MAPS` | Sin borrado físico |
 
@@ -79,6 +79,8 @@ Requests (owner de InsuranceRequest, RequestAnswer, Consent, CancellationRequest
                                                                      (final)
 ```
 
+`ReassignDerived` no aparece en el diagrama porque no cambia el estado: la DERIVADA reasignada por baja de su Productor sigue DERIVADA (RN-19).
+
 ### Comandos
 
 | Comando | Actor | Estado origen → destino | Guardas | Efectos en la misma transacción |
@@ -90,6 +92,7 @@ Requests (owner de InsuranceRequest, RequestAnswer, Consent, CancellationRequest
 | `Submit` | Cliente propietario | BORRADOR → ENVIADA | Utilizable; completitud (Forms); consentimientos; `confirmedPrice` coincide con el precio vigente actual | Snapshots de precio y Product; `submittedAt`; auditoría |
 | `Assign` | Admin, coordinado por Assignment | ENVIADA → ASIGNADA | Productor con cuenta activa (Identity) | Assignment crea el vínculo y solicita a Requests el cambio de estado dentro de la misma UoW; intención de entrega y auditoría |
 | `Reassign` | Admin, coordinado por Assignment | ASIGNADA → ASIGNADA | Productor distinto con cuenta activa | Assignment cierra el vínculo anterior, solicita a Requests el cambio y crea el nuevo vínculo/intención de entrega dentro de la misma UoW; auditoría |
+| `ReassignDerived` | Admin, coordinado por Assignment | DERIVADA → DERIVADA | Sólo dentro del tratamiento de la baja del Productor vigente (RN-19); no hay CancellationRequest `SOLICITADA` (el Admin la resuelve antes); Productor nuevo distinto, con cuenta activa; motivo no vacío | Requests valida estado y cancelaciones por puerto, sin cambiar `status`. Assignment cierra el vínculo anterior (fecha, Admin, motivo), crea el nuevo como pendiente de entrega y registra la intención de entrega en la misma UoW; auditoría. El Productor anterior pierde el acceso al cerrarse su vínculo ([ADR-SW-005](../../adr/MAPS-111-identidad-autorizacion/ADR-SW-005-identidad-y-autorizacion.md)) |
 | `MarkDerived` | Sistema | ASIGNADA → DERIVADA | Sigue ASIGNADA; resultado pertenece al Assignment vigente; entrega acreditada como exitosa (TDD-SW-005) | Auditoría; acceso del Productor queda derivado ([ADR-SW-005](../../adr/MAPS-111-identidad-autorizacion/ADR-SW-005-identidad-y-autorizacion.md)) |
 | `CancelByCustomer` | Cliente propietario; coordinado por Assignment si existe Assignment vigente | ENVIADA/ASIGNADA → CANCELADA | Motivo no vacío; confirmación explícita | Actor, fecha y motivo; el coordinador persiste la cancelación en Requests y, sólo si corresponde, cierra el Assignment de su propiedad en la misma UoW; un único evento/intención lógica de aviso (outbox); auditoría |
 | `RequestCancellation` | Cliente propietario | DERIVADA (sin cambio) | Motivo; no hay otra CancellationRequest pendiente | CancellationRequest `SOLICITADA`; aviso a Admin; auditoría |
@@ -105,10 +108,13 @@ Cualquier combinación no listada es inválida y devuelve `TRANSICION_INVALIDA` 
 | BORRADOR descartado | `discardedAt` no nulo | Fuera de Mis solicitudes; rechaza todos los comandos |
 | Precio cambiado | `confirmedPriceRef` está ausente o difiere de la referencia vigente | UX muestra aviso; `Submit` exige `ConfirmPrice` con la referencia vigente. `draftPriceRef` se conserva sólo como dato histórico/UX y no mantiene activa la alerta después de una reconfirmación válida |
 | Incidencia de derivación | ASIGNADA con último DeliveryAttempt fallido/rebotado | Visible al Admin; el estado sigue ASIGNADA |
+| Reasignación de DERIVADA pendiente o fallida | DERIVADA cuya nueva asignación todavía no tiene entrega exitosa | Visible al Admin, que reintenta o vuelve a reasignar; el estado sigue DERIVADA y ningún Productor tiene acceso hasta que la entrega sea exitosa |
 
 ### Resultado de entrega (integración con ADR-SW-004)
 
 Assignment es el módulo iniciador de `Assign` y `Reassign`; Requests sólo expone `InsuranceRequestAssignmentPort` para validar y aplicar el cambio de estado de `InsuranceRequest`. Las cancelaciones que deben afectar ambos owners se coordinan también desde la aplicación de Assignment: el coordinador invoca un puerto de Requests para cancelar la solicitud y el repositorio de Assignment para cerrarlo, en una única UoW. Requests nunca crea, cierra ni comanda un Assignment directamente, por lo que no depende de Assignment ni se crea un ciclo entre módulos. Assignment recibe el resultado del procesador de outbox y, en su transacción, invoca `MarkDerived` sólo ante un resultado exitoso. `MarkDerived` es idempotente y tolera resultados obsoletos: si la solicitud ya no está ASIGNADA (cancelada, ya derivada) o el Assignment del resultado no es el vigente (reasignada), no hace nada y registra el descarte en auditoría técnica. Un resultado fallido no invoca ningún comando de Requests.
+
+En una reasignación de DERIVADA (`ReassignDerived`), el resultado exitoso no invoca `MarkDerived`: Assignment marca vigente la nueva asignación en su propia transacción y, desde ese momento, el nuevo Productor obtiene acceso por la política de [ADR-SW-005](../../adr/MAPS-111-identidad-autorizacion/ADR-SW-005-identidad-y-autorizacion.md). La entrega exitosa se acredita con el mismo criterio que para `ASIGNADA → DERIVADA` (RN-07, TDD-SW-005). Un resultado fallido deja visible la reasignación pendiente para el Admin. Si mientras tanto se aprueba una cancelación de la DERIVADA, el coordinador cierra también la asignación pendiente y el resultado posterior se descarta como obsoleto.
 
 ### Errores observables
 
@@ -187,20 +193,21 @@ De aplicación (con dobles de puertos) e integración (con base real):
 - Carrera cancelación vs. asignación: exactamente una gana; la otra recibe `CONFLICTO_CONCURRENCIA` o `TRANSICION_INVALIDA`.
 - Cancelación de ASIGNADA y aprobación de cancelación de DERIVADA se coordinan desde Assignment: se actualiza Requests por puerto y se cierra el Assignment owner en la misma UoW, sin dependencia Requests → Assignment.
 - `Submit` repetido con la misma clave de idempotencia: un solo snapshot y una sola auditoría.
+- `ReassignDerived`: la solicitud sigue DERIVADA; el vínculo anterior queda cerrado con fecha, Admin y motivo, y el Productor anterior pierde el acceso; se rechaza con una CancellationRequest `SOLICITADA`.
+- Entrega fallida de la nueva asignación de una DERIVADA: la reasignación queda pendiente y visible para el Admin, y el nuevo Productor no tiene acceso. Con entrega exitosa, la asignación pasa a vigente sin invocar `MarkDerived`.
 - Cliente dado de baja: sus solicitudes ENVIADA, ASIGNADA y DERIVADA continúan su ciclo según RN-18; sus comandos son rechazados por el estado de cuenta local. Este TDD no infiere comportamiento adicional para BORRADOR.
 
 Las pruebas con proveedor de email simulado verifican semántica; la entrega real se valida en TDD-CLD-005.
 
 ## Implementación y handoff a F4
 
-Secuencia sugerida: dominio y `RequestStateMachine` con pruebas → `CreateDraft`/`SaveDraft`/`DiscardDraft` → `ConfirmPrice`/`Submit` (requiere Catalog y Forms) → `Assign`/`Reassign`/`MarkDerived` (requiere TDD-SW-005) → cancelaciones → reasignación por baja de Productor (tras cerrar la decisión abierta). No se definen Epic/Issues F4 en este documento.
+Secuencia sugerida: dominio y `RequestStateMachine` con pruebas → `CreateDraft`/`SaveDraft`/`DiscardDraft` → `ConfirmPrice`/`Submit` (requiere Catalog y Forms) → `Assign`/`Reassign`/`MarkDerived` (requiere TDD-SW-005) → cancelaciones → `ReassignDerived` para la baja de Productor (requiere TDD-SW-005). No se definen Epic/Issues F4 en este documento.
 
 ## Decisiones abiertas
 
 | Tema | Responsable | Qué puede avanzar | Condición de cierre |
 | --- | --- | --- | --- |
-| Reasignación de una DERIVADA por baja del Productor | Kondor + MAPS | Reasignación de ASIGNADA; revocación de acceso del Productor dado de baja | Elegir entre (A) mantener DERIVADA, cerrar Assignment, crear uno nuevo y habilitar al nuevo Productor tras entrega exitosa, con incidencia visible mientras tanto; o (B) nueva transición `DERIVADA → ASIGNADA`, que es un cambio funcional a registrar en F1/F2. Se propone (A) por no agregar transiciones; requiere validación |
-| Solicitudes pendientes de reasignación tras baja de Productor | Kondor (F2) | Listado de afectadas al dar de baja | Definir cómo el Admin ve y trabaja esa bandeja |
+| Bandeja de solicitudes afectadas por la baja de un Productor | Kondor (UX, F2/F4) | `Reassign`, `ReassignDerived` y el listado de ASIGNADAS y DERIVADAS del Productor | Definir cómo el Admin ve y trabaja esa bandeja, incluidas las reasignaciones de DERIVADA pendientes o fallidas |
 | Estado técnico que acredita entrega exitosa | Software + Cloud | Guarda de `MarkDerived` como contrato | TDD-SW-005 |
 | Completitud por tipo de campo | `PENDIENTE FUNCIONAL MAPS` | Puerto `FormsQueryPort` y códigos de error | TDD-SW-002 tras validar 1–2 formularios reales |
 | Retención de BORRADORES descartados/no utilizables | `PENDIENTE FUNCIONAL MAPS` | Marcas sin borrado físico | Plazos y eliminación aprobados |
@@ -213,4 +220,4 @@ Secuencia sugerida: dominio y `RequestStateMachine` con pruebas → `CreateDraft
 
 ## Criterio de aprobación
 
-Puede pasar a `EN REVISIÓN` cuando se verifique su alineación con RN-18/RN-19 y Santiago complete la revisión cruzada, y a `APROBADO` cuando los ADR de los que depende estén `ACEPTADO`.
+`APROBADO` el 2026-10-14 con la aprobación del PR #17: se verificó su alineación con RN-18/RN-19, Santiago Talavera completó la revisión cruzada y los ADR de los que depende están `ACEPTADO`. Las decisiones abiertas de este documento siguen abiertas; si una de ellas cambia la máquina de estados, se actualiza este TDD o se crea uno que lo reemplace.

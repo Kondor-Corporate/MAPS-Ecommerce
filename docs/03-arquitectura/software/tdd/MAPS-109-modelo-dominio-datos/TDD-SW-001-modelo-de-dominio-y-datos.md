@@ -7,11 +7,11 @@
 | Estado | `APROBADO` |
 | Fecha | 2026-09-30 |
 | Autor | Joaquin Rodriguez |
-| Revisores | Santiago Talavera (revisión cruzada cloud); pendiente de validación final |
+| Revisores | Santiago Talavera (revisión cruzada cloud); validación final en el PR #17 |
 | Work item | [MAPS-109](https://santitalavera.atlassian.net/browse/MAPS-109) · subtarea [MAPS-138](https://santitalavera.atlassian.net/browse/MAPS-138) |
 | URL del work item | https://santitalavera.atlassian.net/browse/MAPS-109 |
-| Fase origen | [F0 §0.4/0.5/0.6](../../../../00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md), [F1 §2/3/4/5/7, RN-02 a RN-17](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md), [F2 §5/6/8/9/10/12/13](../../../../02-diseno/Fase_2__Design_Handoff.md) |
-| Decisiones relacionadas | [ADR-SW-001](../../adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-001-monolito-modular-y-limites.md); [ADR-SW-002](../../adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-002-arquitectura-hexagonal-y-capas.md); [ADR-SW-003](../../adr/MAPS-108-persistencia-fronteras-transaccionales/ADR-SW-003-persistencia-y-fronteras-transaccionales.md); TDD-SW-002/003/004/005/006 y TDD-CLD-003/004 (previstos, sin redactar) |
+| Fase origen | [F0 §0.4/0.5/0.6](../../../../00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md), [F1 §2/3/4/5/7, RN-02 a RN-20](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md), [F2 §5/6/8/9/10/12/13](../../../../02-diseno/Fase_2__Design_Handoff.md) |
+| Decisiones relacionadas | [ADR-SW-001](../../adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-001-monolito-modular-y-limites.md); [ADR-SW-002](../../adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-002-arquitectura-hexagonal-y-capas.md); [ADR-SW-003](../../adr/MAPS-108-persistencia-fronteras-transaccionales/ADR-SW-003-persistencia-y-fronteras-transaccionales.md); [ADR-SW-004](../../adr/MAPS-110-asincronia-outbox-idempotencia/ADR-SW-004-outbox-asincronia-e-idempotencia.md); [ADR-SW-005](../../adr/MAPS-111-identidad-autorizacion/ADR-SW-005-identidad-y-autorizacion.md); [TDD-SW-003](../MAPS-113-insurance-request-estados/TDD-SW-003-insurance-request-y-maquina-de-estados.md); TDD-SW-002/004/005/006 y TDD-CLD-003/004 (previstos, sin redactar) |
 | Depende de | ADR-SW-001, ADR-SW-002 y ADR-SW-003, todos `ACEPTADO` |
 | Reemplaza | No aplica |
 | Reemplazado por | No aplica |
@@ -61,7 +61,7 @@ No fija nombres definitivos de tablas ni el esquema de campos de formularios, qu
 | Assignment | Assignment | Asignación de una solicitud a un Productor; historial de reasignaciones |
 | DeliveryAttempt | Assignment | Intento técnico de derivación/notificación y su resultado |
 | AuditEvent | Audit | Registro de acciones de negocio relevantes (actor, acción, entidad, fecha) |
-| OutboxEvent | Owner técnico pendiente; lo define ADR-SW-004 | Intención de efecto externo registrada en la misma transacción del cambio; este TDD no asume un repositorio compartido escribible por todos los módulos |
+| OutboxEvent | Componente técnico Outbox ([ADR-SW-004](../../adr/MAPS-110-asincronia-outbox-idempotencia/ADR-SW-004-outbox-asincronia-e-idempotencia.md)) | Intención de efecto externo registrada en la misma transacción del cambio. El componente Outbox es el único owner de su tabla y repositorio; los módulos registran eventos sólo mediante su puerto |
 
 El rol Admin es un rol de `UserIdentity`, no una entidad aparte. No se modelan Lead, Policy, Payment ni Contract ([F0 §0.2](../../../../00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md)).
 
@@ -108,9 +108,9 @@ InsuranceRequest 1 ── 0..* CancellationRequest (sólo desde DERIVADA; a lo s
 | --- | --- | --- |
 | Solicitudes de cancelación DERIVADA | CancellationRequest | Historial de solicitudes solicitadas, aprobadas o rechazadas ([F2 §8](../../../../02-diseno/Fase_2__Design_Handoff.md)); puede existir como máximo una pendiente simultánea. Un rechazo conserva DERIVADA y no impide una nueva solicitud posterior |
 | Entrega/derivación | DeliveryAttempt | Estados técnicos de [F1 §5](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md): pendiente, aceptado/enviado, entregado, rebotado, fallido |
-| Incidencia de derivación | Derivada del último DeliveryAttempt fallido/rebotado en una ASIGNADA | Visible al Admin; la solicitud sigue ASIGNADA |
+| Incidencia de derivación | Derivada del último DeliveryAttempt fallido/rebotado en una ASIGNADA, o en la nueva asignación de una DERIVADA reasignada por baja de Productor (RN-19) | Visible al Admin; la solicitud conserva su estado (ASIGNADA o DERIVADA) |
 
-Qué estado técnico acredita la "entrega requerida exitosa" se define en TDD-SW-005 junto con ADR-SW-004; este TDD sólo fija que la transición a DERIVADA depende de él y no al revés.
+Qué estado técnico acredita la "entrega requerida exitosa" se define en TDD-SW-005 junto con [ADR-SW-004](../../adr/MAPS-110-asincronia-outbox-idempotencia/ADR-SW-004-outbox-asincronia-e-idempotencia.md); este TDD sólo fija que la transición a DERIVADA depende de él y no al revés.
 
 ### Estados de FormVersion y disponibilidad de Product
 
@@ -194,14 +194,14 @@ Secuencia sugerida: Identity y Catalog → Forms → Requests (BORRADOR/ENVIADA)
 | Inhabilitación ampliada | MAPS | Disponibilidad para nuevas asignaciones; baja lógica y tratamiento de solicitudes activas definidos en RN-18/RN-19 | Efectos de inhabilitación sobre casos existentes |
 | Retención de solicitudes, BORRADORES descartados/no utilizables y documentos | MAPS | Metadata, marcas y autorización | Plazos y eliminación física |
 | Textos y versiones de consentimiento | MAPS (legal) | Entidad Consent y su snapshot | Textos aprobados |
-| Estado técnico que acredita entrega exitosa | Software | Separación DeliveryAttempt/InsuranceRequest | ADR-SW-004 y TDD-SW-005 |
+| Estado técnico que acredita entrega exitosa | Software | Separación DeliveryAttempt/InsuranceRequest | TDD-SW-005, según [ADR-SW-004](../../adr/MAPS-110-asincronia-outbox-idempotencia/ADR-SW-004-outbox-asincronia-e-idempotencia.md) |
 
 ## Referencias y trazabilidad
 
-- ADR y TDD relacionados: [ADR-SW-001](../../adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-001-monolito-modular-y-limites.md), [ADR-SW-002](../../adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-002-arquitectura-hexagonal-y-capas.md), [ADR-SW-003](../../adr/MAPS-108-persistencia-fronteras-transaccionales/ADR-SW-003-persistencia-y-fronteras-transaccionales.md); previstos TDD-SW-002 a 007, TDD-CLD-003/004/005.
-- Fuentes F0/F1/F2: [F0 §0.5/0.6](../../../../00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md); [F1 §3/4/5/7 y RN-02 a RN-17](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md); [F2 §5/6/8/10/12](../../../../02-diseno/Fase_2__Design_Handoff.md).
+- ADR y TDD relacionados: [ADR-SW-001](../../adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-001-monolito-modular-y-limites.md), [ADR-SW-002](../../adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-002-arquitectura-hexagonal-y-capas.md), [ADR-SW-003](../../adr/MAPS-108-persistencia-fronteras-transaccionales/ADR-SW-003-persistencia-y-fronteras-transaccionales.md), [ADR-SW-004](../../adr/MAPS-110-asincronia-outbox-idempotencia/ADR-SW-004-outbox-asincronia-e-idempotencia.md), [ADR-SW-005](../../adr/MAPS-111-identidad-autorizacion/ADR-SW-005-identidad-y-autorizacion.md), [TDD-SW-003](../MAPS-113-insurance-request-estados/TDD-SW-003-insurance-request-y-maquina-de-estados.md); previstos TDD-SW-002 y TDD-SW-004 a 007, TDD-CLD-003/004/005.
+- Fuentes F0/F1/F2: [F0 §0.5/0.6](../../../../00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md); [F1 §3/4/5/7 y RN-02 a RN-20](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md); [F2 §5/6/8/10/12](../../../../02-diseno/Fase_2__Design_Handoff.md).
 - Filas de [traceability.md](../../../traceability.md): lifecycle de InsuranceRequest; precio y cancelación; ABM de Clientes y Productores; adjuntos.
 
 ## Criterio de aprobación
 
-Puede pasar a `EN REVISIÓN` cuando Santiago complete la revisión cruzada de las dependencias cloud, y a `APROBADO` cuando ADR-SW-001/002/003 estén `ACEPTADO` y el equipo valide entidades, estados, invariantes, snapshots y pendientes explícitos.
+`APROBADO` el 2026-10-14 por el owner de software; la revisión cruzada de Santiago Talavera se completó en los PR #14 y #17: ADR-SW-001/002/003 están `ACEPTADO` y se validaron entidades, estados, invariantes, snapshots y pendientes explícitos. Las decisiones abiertas de este documento siguen abiertas: aprobar el TDD no cierra un `PENDIENTE FUNCIONAL MAPS`. Si una de ellas cambia el modelo, se actualiza este TDD o se crea uno que lo reemplace.

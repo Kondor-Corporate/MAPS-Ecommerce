@@ -4,15 +4,15 @@
 | --- | --- |
 | ID | `ADR-SW-004` |
 | Título | Outbox transaccional, asincronía e idempotencia de efectos externos |
-| Estado | `PROPUESTO` |
+| Estado | `ACEPTADO` |
 | Fecha | 2026-10-01 |
 | Autor | Joaquin Rodriguez |
-| Revisores | Santiago Talavera (revisión cruzada cloud); pendiente de validación final |
+| Revisores | Santiago Talavera (revisión cruzada cloud); validación final en el PR #17 |
 | Work item | [MAPS-110](https://santitalavera.atlassian.net/browse/MAPS-110) · subtarea [MAPS-135](https://santitalavera.atlassian.net/browse/MAPS-135) |
 | URL del work item | https://santitalavera.atlassian.net/browse/MAPS-110 |
-| Fase origen | [F0 §0.4/0.5](../../../../00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md), [F1 §3/5, RN-06/07/10, RF-DELIVERY-01, RNF-COM-01](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md), [F2 §5/12](../../../../02-diseno/Fase_2__Design_Handoff.md) |
+| Fase origen | [F0 §0.4/0.5](../../../../00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md), [F1 §3/5, RN-06/07/10/18/19, RF-DELIVERY-01, RNF-COM-01](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md), [F2 §5/12](../../../../02-diseno/Fase_2__Design_Handoff.md) |
 | Decisiones relacionadas | [ADR-SW-001](../MAPS-107-estilo-arquitectonico-limites/ADR-SW-001-monolito-modular-y-limites.md); [ADR-SW-002](../MAPS-107-estilo-arquitectonico-limites/ADR-SW-002-arquitectura-hexagonal-y-capas.md); [ADR-SW-003](../MAPS-108-persistencia-fronteras-transaccionales/ADR-SW-003-persistencia-y-fronteras-transaccionales.md); [TDD-SW-001](../../tdd/MAPS-109-modelo-dominio-datos/TDD-SW-001-modelo-de-dominio-y-datos.md); [TDD-SW-003](../../tdd/MAPS-113-insurance-request-estados/TDD-SW-003-insurance-request-y-maquina-de-estados.md); TDD-SW-005, ADR-CLD-003 y TDD-CLD-005 (previstos, sin redactar) |
-| Depende de | [ADR-SW-003](../MAPS-108-persistencia-fronteras-transaccionales/ADR-SW-003-persistencia-y-fronteras-transaccionales.md) (`PROPUESTO`) |
+| Depende de | [ADR-SW-003](../MAPS-108-persistencia-fronteras-transaccionales/ADR-SW-003-persistencia-y-fronteras-transaccionales.md) (`ACEPTADO`) |
 | Reemplaza | No aplica |
 | Reemplazado por | No aplica |
 
@@ -47,12 +47,12 @@ Límite software/cloud: este ADR define qué se registra, con qué garantías, c
 | Envío síncrono dentro del caso de uso | Simple; resultado inmediato | Efecto sin cambio ante rollback; latencia y fallas del proveedor bloquean la operación del Admin; sin reintento confiable | Descartada |
 | Envío después del commit, en memoria (fire-and-forget) | Simple; no bloquea | Cambio sin efecto si el proceso cae entre commit y envío; sin reintento ni trazabilidad | Descartada |
 | Publicar directamente a una cola/broker externo desde el caso de uso | Desacople y escalado | Escritura dual base + broker sin atomicidad; agrega infraestructura antes de necesitarla | Descartada para el MVP |
-| Outbox transaccional en la base del Portal + procesador asíncrono | Atomicidad con la transacción local; reintentos y trazabilidad en la misma base; mecanismo de ejecución intercambiable | Entrega *at-least-once*: exige idempotencia; tabla adicional a operar y depurar; latencia de procesamiento | Propuesta elegida |
+| Outbox transaccional en la base del Portal + procesador asíncrono | Atomicidad con la transacción local; reintentos y trazabilidad en la misma base; mecanismo de ejecución intercambiable | Entrega *at-least-once*: exige idempotencia; tabla adicional a operar y depurar; latencia de procesamiento | Elegida |
 | Event sourcing | Historia completa por diseño | Complejidad desproporcionada; cambia todo el modelo de persistencia | Descartada |
 
 ## Decisión
 
-Se **propone** adoptar el patrón outbox transaccional con entrega *at-least-once* y consumidores idempotentes.
+Se **decide** adoptar el patrón outbox transaccional con entrega *at-least-once* y consumidores idempotentes.
 
 ### 1. Registro de la intención
 
@@ -115,12 +115,13 @@ El resultado de un efecto externo no dispara una transición por sí mismo. Al r
 
 | Tipo | Origen | Destinatario | Afecta estado funcional |
 | --- | --- | --- | --- |
-| Derivación al Productor | Asignar/reasignar | Productor asignado | Sí: su éxito habilita `ASIGNADA → DERIVADA` |
+| Derivación al Productor | Asignar/reasignar | Productor asignado | Sí: su éxito habilita `ASIGNADA → DERIVADA`. En la reasignación de una DERIVADA por baja de Productor (RN-19), su éxito hace vigente la nueva asignación sin cambiar el estado de la solicitud |
 | Aviso de cancelación ENVIADA/ASIGNADA | Cancelación del Cliente | Admin (+ Productor si ASIGNADA) | No |
 | Aviso de solicitud de cancelación DERIVADA | Cliente | Admin | No |
 | Aviso de decisión de cancelación DERIVADA | Admin | Cliente; Productor si se confirma | No |
 | Aviso de retiro urgente de FormVersion | Admin | Clientes con BORRADOR afectado | No; propuesta pendiente de validación funcional MAPS |
-| Aviso de baja / reactivación de cuenta | Admin | Cliente o Productor afectado | No; condicionado al relevamiento y a su incorporación controlada |
+| Aviso de baja de cuenta | Admin | Cliente o Productor dado de baja | No; confirmado por RN-18 y RN-19 |
+| Aviso de reactivación de cuenta | Admin | Productor reactivado | No; RN-19 confirma que la baja es reversible, pero no fija el aviso. Propuesta pendiente de validación funcional MAPS |
 
 Los textos, plantillas y datos exactos de cada aviso se definen en TDD-SW-005 y en el contenido funcional que MAPS apruebe. Los eventos de funnel y analytics quedan fuera de este outbox y se tratan en TDD-SW-007.
 
@@ -147,10 +148,10 @@ Esta decisión **no** elige proveedor de email, cola gestionada ni runtime del p
 
 | Impacto | Documento cloud afectado | Estado de revisión |
 | --- | --- | --- |
-| Runtime del procesador (worker dedicado, job programado o mismo artefacto con otro entrypoint) y su escalado | ADR-CLD-003, TDD-CLD-002 (previstos) | Pendiente — Santiago Talavera |
-| Proveedor de email, credenciales, webhooks de resultado, valores de reintento y espera | TDD-CLD-005, TDD-CLD-006 (previstos) | Pendiente — Santiago Talavera |
-| Carga adicional sobre la base (lectura periódica del outbox, bloqueo de filas) y depuración | TDD-CLD-003 (previsto) | Pendiente — Santiago Talavera |
-| Alertas sobre eventos atascados o agotados | TDD-CLD-007 (previsto) | Pendiente — Santiago Talavera |
+| Runtime del procesador (worker dedicado, job programado o mismo artefacto con otro entrypoint) y su escalado | ADR-CLD-003, TDD-CLD-002 (previstos) | Dependencia aceptada; se detalla en el documento cloud — Santiago Talavera |
+| Proveedor de email, credenciales, webhooks de resultado, valores de reintento y espera | TDD-CLD-005, TDD-CLD-006 (previstos) | Dependencia aceptada; se detalla en el documento cloud — Santiago Talavera |
+| Carga adicional sobre la base (lectura periódica del outbox, bloqueo de filas) y depuración | TDD-CLD-003 (previsto) | Dependencia aceptada; se detalla en el documento cloud — Santiago Talavera |
+| Alertas sobre eventos atascados o agotados | TDD-CLD-007 (previsto) | Dependencia aceptada; se detalla en el documento cloud — Santiago Talavera |
 
 ## Riesgos y pendientes
 
@@ -160,7 +161,7 @@ Esta decisión **no** elige proveedor de email, cola gestionada ni runtime del p
 | Rebote informado después de DERIVADA | Software | TDD-SW-005 define cómo se registra sin revertir DERIVADA (no hay transición de salida a ASIGNADA en la baseline) |
 | SLA de derivación y tratamiento operativo de incidencias | `PENDIENTE FUNCIONAL MAPS` | Reintentos técnicos e incidencia visible avanzan; plazos y acciones operativas adicionales quedan condicionados |
 | Handlers no idempotentes | Software | Pruebas de doble procesamiento obligatorias por handler |
-| Revisión cruzada cloud sin completar | Santiago Talavera | Completar la tabla antes de pasar a `ACEPTADO` |
+| Detalle cloud todavía sin redactar | Santiago Talavera | Los documentos cloud de la revisión cruzada detallan esos impactos; si alguno contradice esta decisión, se crea un ADR que reemplace a este |
 
 ## Criterios de revisión futura
 
@@ -170,10 +171,10 @@ Revisar si el volumen de eventos o la latencia requerida justifican un broker ge
 
 | Fecha | Decisión | Participantes | Observaciones |
 | --- | --- | --- | --- |
-| — | Pendiente: `ACEPTADO` o `RECHAZADO` | — | Requiere validar contrato de outbox, idempotencia, reintentos, descarte de eventos obsoletos y revisión cruzada cloud |
+| 2026-10-14 | `ACEPTADO` | Joaquin Rodriguez (autor), Santiago Talavera (revisor cloud) | Aceptado con la aprobación del PR #17. Se validaron el contrato de outbox, la idempotencia, los reintentos y el descarte de eventos obsoletos; los impactos cloud quedan como dependencias de la revisión cruzada |
 
 ## Referencias y trazabilidad
 
-- Fuentes F0/F1/F2: [F1 §3/5, RN-06/07/10, RF-DELIVERY-01, RNF-COM-01](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md); [F2 §5/12](../../../../02-diseno/Fase_2__Design_Handoff.md).
+- Fuentes F0/F1/F2: [F1 §3/5, RN-06/07/10/18/19, RF-DELIVERY-01, RNF-COM-01](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md); [F2 §5/12](../../../../02-diseno/Fase_2__Design_Handoff.md).
 - ADR/TDD relacionados: [ADR-SW-001](../MAPS-107-estilo-arquitectonico-limites/ADR-SW-001-monolito-modular-y-limites.md), [ADR-SW-002](../MAPS-107-estilo-arquitectonico-limites/ADR-SW-002-arquitectura-hexagonal-y-capas.md), [ADR-SW-003](../MAPS-108-persistencia-fronteras-transaccionales/ADR-SW-003-persistencia-y-fronteras-transaccionales.md), [ADR-SW-005](../MAPS-111-identidad-autorizacion/ADR-SW-005-identidad-y-autorizacion.md), [TDD-SW-001](../../tdd/MAPS-109-modelo-dominio-datos/TDD-SW-001-modelo-de-dominio-y-datos.md), [TDD-SW-003](../../tdd/MAPS-113-insurance-request-estados/TDD-SW-003-insurance-request-y-maquina-de-estados.md); previstos TDD-SW-005, ADR-CLD-003, TDD-CLD-005.
 - Fila de [traceability.md](../../../traceability.md): Admin asigna; fallo conserva ASIGNADA; entrega requerida exitosa precede DERIVADA.

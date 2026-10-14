@@ -7,7 +7,7 @@
 | Estado | `ACEPTADO` |
 | Fecha | 2026-09-30 |
 | Autor | Joaquin Rodriguez |
-| Revisores | Santiago Talavera (revisión cruzada cloud); pendiente de validación final |
+| Revisores | Santiago Talavera (revisión cruzada cloud); validación final en el PR #17 |
 | Work item | [MAPS-107](https://santitalavera.atlassian.net/browse/MAPS-107) · subtarea [MAPS-133](https://santitalavera.atlassian.net/browse/MAPS-133) |
 | URL del work item | https://santitalavera.atlassian.net/browse/MAPS-107 |
 | Fase origen | [F1 §4/5/7, RN-03/07/08/09/10](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md), [F2 §9/10/12](../../../../02-diseno/Fase_2__Design_Handoff.md) |
@@ -20,7 +20,7 @@
 
 ## Contexto y problema
 
-[ADR-SW-001](./ADR-SW-001-monolito-modular-y-limites.md) propone dividir la aplicación en módulos por capacidad. Falta decidir cómo se organiza **dentro** de cada módulo y en qué dirección van las dependencias.
+[ADR-SW-001](./ADR-SW-001-monolito-modular-y-limites.md) divide la aplicación en módulos por capacidad. Falta decidir cómo se organiza **dentro** de cada módulo y en qué dirección van las dependencias.
 
 Las reglas críticas del Portal son de dominio y deben poder verificarse sin infraestructura: inmutabilidad de `FormVersion` (RN-08), snapshot del precio confirmado (RN-09), transiciones permitidas de `InsuranceRequest` y cancelación por estado (RN-10), y que sólo una entrega exitosa habilite `ASIGNADA → DERIVADA` (RN-07). La estructura de [estructura.md](../../../../estructura.md) ubica esa lógica en servicios que dependen de repositorios Prisma y de Express, lo que ata las reglas a tecnologías que todavía no están aceptadas ([README de arquitectura](../../../README.md)).
 
@@ -38,12 +38,12 @@ Las reglas críticas del Portal son de dominio y deben poder verificarse sin inf
 | Alternativa | Ventajas | Costos / riesgos | Resultado |
 | --- | --- | --- | --- |
 | Capas tradicionales controller → service → repository (ORM) | Simple y conocida | El dominio depende del ORM y del framework HTTP; reglas dispersas en servicios | Descartada |
-| Arquitectura hexagonal (ports & adapters) por módulo | Dominio aislado, adaptadores reemplazables, pruebas sin infraestructura | Más interfaces y mapeos; requiere criterio para no sobre-abstraer | Propuesta elegida |
+| Arquitectura hexagonal (ports & adapters) por módulo | Dominio aislado, adaptadores reemplazables, pruebas sin infraestructura | Más interfaces y mapeos; requiere criterio para no sobre-abstraer | Elegida |
 | Clean Architecture completa con capas adicionales | Separación máxima | Ceremonia desproporcionada para el tamaño del MVP | Descartada |
 
 ## Decisión
 
-Se **propone** organizar cada módulo con arquitectura hexagonal:
+Se **decide** organizar cada módulo con arquitectura hexagonal:
 
 ```text
 <modulo>/
@@ -90,8 +90,8 @@ Esta decisión **no** elige ORM, framework HTTP ni proveedores; sólo fija que q
 
 | Impacto | Documento cloud afectado | Estado de revisión |
 | --- | --- | --- |
-| Adaptadores de salida hacia email, storage y base implican credenciales y configuración inyectadas en el arranque | TDD-CLD-006 (previsto) | Pendiente — Santiago Talavera |
-| Adaptadores de entrada para jobs/worker además de HTTP | ADR-CLD-003 (previsto) | Pendiente — Santiago Talavera |
+| Adaptadores de salida hacia email, storage y base implican credenciales y configuración inyectadas en el arranque | TDD-CLD-006 (previsto) | Dependencia aceptada; se detalla en el documento cloud — Santiago Talavera |
+| Adaptadores de entrada para jobs/worker además de HTTP | ADR-CLD-003 (previsto) | Dependencia aceptada; se detalla en el documento cloud — Santiago Talavera |
 
 ## Riesgos y pendientes
 
@@ -99,7 +99,7 @@ Esta decisión **no** elige ORM, framework HTTP ni proveedores; sólo fija que q
 | --- | --- | --- |
 | Sobre-abstracción | Software | Revisar en code review contra el criterio de proporcionalidad |
 | Falta de control automático de dependencias | Software | Configurar reglas de imports antes de iniciar F4 |
-| Revisión cruzada cloud sin completar | Santiago Talavera | Completar la tabla de revisión antes de pasar a `ACEPTADO` |
+| Detalle cloud todavía sin redactar | Santiago Talavera | Los documentos cloud de la revisión cruzada detallan esos impactos; si alguno contradice esta decisión, se crea un ADR que reemplace a este |
 
 ## Criterios de revisión futura
 
@@ -110,6 +110,7 @@ Revisar si el costo de mapeos supera el beneficio en módulos de puro ABM o si s
 | Fecha | Decisión | Participantes | Observaciones |
 | --- | --- | --- | --- |
 | 2026-10-14 | `ACEPTADO` | Joaquin Rodriguez (owner de software) | Aceptado por decisión del owner. La revisión cruzada cloud con Santiago Talavera (tabla superior) sigue pendiente; esta entrada no registra su conformidad. |
+| 2026-10-14 | `ACEPTADO` (sin cambio de estado) | Santiago Talavera (revisor cloud) | Revisión cruzada cloud completada: revisado en el PR #14 y conforme con la aprobación del PR #17. Se validaron la estructura de referencia y las reglas de dependencia; los impactos cloud quedan como dependencias de la revisión cruzada |
 
 ## Referencias y trazabilidad
 
