@@ -1,6 +1,6 @@
 # Trazabilidad F0/F1/F2 → F3 → F4
 
-> **Estado:** matriz en uso durante F3. ADR-SW-001/002/003 (`PROPUESTO`) y TDD-SW-001 (`BORRADOR`) ya están redactados; el resto de los ADR/TDD marcados como **previstos** todavía no existe. No hay Epic/Issues F4 confirmados en esta matriz.
+> **Estado:** matriz en uso durante F3. ADR-SW-001/002/003 (`ACEPTADO`) y TDD-SW-001 (`APROBADO`) ya están redactados; el resto de los ADR/TDD marcados como **previstos** todavía no existe. No hay Epic/Issues F4 confirmados en esta matriz.
 
 Esta tabla parte de la [baseline F0](../00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md), [F1](../01-producto/Fase_1__Discovery_y_Relevamiento.md) y el [handoff F2](../02-diseno/Fase_2__Design_Handoff.md). Al crear un ADR/TDD, reemplazar `Previsto: ID` por un enlace relativo al archivo real, agregar su work item real y actualizar el estado. `POR INICIAR` describe el trabajo de F3, no el estado formal de un ADR/TDD. Completar columnas F4 únicamente cuando existan artefactos de backlog.
 

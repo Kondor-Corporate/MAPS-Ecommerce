@@ -4,7 +4,7 @@
 | --- | --- |
 | ID | `ADR-SW-003` |
 | Título | Persistencia y fronteras transaccionales |
-| Estado | `PROPUESTO` |
+| Estado | `ACEPTADO` |
 | Fecha | 2026-09-30 |
 | Autor | Joaquin Rodriguez |
 | Revisores | Santiago Talavera (revisión cruzada cloud); pendiente de validación final |
@@ -122,7 +122,7 @@ Revisar si aparecen necesidades de bases por módulo, persistencia especializada
 
 | Fecha | Decisión | Participantes | Observaciones |
 | --- | --- | --- | --- |
-| — | Pendiente: `ACEPTADO` o `RECHAZADO` | — | Requiere validar base nueva, ownership, repositorios, unidad de trabajo, snapshots, migraciones y revisión cruzada cloud |
+| 2026-10-14 | `ACEPTADO` | Joaquin Rodriguez (owner de software) | Aceptado por decisión del owner. La revisión cruzada cloud con Santiago Talavera (tabla superior) sigue pendiente; esta entrada no registra su conformidad. |
 
 ## Referencias y trazabilidad
 

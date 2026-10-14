@@ -4,7 +4,7 @@
 | --- | --- |
 | ID | `ADR-SW-001` |
 | Título | Monolito modular y límites de módulos |
-| Estado | `PROPUESTO` |
+| Estado | `ACEPTADO` |
 | Fecha | 2026-09-30 |
 | Autor | Joaquin Rodriguez |
 | Revisores | Santiago Talavera (revisión cruzada cloud); pendiente de validación final |
@@ -115,7 +115,7 @@ Revisar si un módulo necesita escalar, desplegarse, protegerse u operarse de fo
 
 | Fecha | Decisión | Participantes | Observaciones |
 | --- | --- | --- | --- |
-| — | Pendiente: `ACEPTADO` o `RECHAZADO` | — | Requiere validar mapa de módulos, reglas de dependencia y revisión cruzada cloud |
+| 2026-10-14 | `ACEPTADO` | Joaquin Rodriguez (owner de software) | Aceptado por decisión del owner. La revisión cruzada cloud con Santiago Talavera (tabla superior) sigue pendiente; esta entrada no registra su conformidad. |
 
 ## Referencias y trazabilidad
 
