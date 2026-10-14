@@ -1,6 +1,6 @@
 # Fase 3 — Arquitectura
 
-> **Estado:** estructura documental en uso durante F3. `ADR-SW-001/002/003` y `ADR-CLD-000` están `PROPUESTO`; `TDD-SW-001` está `BORRADOR`; los demás artefactos conservan el estado indicado en sus áreas. Esto no aprueba decisiones técnicas ni cierra F1/F2.
+> **Estado:** estructura documental en uso durante F3. `ADR-SW-001/002/003` están `ACEPTADO`, `TDD-SW-001` está `APROBADO` y `ADR-CLD-000` permanece `PROPUESTO`; los demás artefactos conservan el estado indicado en sus áreas. La aceptación/aprobación documental de Software no implica que la revisión cruzada Cloud esté concluida. Esto no cierra F1/F2.
 
 F3 traduce la [baseline funcional F0](../00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md), el [discovery F1](../01-producto/Fase_1__Discovery_y_Relevamiento.md) y el [Design Handoff F2](../02-diseno/Fase_2__Design_Handoff.md) en decisiones y diseños técnicos que permitan preparar un backlog implementable en F4. Si una propuesta contradice esas fuentes, debe señalar la contradicción y tramitarla como cambio controlado; no reinterpretarla silenciosamente.
 

@@ -11,7 +11,7 @@
 | Work item | Historia [MAPS-161](https://santitalavera.atlassian.net/browse/MAPS-161); subtask documental [MAPS-162](https://santitalavera.atlassian.net/browse/MAPS-162), ambas «En curso» |
 | URL del work item | [MAPS-161](https://santitalavera.atlassian.net/browse/MAPS-161); [MAPS-162](https://santitalavera.atlassian.net/browse/MAPS-162) |
 | Fase origen | [F3 — Arquitectura](../../../README.md), [F0](../../../../00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md), [F1](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md), [F2](../../../../02-diseno/Fase_2__Design_Handoff.md), [Cloud Strategy](../../STRATEGY.md) |
-| Decisiones relacionadas | `ADR-CLD-001` a `ADR-CLD-007` previstos, no redactados; `ADR-SW-001/002/003` **PROPUESTO** y `TDD-SW-001` **BORRADOR**, incorporados a `main` mediante [PR #14](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/14), sin aceptación ni aprobación |
+| Decisiones relacionadas | `ADR-CLD-001` a `ADR-CLD-007` previstos, no redactados; en `main`, `ADR-SW-001/002/003` **ACEPTADO** y `TDD-SW-001` **APROBADO** mediante [PR #14](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/14), con revisión cruzada Cloud todavía pendiente |
 | Depende de | Baseline F0/F1/F2 y [Cloud Strategy](../../STRATEGY.md); no depende de un ADR Cloud aceptado previo |
 | Reemplaza | No aplica |
 | Reemplazado por | No aplica |
@@ -26,7 +26,7 @@ El Portal del MVP necesita alojar el journey de solicitudes, la autorización po
 
 El [TARGET conceptual](../../STRATEGY.md) a soportar es: Internet → entrada pública → frontend → API → base relacional, object storage y outbox/estado → worker asíncrono → proveedor de email. IAM, secrets, observabilidad, CI/CD, IaC, ambientes, backup/recuperación y controles de costo son transversales. El TARGET **no** prescribe una relación uno-a-uno entre cajas y productos cloud.
 
-Software define semántica, contratos, datos y fronteras transaccionales; Cloud seleccionará y operará su materialización. Los ADR Software incorporados a `main` mediante [PR #14](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/14) siguen `PROPUESTO`, y su TDD `BORRADOR`: son contexto de integración, no restricciones aceptadas. `ADR-CLD-000` es gate para aceptar decisiones dependientes del proveedor; los análisis neutrales pueden continuar.
+Software define semántica, contratos, datos y fronteras transaccionales; Cloud seleccionará y operará su materialización. En `main`, los ADR Software incorporados mediante [PR #14](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/14) están `ACEPTADO` y `TDD-SW-001` `APROBADO`, aunque su revisión cruzada Cloud no está concluida. Como contexto no integrado, la [PR #17](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/17) está abierta con `ADR-SW-004/005` **ACEPTADO** y `TDD-SW-003` **APROBADO**, pero conserva una revisión `CHANGES_REQUESTED`; la [PR #20](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/20) está Draft con `TDD-SW-002/005` **BORRADOR**. `ADR-CLD-000` es gate para aceptar decisiones dependientes del proveedor; los análisis neutrales pueden continuar.
 
 ## Drivers y criterios
 
@@ -36,7 +36,7 @@ La importancia expresa el impacto en esta elección, **no** una ponderación num
 | --- | --- | --- |
 | Managed-first y operación proporcional para equipo pequeño | Alta | [Strategy](../../STRATEGY.md); comparar tareas retenidas por el equipo, no sólo servicios disponibles. |
 | Runtime de contenedores para API, worker y jobs | Alta | TARGET de Strategy; patrón real de ejecución y volumen aún por medir. |
-| Persistencia relacional nueva; PostgreSQL gestionado como hipótesis | Alta | [F1](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md) excluye PostgreSQL histórico; `ADR-SW-003`, incorporado a `main` mediante PR #14, continúa `PROPUESTO`. |
+| Persistencia relacional nueva; PostgreSQL gestionado como hipótesis | Alta | [F1](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md) excluye PostgreSQL histórico; `ADR-SW-003` está `ACEPTADO` en `main`, con materialización y revisión Cloud pendientes. |
 | Object storage privado y control de adjuntos | Alta | [F0](../../../../00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md), [F2](../../../../02-diseno/Fase_2__Design_Handoff.md); retención MAPS pendiente. |
 | IAM, identidades de workload y secretos | Alta | Aislamiento de Cliente/Productor/Admin y protección operacional; detalle de identidad de aplicación corresponde a Software. |
 | Seguridad, auditoría y observabilidad sin PII innecesaria | Alta | F0/F1/F2 y Strategy; definir señales y retención técnica después. |
@@ -59,7 +59,7 @@ Las tres plataformas ofrecen familias de capacidades aptas para evaluar el TARGE
 
 ### Comparación de ajuste y consecuencias
 
-Las observaciones de integración son **hipótesis de diseño** derivadas del TARGET; no son mediciones ni una clasificación ganadora. Las capacidades citadas se respaldan en la [documentación oficial](#fuentes-externas-consultadas), pero su disponibilidad/configuración concreta debe verificarse para el diseño candidato.
+Las observaciones de integración son **hipótesis de diseño** derivadas del TARGET; no son mediciones ni una clasificación ganadora. Las 25 dimensiones describen principalmente cobertura potencial/documental: no demuestran superioridad, performance, disponibilidad, SLA ni TCO real. Las capacidades citadas se respaldan en la [documentación oficial](#fuentes-externas-consultadas), pero su disponibilidad/configuración concreta debe verificarse para el diseño candidato.
 
 | Dimensión | GCP | AWS | Azure |
 | --- | --- | --- | --- |
@@ -106,7 +106,7 @@ Sólo normaliza vocabulario para comparar; **ninguna celda selecciona un product
 
 ### Costo, región y portabilidad: cómo cerrar la comparación
 
-`TCO = infraestructura + operación + tiempo humano + complejidad + incidentes + riesgo + downtime`. La [baseline y comparación de plataformas](./EVIDENCE-CLD-000-comparacion-plataformas.md) congela tres escenarios de carga iguales para los tres proveedores, con patrón HTTP, frecuencia de worker/jobs, tamaño/conexiones de DB, objetos/egreso, emails, logs/retención, ambientes y backups. Separar costos fijos potenciales (DB, mínimos, balanceo/red), variables (CPU, solicitudes, almacenamiento, transferencia, observabilidad), aprendizaje/operación y costo de salida. Usar calculadoras oficiales y tarifa contractual vigente cuando exista; todavía no hay datos para afirmar un ganador económico ni fijar precios. El sizing y precio exactos pertenecen a TDD/estimación posterior.
+`TCO = infraestructura + operación + tiempo humano + complejidad + incidentes + riesgo + downtime`. La [baseline y comparación de plataformas](./EVIDENCE-CLD-000-comparacion-plataformas.md) congela tres escenarios de carga iguales para los tres proveedores, con patrón HTTP, frecuencia de worker/jobs, tamaño/conexiones de DB, objetos/egreso, emails, logs/retención, ambientes y backups. Allí se mantiene la taxonomía canónica: [gates](./EVIDENCE-CLD-000-comparacion-plataformas.md#41-gates-obligatorios), [criterios ponderados](./EVIDENCE-CLD-000-comparacion-plataformas.md#42-ponderación-posterior-a-gates) y [sensibilidades](./EVIDENCE-CLD-000-comparacion-plataformas.md#7-costeo-comparable). Separar costos fijos potenciales (DB, mínimos, balanceo/red), variables (CPU, solicitudes, almacenamiento, transferencia, observabilidad), aprendizaje/operación y costo de salida. Usar calculadoras oficiales y tarifa contractual vigente cuando exista; todavía no hay datos para afirmar un ganador económico ni fijar precios. El sizing y precio exactos pertenecen a TDD/estimación posterior.
 
 La lista oficial de regiones acredita existencia de regiones potencialmente cercanas, **no** disponibilidad conjunta de todos los productos, latencia, residencia requerida ni cumplimiento. Antes de seleccionar, comprobar por servicio y región la colocalización de runtime/DB/storage, ruta del usuario argentino, egreso, backup/restore y cualquier requisito de residencia que MAPS confirme. No se asigna región aquí.
 
@@ -118,9 +118,15 @@ Contenedores, PostgreSQL, object storage tras puertos y límites hexagonales **p
 
 Este gate condiciona la aceptación de decisiones cuya justificación dependa materialmente de GCP/AWS/Azure. **No bloquea** investigación o diseño proveedor-neutral. Tampoco elige Cloud Run, Cloud SQL, Cloud Storage, RDS, S3, Container Apps ni equivalentes.
 
+La evidencia sólo será suficiente para resolver este ADR cuando permita distinguir viabilidad y trade-offs materiales entre alternativas. Si una incertidumbre todavía puede cambiar un gate, la viabilidad o una comparación material, el ADR permanece `PROPUESTO`; el proceso no obliga a elegir una plataforma. La regla detallada de suficiencia y asimetría experimental está en [EVIDENCE-CLD-000 §8.4](./EVIDENCE-CLD-000-comparacion-plataformas.md#84-asimetría-experimental-y-suficiencia).
+
+Una incertidumbre **bloquea la selección de plataforma** sólo cuando puede afectar un gate, la viabilidad o una comparación material. Si no alcanza ese umbral, condiciona decisiones posteriores de SKU, sizing, topología, política operativa o configuración en los ADR/TDD Cloud correspondientes; no se oculta, pero tampoco se convierte artificialmente en blocker de `ADR-CLD-000`.
+
 ### Relación con Software y derivaciones posteriores
 
-Si `ADR-SW-003` llega a `ACEPTADO` y confirma una base PostgreSQL **nueva**, la plataforma elegida más managed-first permitirán que `TDD-CLD-003` compare y justifique el servicio PostgreSQL administrado, conexiones, backup y migraciones. Si el contrato Software de Documents llega a estar `ACEPTADO`, plataforma elegida más object storage privado permitirán que `TDD-CLD-004` compare y justifique storage y controles. Son **derivaciones condicionadas**, no elecciones de Cloud SQL/Cloud Storage ni de sus equivalentes. Si aparece un trade-off arquitectónico de primer orden, corresponderá un ADR específico.
+`ADR-SW-003` y `TDD-SW-001` ya fijan respectivamente las fronteras PostgreSQL/Unit of Work y Document/adjuntos. La PR #17 aporta, todavía fuera de `main`, claims, leases y retries del Outbox junto con la frontera de identidad/revocación; la PR #20 mantiene en borrador detalles de `FormVersion`, documentos, Assignment y Delivery. Para este ADR sólo importan sus consecuencias Cloud: capacidades de persistencia y transacción, ejecución recuperable de workers, identidad/revocación efectiva, storage privado y soporte operacional a Assignment/Delivery. No se replica ni resuelve la semántica Software.
+
+La plataforma elegida, junto con managed-first, permitirá que `TDD-CLD-003` compare y justifique el servicio PostgreSQL administrado, conexiones, backup y migraciones; la plataforma elegida junto con object storage privado permitirá que `TDD-CLD-004` compare y justifique storage y controles. Son **derivaciones condicionadas**, no elecciones de Cloud SQL/Cloud Storage ni de sus equivalentes. Si aparece un trade-off arquitectónico de primer orden, corresponderá un ADR específico.
 
 ## Consecuencias y trade-offs
 
@@ -138,7 +144,7 @@ Si `ADR-SW-003` llega a `ACEPTADO` y confirma una base PostgreSQL **nueva**, la 
 | Experiencia GCP en MAPS-Landingpage sólo informada | Cloud + equipo de MAPS-Landingpage | Relevar despliegue, recursos, incidentes, permisos, costos y esfuerzo real; no confundir configuración documentada con operación verificada. |
 | TCO no cuantificado | Cloud + MAPS | Presupuestar mismo workload en calculadoras oficiales, incluir operación y salida; registrar supuestos y fecha. |
 | Compatibilidad regional y latencia no demostradas | Cloud | Verificar disponibilidad de cada capacidad crítica en región candidata y medir rutas desde Argentina. |
-| Contratos Software aún propuestos | Software + Cloud | Revisar los documentos incorporados a `main` mediante PR #14 y decisiones posteriores sin tratarlos como aceptados; adaptar mapeo sólo al contrato validado. |
+| Revisión cruzada Cloud y contratos Software en ramas abiertas | Software + Cloud | Revisar `ADR-SW-001/002/003` y `TDD-SW-001` ya aceptados/aprobado en `main`; seguir PR #17/#20 sin presentar sus estados como integrados ni cerrar decisiones aún abiertas. |
 | Seguridad/IAM y costo de salida | Cloud + Software | Prototipo acotado de identidad, secrets, acceso privado y export/reconstrucción; revisión cruzada pendiente. |
 
 ## Criterios de revisión futura
@@ -152,7 +158,9 @@ Cuando exista una decisión `ACEPTADO`, revisar ante cambio de requisitos de res
 - [F0 — baseline](../../../../00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md), [F1 — Discovery](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md), [F2 — Design Handoff](../../../../02-diseno/Fase_2__Design_Handoff.md): alcance, roles, solicitud, datos y pendientes funcionales.
 - [Cloud Strategy](../../STRATEGY.md): TARGET, principios, gate y derivaciones condicionadas; permanece `BORRADOR ESTRATÉGICO`.
 - [Evidencia ADR-CLD-000](./EVIDENCE-CLD-000-comparacion-plataformas.md): baseline documental `v1.3`, arquitectura mínima equivalente, gates y registro de costeo todavía en elaboración; no acepta plataforma ni servicios.
-- [PR #14 de Software](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/14), incorporada a `main`: `ADR-SW-001/002/003` propuestos y `TDD-SW-001` borrador. No se modifican aquí.
+- [PR #14 de Software](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/14), incorporada a `main`: `ADR-SW-001/002/003` aceptados y `TDD-SW-001` aprobado; revisión cruzada Cloud pendiente.
+- [PR #17 de Software](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/17), abierta y no integrada: `ADR-SW-004/005` aceptados y `TDD-SW-003` aprobado en esa rama; conserva una revisión `CHANGES_REQUESTED`.
+- [PR #20 de Software](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/20), Draft y no integrada: `TDD-SW-002/005` permanecen borrador.
 - MAPS-Landingpage: antecedente de uso GCP **informado** para el mismo cliente; el checkout local revisado no contiene evidencia suficiente para afirmar despliegue, operación ni costos actuales. Validación pendiente.
 - [Fila transversal en traceability.md](../../../traceability.md): «Desplegar el Portal con aislamiento, seguridad y operación verificables».
 

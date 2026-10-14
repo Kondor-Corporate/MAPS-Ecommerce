@@ -14,23 +14,44 @@ $Scenarios = @(
     [pscustomobject]@{ Name = 'Alto'; DbInitialGb = 25.0; DbGrowthGb = 10.0; Requests = 2000000; Submissions = 2500; Jobs = 2500; LogsGb = 50.0; ObjectGrowthGb = 10.0; GcpDbHourly = 0.20275; AwsDbHourly = 0.137; AzureDbHourly = 0.14 }
 )
 
-# Single source for staging values used by both list-price and allowance views.
+# Frozen nominal staging components. Totals are derived below and reused by
+# both list-price and allowance views; component prices are documented in EVIDENCE.
+$StagingComponents = @{
+    GCP = [ordered]@{
+        Database = 2.53; DatabaseStorageAndBackup = 3.11; RuntimeAndJobs = 0.24
+        LoggingObjectsAndOperations = 0.51; PublicIpv4 = 8.55
+    }
+    AWS = [ordered]@{
+        DatabaseAndStorage = 9.82; RuntimeAndJobs = 3.39
+        PublicEntryAndIpv4 = 7.22; LoggingSecretsAndObjects = 2.51
+    }
+    Azure = [ordered]@{
+        DatabaseAndStorage = 12.59; RuntimeAndJobs = 0.08
+        LoggingKeyVaultAndBlob = 4.62
+    }
+}
+
 $StagingConfig = @{
     GCP = [pscustomobject]@{
-        TotalListPrice = 14.94; Requests = 20000; RequestDurationSeconds = 0.4
+        Components = $StagingComponents.GCP; Requests = 20000; RequestDurationSeconds = 0.4
         RuntimeCpu = 1.0; RuntimeMemoryGiB = 0.5; Jobs = 20; JobDurationSeconds = 60
         JobCpu = 1.0; JobMemoryGiB = 0.5; LogsGb = 1.0; LogsUnitPrice = 0.50
     }
     AWS = [pscustomobject]@{
-        TotalListPrice = 22.94; Requests = 0; RequestDurationSeconds = 0.0
+        Components = $StagingComponents.AWS; Requests = 0; RequestDurationSeconds = 0.0
         RuntimeCpu = 0.0; RuntimeMemoryGiB = 0.0; Jobs = 0; JobDurationSeconds = 0
         JobCpu = 0.0; JobMemoryGiB = 0.0; LogsGb = 1.0; LogsUnitPrice = 0.90
     }
     Azure = [pscustomobject]@{
-        TotalListPrice = 17.29; Requests = 20000; RequestDurationSeconds = 0.4
+        Components = $StagingComponents.Azure; Requests = 20000; RequestDurationSeconds = 0.4
         RuntimeCpu = 0.25; RuntimeMemoryGiB = 0.5; Jobs = 20; JobDurationSeconds = 60
         JobCpu = 0.25; JobMemoryGiB = 0.5; LogsGb = 1.0; LogsUnitPrice = 4.60
     }
+}
+
+foreach ($provider in @('GCP', 'AWS', 'Azure')) {
+    $stagingTotal = ($StagingConfig[$provider].Components.Values | Measure-Object -Sum).Sum
+    $StagingConfig[$provider] | Add-Member -NotePropertyName TotalListPrice -NotePropertyValue ([math]::Round($stagingTotal, 2))
 }
 
 function Get-StagingUsage([string]$Provider) {
@@ -38,9 +59,15 @@ function Get-StagingUsage([string]$Provider) {
     return $StagingConfig[$Provider]
 }
 
-function Assert-Near([string]$Label, [double]$Actual, [double]$Expected, [double]$Tolerance = 0.01) {
+function Assert-Near([string]$Label, [double]$Actual, [double]$Expected, [double]$Tolerance = 0.001) {
     if ([math]::Abs($Actual - $Expected) -gt $Tolerance) {
         throw "$Label drifted: actual=$Actual expected=$Expected tolerance=$Tolerance"
+    }
+}
+
+function Assert-Equal([string]$Label, $Actual, $Expected) {
+    if ($Actual -ne $Expected) {
+        throw "$Label drifted: actual=$Actual expected=$Expected"
     }
 }
 
@@ -246,25 +273,7 @@ $AllowanceSensitivity = foreach ($provider in @('GCP', 'AWS', 'Azure')) {
     }
 }
 
-# Fail fast if values copied into EVIDENCE drift from the executable model.
-$PublishedExpected = @{
-    GCP = @{ Month1 = 104.99; Month12 = 120.61; NetMonth1 = 94.66; NetMonth12 = 110.29 }
-    AWS = @{ Month1 = 140.30; Month12 = 149.52; NetMonth1 = 135.80; NetMonth12 = 145.02 }
-    Azure = @{ Month1 = 179.56; Month12 = 187.27; NetMonth1 = 154.56; NetMonth12 = 162.27 }
-}
-
-foreach ($provider in @('GCP', 'AWS', 'Azure')) {
-    $summaryRow = $Summary | Where-Object { $_.Scenario -eq 'Esperado' -and $_.Provider -eq $provider }
-    $allowanceMonth1 = $AllowanceSensitivity | Where-Object { $_.Provider -eq $provider -and $_.Month -eq 1 }
-    $allowanceMonth12 = $AllowanceSensitivity | Where-Object { $_.Provider -eq $provider -and $_.Month -eq 12 }
-    Assert-Near "$provider Expected Month 1 list-price" $summaryRow.Month1USD $PublishedExpected[$provider].Month1
-    Assert-Near "$provider Expected Month 12 list-price" $summaryRow.Month12USD $PublishedExpected[$provider].Month12
-    Assert-Near "$provider Expected max monthly Year 1" $summaryRow.MaxMonthlyYear1USD $PublishedExpected[$provider].Month12
-    if ($summaryRow.MonthOfMaxCost -ne 12) { throw "$provider Expected month of max cost drifted: $($summaryRow.MonthOfMaxCost)" }
-    Assert-Near "$provider Expected Month 1 net-of-allowance" $allowanceMonth1.NetOfAllowanceUSD $PublishedExpected[$provider].NetMonth1
-    Assert-Near "$provider Expected Month 12 net-of-allowance" $allowanceMonth12.NetOfAllowanceUSD $PublishedExpected[$provider].NetMonth12
-}
-
+# HA is a sensitivity only: it does not assert an RPO/RTO requirement.
 $Ha = foreach ($provider in @('GCP', 'AWS', 'Azure')) {
     $monthTotals = foreach ($month in 1..12) {
         $base = Get-MonthCost $Expected $provider $month
@@ -290,6 +299,71 @@ $Ha = foreach ($provider in @('GCP', 'AWS', 'Azure')) {
         Month12USD = [math]::Round($monthTotals[11], 2)
         Year1USD = [math]::Round(($monthTotals | Measure-Object -Sum).Sum, 2)
     }
+}
+
+# Fail fast if any value copied into EVIDENCE drifts from the executable model.
+$PublishedSummary = @(
+    [pscustomobject]@{ Scenario='Bajo'; Provider='GCP'; Month1=94.55; Month12=98.98; Max=98.98; MaxMonth=12; Year1=1157.35; DbM1=10; DbM12=22 },
+    [pscustomobject]@{ Scenario='Bajo'; Provider='AWS'; Month1=107.34; Month12=107.96; Max=107.96; MaxMonth=12; Year1=1289.61; DbM1=20; DbM12=22 },
+    [pscustomobject]@{ Scenario='Bajo'; Provider='Azure'; Month1=64.51; Month12=64.66; Max=64.66; MaxMonth=12; Year1=775.00; DbM1=32; DbM12=32 },
+    [pscustomobject]@{ Scenario='Esperado'; Provider='GCP'; Month1=104.99; Month12=120.61; Max=120.61; MaxMonth=12; Year1=1353.62; DbM1=14; DbM12=58 },
+    [pscustomobject]@{ Scenario='Esperado'; Provider='AWS'; Month1=140.30; Month12=149.52; Max=149.52; MaxMonth=12; Year1=1732.80; DbM1=20; DbM12=58 },
+    [pscustomobject]@{ Scenario='Esperado'; Provider='Azure'; Month1=179.56; Month12=187.27; Max=187.27; MaxMonth=12; Year1=2207.96; DbM1=32; DbM12=64 },
+    [pscustomobject]@{ Scenario='Alto'; Provider='GCP'; Month1=224.83; Month12=277.94; Max=277.94; MaxMonth=12; Year1=3016.64; DbM1=34; DbM12=180 },
+    [pscustomobject]@{ Scenario='Alto'; Provider='AWS'; Month1=230.07; Month12=266.50; Max=266.50; MaxMonth=12; Year1=2979.43; DbM1=34; DbM12=180 },
+    [pscustomobject]@{ Scenario='Alto'; Provider='Azure'; Month1=376.84; Month12=422.38; Max=422.38; MaxMonth=12; Year1=4781.36; DbM1=64; DbM12=256 }
+)
+
+foreach ($published in $PublishedSummary) {
+    $actual = $Summary | Where-Object { $_.Scenario -eq $published.Scenario -and $_.Provider -eq $published.Provider }
+    $label = "$($published.Scenario) $($published.Provider)"
+    Assert-Near "$label Month 1" $actual.Month1USD $published.Month1
+    Assert-Near "$label Month 12" $actual.Month12USD $published.Month12
+    Assert-Near "$label max monthly" $actual.MaxMonthlyYear1USD $published.Max
+    Assert-Equal "$label month of max" $actual.MonthOfMaxCost $published.MaxMonth
+    Assert-Near "$label Year 1" $actual.Year1USD $published.Year1
+    Assert-Near "$label DB allocation Month 1" $actual.DbAllocationMonth1GiB $published.DbM1
+    Assert-Near "$label DB allocation Month 12" $actual.DbAllocationMonth12GiB $published.DbM12
+}
+
+$PublishedStaging = @{ GCP = 14.94; AWS = 22.94; Azure = 17.29 }
+foreach ($provider in @('GCP', 'AWS', 'Azure')) {
+    Assert-Near "$provider staging subtotal" (Get-StagingUsage $provider).TotalListPrice $PublishedStaging[$provider]
+}
+
+$PublishedAllowance = @{
+    GCP = @{ Month1 = 94.66; Month12 = 110.29 }
+    AWS = @{ Month1 = 135.80; Month12 = 145.02 }
+    Azure = @{ Month1 = 154.56; Month12 = 162.27 }
+}
+foreach ($provider in @('GCP', 'AWS', 'Azure')) {
+    $month1 = $AllowanceSensitivity | Where-Object { $_.Provider -eq $provider -and $_.Month -eq 1 }
+    $month12 = $AllowanceSensitivity | Where-Object { $_.Provider -eq $provider -and $_.Month -eq 12 }
+    Assert-Near "$provider allowance Month 1" $month1.NetOfAllowanceUSD $PublishedAllowance[$provider].Month1
+    Assert-Near "$provider allowance Month 12" $month12.NetOfAllowanceUSD $PublishedAllowance[$provider].Month12
+}
+
+$PublishedAzureTier = @{
+    1 = @{ B1ms = 102.91; B2s = 179.56; Difference = 76.65 }
+    12 = @{ B1ms = 110.62; B2s = 187.27; Difference = 76.65 }
+}
+foreach ($month in @(1, 12)) {
+    $actual = $AzureTierSensitivity | Where-Object Month -eq $month
+    Assert-Near "Azure tier Month $month B1ms" $actual.B1msProvisionalUSD $PublishedAzureTier[$month].B1ms
+    Assert-Near "Azure tier Month $month B2s" $actual.B2sConservativeUSD $PublishedAzureTier[$month].B2s
+    Assert-Near "Azure tier Month $month difference" $actual.DifferenceUSD $PublishedAzureTier[$month].Difference
+}
+
+$PublishedHa = @{
+    GCP = @{ Month1 = 182.56; Month12 = 209.41; Year1 = 2351.83 }
+    AWS = @{ Month1 = 213.45; Month12 = 230.99; Year1 = 2654.35 }
+    Azure = @{ Month1 = 446.06; Month12 = 460.76; Year1 = 5454.91 }
+}
+foreach ($provider in @('GCP', 'AWS', 'Azure')) {
+    $actual = $Ha | Where-Object Provider -eq $provider
+    Assert-Near "$provider HA Month 1" $actual.Month1USD $PublishedHa[$provider].Month1
+    Assert-Near "$provider HA Month 12" $actual.Month12USD $PublishedHa[$provider].Month12
+    Assert-Near "$provider HA Year 1" $actual.Year1USD $PublishedHa[$provider].Year1
 }
 
 if ($Mode -eq 'Csv') {

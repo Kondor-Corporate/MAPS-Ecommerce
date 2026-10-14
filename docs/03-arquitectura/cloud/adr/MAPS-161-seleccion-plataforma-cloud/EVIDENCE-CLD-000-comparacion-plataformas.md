@@ -4,7 +4,7 @@
 | --- | --- |
 | Estado | **EN ELABORACIÓN** — evidencia de apoyo; no acepta plataforma ni servicios |
 | Corte de precios | 2026-10-07 |
-| Última actualización documental | 2026-10-13 |
+| Última actualización documental | 2026-10-14 |
 | Work items | Historia [MAPS-161](https://santitalavera.atlassian.net/browse/MAPS-161); subtask [MAPS-162](https://santitalavera.atlassian.net/browse/MAPS-162) |
 | Decisión relacionada | [ADR-CLD-000 — Selección de plataforma cloud](./ADR-CLD-000-seleccion-plataforma-cloud.md) (`PROPUESTO`) |
 | Fuentes de alcance | [F0](../../../../00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md), [F1](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md), [F2](../../../../02-diseno/Fase_2__Design_Handoff.md) y [Cloud Strategy](../../STRATEGY.md) |
@@ -55,6 +55,8 @@ Los escenarios no son una proyección comercial. Sólo permiten comparar platafo
 | Tamaño promedio/máximo por archivo | 2 MB / 10 MB | 2 MB / 10 MB | 2 MB / 10 MB | `SUPUESTO DE COMPARACIÓN` |
 | Storage nuevo/mes | 0,4 GB | 2 GB | 10 GB | Derivado de solicitudes y tamaño promedio |
 | Logs y telemetría/mes | 2 GB | 10 GB | 50 GB | `SUPUESTO DE COMPARACIÓN`; sin payloads ni PII |
+
+Las `100/500/2.500` ejecuciones de worker son una variable comparativa independiente y **no** significan «una request HTTP = una ejecución». La operación real deberá medir retries, claims, recuperación de leases, housekeeping, procesamiento de resultados/webhooks y cualquier otro trabajo asíncrono antes de reemplazar este supuesto.
 
 ### 2.3 Perfil temporal y presupuesto de conexiones v1
 
@@ -142,6 +144,20 @@ economic_gate_condition = economic_gate_value <= USD 200
 
 La evaluación usa list-price bruto. Créditos, promociones y la sensibilidad optimista `net-of-allowance` no pueden utilizarse para superar el gate. El script expone `MaxMonthlyYear1USD` y `MonthOfMaxCost` para cada proveedor y escenario.
 
+Matriz preparada para aplicación futura; en esta baseline ningún resultado fue evaluado:
+
+| Gate | Condición | Evidencia requerida | GCP | AWS | Azure | Estado/evidencia |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1. Costo | Máximo mensual Esperado ≤ USD 200 | Modelo reconciliado con calculators/artifacts | `NOT EVALUATED` | `NOT EVALUATED` | `NOT EVALUATED` | Pendiente |
+| 2. Región | Región razonable y conjunto crítico disponible | Documentación por servicio/región y, si corresponde, medición | `NOT EVALUATED` | `NOT EVALUATED` | `NOT EVALUATED` | Pendiente |
+| 3. Runtime | API + worker/jobs viables | Cobertura documental y prueba si la incertidumbre es material | `NOT EVALUATED` | `NOT EVALUATED` | `NOT EVALUATED` | Pendiente |
+| 4. PostgreSQL | Servicio administrado candidato | Documentación, límites y compatibilidad | `NOT EVALUATED` | `NOT EVALUATED` | `NOT EVALUATED` | Pendiente |
+| 5. Object storage | Acceso privado y lifecycle | Documentación de controles y región | `NOT EVALUATED` | `NOT EVALUATED` | `NOT EVALUATED` | Pendiente |
+| 6. Identidad | Runtime y CI/CD sin claves estáticas | Documentación y prueba federada autorizada si hace falta | `NOT EVALUATED` | `NOT EVALUATED` | `NOT EVALUATED` | Pendiente |
+| 7. Recuperación | Backup y restore verificables | Documentación y restore sintético cuando esté financiado/autorizado | `NOT EVALUATED` | `NOT EVALUATED` | `NOT EVALUATED` | Pendiente |
+| 8. Observabilidad | Logs, métricas y alertas sin PII innecesaria | Cobertura documental y consulta reproducible | `NOT EVALUATED` | `NOT EVALUATED` | `NOT EVALUATED` | Pendiente |
+| 9. Ambientes/IaC | Separación y reconstrucción viables | Diseño, cobertura IaC y teardown autorizado si hace falta | `NOT EVALUATED` | `NOT EVALUATED` | `NOT EVALUATED` | Pendiente |
+
 ### 4.2 Ponderación posterior a gates
 
 Problema detectado: usar `TCO` como criterio de 30% y volver a puntuar operación/aprendizaje en 25% puede contar dos veces horas humanas, complejidad y mantenimiento. La redefinición propuesta preserva los pesos, pero separa las bases de medición:
@@ -167,7 +183,7 @@ La puntuación se aplicará sólo después de reunir evidencia. No se asignan pu
 
 ## 5. Arquitectura mínima equivalente
 
-La tabla normaliza responsabilidades. No acepta productos y deja visibles los componentes adicionales que afectan costo u operación.
+La tabla normaliza responsabilidades. No acepta productos y deja visibles los componentes adicionales que afectan costo u operación. Esta equivalencia funcional **no** normaliza ni presume equivalencia de latencia, disponibilidad, SLA, RPO/RTO o capacidad; esas propiedades requieren documentación verificada o medición bajo el [protocolo común](./PROTOCOL-CLD-000-pruebas-y-auditoria.md).
 
 | Responsabilidad | GCP candidato | AWS candidato | Azure candidato | Validación pendiente |
 | --- | --- | --- | --- | --- |
@@ -206,6 +222,22 @@ Santiago/Chile permanece como alternativa secundaria donde exista el conjunto co
 ## 7. Costeo comparable
 
 El modelo congelado se reproduce con [COST-MODEL-CLD-000.ps1](./COST-MODEL-CLD-000.ps1). Usa precios on-demand/list price, sin impuestos, soporte pago, compromisos, créditos ni franquicias compartidas. Esta sigue siendo la vista principal. Una sensibilidad separada descuenta sólo franquicias permanentes publicadas suponiendo que están completamente disponibles para MAPS; no usa créditos promocionales.
+
+#### Componentes todavía no cuantificados en el total base
+
+| Componente | Estado de baseline | ¿Incluido en el total principal? | Condición para incluir o recalcular |
+| --- | --- | --- | --- |
+| Egress a Internet | Sin descargas confirmadas; valor visible en USD 0 | No cuantificado | Medir descargas, destinos y tarifas reales. |
+| Frontend, edge y entrada pública adicional | Arquitectura pendiente de `ADR-CLD-001` | No, salvo ingreso mínimo ya explícito por proveedor | Recalcular si se agregan frontend runtime, dominio, CDN, WAF, routing, LB/edge o backend privado. |
+| Proveedor de email | Volumen supuesto, proveedor y tarifa pendientes | No | Incluir dentro del tope USD 200 sólo si se confirma que el presupuesto cloud también cubre email. |
+| Impuestos y conversión de moneda | Condiciones de facturación pendientes | No | Incorporar cuando se conozcan entidad facturante, impuestos y tipo de cambio aplicable. |
+| Soporte pago | Sin plan confirmado | No | Incluir si el nivel operacional requiere un plan pago. |
+| Networking privado adicional | NAT, PrivateLink/Private Endpoint o endpoints de interfaz no elegidos | No, excepto networking explícito de la topología de referencia | Recalcular si seguridad/topología exige conectividad adicional. |
+| Alta disponibilidad zonal | Sensibilidad separada en §7.10 | No | Incorporar al total principal sólo si MAPS define la necesidad de tolerancia zonal/continuidad correspondiente. |
+| Compromisos, créditos y promociones | Excluidos del list-price; allowances sólo en sensibilidad | No | Mantener separados; sólo registrar condiciones verificadas sin usarlos para ocultar costo estructural. |
+| Carga humana y costo operacional | Parte de TCO cualitativo, no del cloud spend | No | Cuantificar con evidencia de operación, aprendizaje, incidentes y tiempo del equipo. |
+
+La tabla no agrega costos ni decide su aplicabilidad: mantiene visible qué podría modificar el total comparable.
 
 ### 7.1 Modelo v1 y horizonte
 

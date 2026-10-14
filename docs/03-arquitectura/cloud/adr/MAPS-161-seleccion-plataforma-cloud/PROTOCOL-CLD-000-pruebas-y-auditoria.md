@@ -4,7 +4,7 @@
 | --- | --- |
 | Estado | **PREPARADO — NO AUTORIZADO PARA EJECUCIÓN** |
 | Fecha original del diseño | 2026-10-07 |
-| Última actualización | 2026-10-13 |
+| Última actualización | 2026-10-14 |
 | Evidencia relacionada | [EVIDENCE-CLD-000](./EVIDENCE-CLD-000-comparacion-plataformas.md) |
 | Decisión relacionada | [ADR-CLD-000](./ADR-CLD-000-seleccion-plataforma-cloud.md) (`PROPUESTO`) |
 
@@ -86,6 +86,14 @@ Disponer de créditos suficientes para el costo estimado no basta si existe un r
 
 La matriz canónica de financiación por proveedor está en [EVIDENCE-CLD-000, sección 8.3](./EVIDENCE-CLD-000-comparacion-plataformas.md#83-matriz-de-financiación-de-spikes). No se presume ningún crédito o allowance hasta verificarlo.
 
+La autorización se registra por **unidad de ejecución**, no como permiso abierto para todo el protocolo:
+
+| Proveedor | Ronda | Pruebas incluidas | Recursos/SKUs | Duración máxima | Estimación bruta | Margen | Financiación confirmada | Owner | Teardown | Riesgo de overage | Estado/autorización |
+| --- | --- | --- | --- | --- | ---: | ---: | --- | --- | --- | --- | --- |
+| PENDIENTE | PENDIENTE | PENDIENTE | PENDIENTE | PENDIENTE | PENDIENTE | PENDIENTE | PENDIENTE | PENDIENTE | PENDIENTE | `UNKNOWN` | `UNKNOWN — NO AUTORIZADO` |
+
+Cada unidad requiere por sí misma decisión `FUNDED` y autorización explícita antes de crear recursos. Una autorización de una ronda o proveedor no se extiende a otra unidad.
+
 ## 3. Workload HTTP congelado para el spike
 
 Todos los valores son `SUPUESTO DE COMPARACIÓN`, no previsiones comerciales.
@@ -106,6 +114,8 @@ Todos los valores son `SUPUESTO DE COMPARACIÓN`, no previsiones comerciales.
 La media mensual resulta de `requests / (30 × 24 × 3600)`. Su valor bajo demuestra por qué los requests mensuales no sustituyen una prueba de pico.
 
 El margen MAPS de 20 no representa conexiones reservadas por el proveedor. Es headroom propio para administración, migraciones, health checks, jobs, despliegues solapados y variación del pool. En Azure Esperado se contrastarán también márgenes de 5 y 10, sin reducir automáticamente la baseline conservadora.
+
+Antes de cada ronda se congelan workload, responsabilidades ejercitadas, dataset, región comparable y procedimiento. Se registran el SKU y la CPU/RAM **reales** de cada recurso. La comparación busca responsabilidad funcional equivalente, no recursos nominalmente idénticos; tampoco infiere equivalencia de SLO, SLA, RPO o RTO mientras MAPS no los defina y la evidencia no los demuestre.
 
 ## 4. Imagen y endpoints comunes
 
@@ -194,6 +204,25 @@ allowed_action, denied_action, audit_event
 
 No se guardan tokens, assertions OIDC completas ni credenciales temporales en logs o artifacts. No se crean claves estáticas para simplificar el spike.
 
+### 5.3 Prueba sintética de coordinación Outbox/worker
+
+Esta prueba usa un proveedor de email **fake/stub/local** y destinatarios sintéticos; no envía emails reales ni resuelve el criterio funcional todavía abierto en `TDD-SW-005`. Se ejecutan los mismos casos por plataforma:
+
+1. dos workers intentan claim concurrente del mismo `OutboxEvent`;
+2. sólo un claim resulta válido durante el lease;
+3. el worker cae después del claim;
+4. el lease vence;
+5. el evento vuelve a quedar procesable;
+6. un retry posterior completa o registra el nuevo resultado;
+7. llega un resultado duplicado;
+8. llega un resultado obsoleto después de reasignación o cancelación;
+9. se repite la misma idempotency key;
+10. se agotan los reintentos;
+11. una nueva intención manual crea un evento nuevo y no reutiliza el agotado;
+12. claims, intentos, descartes, resultado y recuperación quedan observables/auditables.
+
+Registrar por caso: `outbox_item_id` sintético, workers participantes, claims, timestamps de lease/reclaim, attempts, invocaciones al stub, idempotency key, duplicate processing, `discarded_stale_result`, transición y estado final, errores, tiempo técnico de recuperación y correlation id. La evidencia describe capacidades y fallos técnicos; no decide si `providerMessageId` o webhook constituye la evidencia funcional de Delivery requerida ni el runtime Cloud definitivo.
+
 ## 6. Ventana y orden de ejecución
 
 1. Cerrar preestimación bruta, completar la matriz de financiación con decisión `FUNDED` y configurar OIDC/federación sin credenciales estáticas.
@@ -279,6 +308,8 @@ El protocolo registra uno de estos estados sin inferir un resultado técnico par
 - `PROTOCOL EXECUTION COMPLETE`: se ejecutó todo el alcance autorizado y financiado, con teardown verificado, costo real y desviaciones registradas.
 
 Una capacidad queda `MEDIDO` sólo cuando produjo evidencia reproducible conforme a este protocolo. La falta de financiación suficiente se registra `NO MEDIDO — no sufficient free funding`: no significa `FALLA`, no equivale a cero puntos y no autoriza una comparación directa contra otro proveedor medido. Las mediciones sólo se comparan directamente cuando workload, configuración, región, ventana y procedimiento son equivalentes.
+
+`MEDIDO`/`NO MEDIDO` describe disponibilidad de evidencia. `PASS`/`FAIL`/`INCONCLUSIVE` sólo se usa cuando existe un criterio explícito congelado antes de la prueba. Por ejemplo, una latencia observada se registra `MEDIDO`; sin SLO acordado no recibe `PASS` ni `FAIL`. La ausencia de criterio tampoco convierte una medición en inconclusa: simplemente impide un juicio normativo.
 
 ### 9.2 Suficiencia de evidencia del ADR
 
