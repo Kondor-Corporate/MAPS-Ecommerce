@@ -7,7 +7,7 @@
 | Estado | `ACEPTADO` |
 | Fecha | 2026-09-30 |
 | Autor | Joaquin Rodriguez |
-| Revisores | Santiago Talavera (revisión cruzada cloud); validación final en el PR #17 |
+| Revisores | Santiago Talavera (revisión cruzada cloud); pendiente de validación final |
 | Work item | [MAPS-107](https://santitalavera.atlassian.net/browse/MAPS-107) · subtarea [MAPS-133](https://santitalavera.atlassian.net/browse/MAPS-133) |
 | URL del work item | https://santitalavera.atlassian.net/browse/MAPS-107 |
 | Fase origen | [F1 §4/5/7, RN-03/07/08/09/10](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md), [F2 §9/10/12](../../../../02-diseno/Fase_2__Design_Handoff.md) |
@@ -90,8 +90,8 @@ Esta decisión **no** elige ORM, framework HTTP ni proveedores; sólo fija que q
 
 | Impacto | Documento cloud afectado | Estado de revisión |
 | --- | --- | --- |
-| Adaptadores de salida hacia email, storage y base implican credenciales y configuración inyectadas en el arranque | TDD-CLD-006 (previsto) | Dependencia aceptada; se detalla en el documento cloud — Santiago Talavera |
-| Adaptadores de entrada para jobs/worker además de HTTP | ADR-CLD-003 (previsto) | Dependencia aceptada; se detalla en el documento cloud — Santiago Talavera |
+| Adaptadores de salida hacia email, storage y base implican credenciales y configuración inyectadas en el arranque | TDD-CLD-006 (previsto) | Pendiente de conformidad — Santiago Talavera |
+| Adaptadores de entrada para jobs/worker además de HTTP | ADR-CLD-003 (previsto) | Pendiente de conformidad — Santiago Talavera |
 
 ## Riesgos y pendientes
 
@@ -99,7 +99,7 @@ Esta decisión **no** elige ORM, framework HTTP ni proveedores; sólo fija que q
 | --- | --- | --- |
 | Sobre-abstracción | Software | Revisar en code review contra el criterio de proporcionalidad |
 | Falta de control automático de dependencias | Software | Configurar reglas de imports antes de iniciar F4 |
-| Detalle cloud todavía sin redactar | Santiago Talavera | Los documentos cloud de la revisión cruzada detallan esos impactos; si alguno contradice esta decisión, se crea un ADR que reemplace a este |
+| Revisión cruzada cloud sin conformidad registrada | Santiago Talavera | Registrar su conformidad en la tabla de revisión cruzada; los documentos cloud detallan esos impactos y, si alguno contradice esta decisión, se crea un ADR que reemplace a este |
 
 ## Criterios de revisión futura
 
@@ -110,7 +110,6 @@ Revisar si el costo de mapeos supera el beneficio en módulos de puro ABM o si s
 | Fecha | Decisión | Participantes | Observaciones |
 | --- | --- | --- | --- |
 | 2026-10-14 | `ACEPTADO` | Joaquin Rodriguez (owner de software) | Aceptado por decisión del owner. La revisión cruzada cloud con Santiago Talavera (tabla superior) sigue pendiente; esta entrada no registra su conformidad. |
-| 2026-10-14 | `ACEPTADO` (sin cambio de estado) | Santiago Talavera (revisor cloud) | Revisión cruzada cloud completada: revisado en el PR #14 y conforme con la aprobación del PR #17. Se validaron la estructura de referencia y las reglas de dependencia; los impactos cloud quedan como dependencias de la revisión cruzada |
 
 ## Referencias y trazabilidad
 

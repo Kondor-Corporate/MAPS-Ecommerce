@@ -4,10 +4,10 @@
 | --- | --- |
 | ID | `ADR-SW-005` |
 | Título | Identidad, autenticación y autorización funcional (RBAC + ownership) |
-| Estado | `ACEPTADO` |
+| Estado | `PROPUESTO` |
 | Fecha | 2026-10-01 |
 | Autor | Joaquin Rodriguez |
-| Revisores | Santiago Talavera (revisión cruzada cloud/seguridad); validación final en el PR #17 |
+| Revisores | Santiago Talavera (revisión cruzada cloud/seguridad; conformidad pendiente) |
 | Work item | [MAPS-111](https://santitalavera.atlassian.net/browse/MAPS-111) · subtarea [MAPS-136](https://santitalavera.atlassian.net/browse/MAPS-136) |
 | URL del work item | https://santitalavera.atlassian.net/browse/MAPS-111 |
 | Fase origen | [F1 §3/5, RN-02/04/05/14/15/16/17/18/19/20, RF-CLI-01, RF-PRODUCER-01/02/03, RNF-SEC-01](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md), [F2 §6/11/12/13](../../../../02-diseno/Fase_2__Design_Handoff.md) |
@@ -152,10 +152,10 @@ Esta decisión **no** elige proveedor de identidad, formato de token, duración 
 
 | Impacto | Documento cloud afectado | Estado de revisión |
 | --- | --- | --- |
-| Elección y configuración del proveedor de identidad gestionado; revocación de sesiones | ADR-CLD-007, TDD-CLD-006 (previstos) | Dependencia aceptada; se detalla en el documento cloud — Santiago Talavera |
-| Secretos de integración con el proveedor y validación de tokens en la API | TDD-CLD-006 (previsto) | Dependencia aceptada; se detalla en el documento cloud — Santiago Talavera |
-| Separación entre IAM de infraestructura y RBAC de aplicación | ADR-CLD-007 (previsto) | Dependencia aceptada; se detalla en el documento cloud — Santiago Talavera |
-| Registro de auditoría de acceso sin PII en telemetría | TDD-CLD-007 (previsto) | Dependencia aceptada; se detalla en el documento cloud — Santiago Talavera |
+| Elección y configuración del proveedor de identidad gestionado; revocación de sesiones | ADR-CLD-007, TDD-CLD-006 (previstos) | Pendiente de conformidad — Santiago Talavera |
+| Secretos de integración con el proveedor y validación de tokens en la API | TDD-CLD-006 (previsto) | Pendiente de conformidad — Santiago Talavera |
+| Separación entre IAM de infraestructura y RBAC de aplicación | ADR-CLD-007 (previsto) | Pendiente de conformidad — Santiago Talavera |
+| Registro de auditoría de acceso sin PII en telemetría | TDD-CLD-007 (previsto) | Pendiente de conformidad — Santiago Talavera |
 
 ## Riesgos y pendientes
 
@@ -165,7 +165,7 @@ Esta decisión **no** elige proveedor de identidad, formato de token, duración 
 | Journey de "solicitud de alta" de Cliente dado de baja | Kondor + MAPS | Diferido fuera del MVP por decisión de alcance Kondor (RN-18); no condiciona este ADR. Si se incorpora, se registra como cambio controlado en F1/F2 y se modela en TDD-SW-004 |
 | Campos de Mi perfil | `PENDIENTE FUNCIONAL MAPS` | Ownership y autorización avanzan; lista de campos se cierra en TDD-SW-004 |
 | Política de MFA para Admin | Software + Cloud | Evaluar en ADR-CLD-007; recomendación: obligatorio para Admin por su alcance |
-| Detalle cloud todavía sin redactar | Santiago Talavera | Los documentos cloud de la revisión cruzada detallan esos impactos; si alguno contradice esta decisión, se crea un ADR que reemplace a este |
+| Revisión cruzada cloud sin conformidad registrada | Santiago Talavera | Registrar su conformidad en la tabla de revisión cruzada; los documentos cloud detallan esos impactos y, si alguno contradice esta decisión, se crea un ADR que reemplace a este |
 
 ## Criterios de revisión futura
 
@@ -175,7 +175,7 @@ Revisar si aparecen roles adicionales o sub-roles de Admin, cuentas con más de 
 
 | Fecha | Decisión | Participantes | Observaciones |
 | --- | --- | --- | --- |
-| 2026-10-14 | `ACEPTADO` | Joaquin Rodriguez (autor), Santiago Talavera (revisor cloud) | Aceptado con la aprobación del PR #17. Se validaron el modelo de identidad, las políticas de acceso y los efectos de baja de RN-18/RN-19; los impactos cloud quedan como dependencias de la revisión cruzada |
+| 2026-10-14 | `PROPUESTO` | Joaquin Rodriguez (owner de software) | Propuesto en el PR #17 (modelo de identidad, políticas de acceso y efectos de baja de RN-18/RN-19). La revisión cruzada cloud de Santiago Talavera (2026-10-14) dictaminó favorable al enfoque con cambios solicitados; su conformidad y la aceptación se registran cuando se cierren |
 
 ## Referencias y trazabilidad
 

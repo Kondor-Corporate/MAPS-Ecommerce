@@ -4,15 +4,15 @@
 | --- | --- |
 | ID | `TDD-SW-003` |
 | Título | InsuranceRequest, snapshots y máquina de estados |
-| Estado | `APROBADO` |
+| Estado | `EN REVISIÓN` |
 | Fecha | 2026-10-01 |
 | Autor | Joaquin Rodriguez |
-| Revisores | Santiago Talavera (revisión cruzada cloud); validación final en el PR #17 |
+| Revisores | Santiago Talavera (revisión cruzada cloud; conformidad pendiente) |
 | Work item | [MAPS-113](https://santitalavera.atlassian.net/browse/MAPS-113) · subtarea [MAPS-140](https://santitalavera.atlassian.net/browse/MAPS-140) |
 | URL del work item | https://santitalavera.atlassian.net/browse/MAPS-113 |
 | Fase origen | [F1 §2/3/4, RN-02/03/06/07/08/09/10/18/19, RF-SOL-01 a 05](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md), [F2 §5/6/8/10/12](../../../../02-diseno/Fase_2__Design_Handoff.md) |
 | Decisiones relacionadas | [ADR-SW-001](../../adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-001-monolito-modular-y-limites.md); [ADR-SW-002](../../adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-002-arquitectura-hexagonal-y-capas.md); [ADR-SW-003](../../adr/MAPS-108-persistencia-fronteras-transaccionales/ADR-SW-003-persistencia-y-fronteras-transaccionales.md); [ADR-SW-004](../../adr/MAPS-110-asincronia-outbox-idempotencia/ADR-SW-004-outbox-asincronia-e-idempotencia.md); [ADR-SW-005](../../adr/MAPS-111-identidad-autorizacion/ADR-SW-005-identidad-y-autorizacion.md); [TDD-SW-001](../MAPS-109-modelo-dominio-datos/TDD-SW-001-modelo-de-dominio-y-datos.md); TDD-SW-002 y TDD-SW-005 (previstos, sin redactar) |
-| Depende de | ADR-SW-001/002/003/004/005 (`ACEPTADO`) y TDD-SW-001 (`APROBADO`) |
+| Depende de | ADR-SW-001/002/003 (`ACEPTADO`), ADR-SW-004/005 (`PROPUESTO`) y TDD-SW-001 (`APROBADO`) |
 | Reemplaza | No aplica |
 | Reemplazado por | No aplica |
 
@@ -220,4 +220,4 @@ Secuencia sugerida: dominio y `RequestStateMachine` con pruebas → `CreateDraft
 
 ## Criterio de aprobación
 
-`APROBADO` el 2026-10-14 con la aprobación del PR #17: se verificó su alineación con RN-18/RN-19, Santiago Talavera completó la revisión cruzada y los ADR de los que depende están `ACEPTADO`. Las decisiones abiertas de este documento siguen abiertas; si una de ellas cambia la máquina de estados, se actualiza este TDD o se crea uno que lo reemplace.
+`EN REVISIÓN` desde el 2026-10-14: la revisión cruzada cloud de Santiago Talavera dictaminó favorable al modelo y a la máquina de estados, con cambios solicitados. Puede pasar a `APROBADO` cuando esos cambios queden conformes, ADR-SW-004/005 estén `ACEPTADO` y el revisor registre su conformidad. Las decisiones abiertas de este documento siguen abiertas; si una de ellas cambia la máquina de estados, se actualiza este TDD o se crea uno que lo reemplace.

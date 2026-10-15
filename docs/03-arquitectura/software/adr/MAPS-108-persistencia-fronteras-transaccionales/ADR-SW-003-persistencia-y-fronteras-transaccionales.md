@@ -7,7 +7,7 @@
 | Estado | `ACEPTADO` |
 | Fecha | 2026-09-30 |
 | Autor | Joaquin Rodriguez |
-| Revisores | Santiago Talavera (revisión cruzada cloud); validación final en el PR #17 |
+| Revisores | Santiago Talavera (revisión cruzada cloud); pendiente de validación final |
 | Work item | [MAPS-108](https://santitalavera.atlassian.net/browse/MAPS-108) · subtarea [MAPS-134](https://santitalavera.atlassian.net/browse/MAPS-134) |
 | URL del work item | https://santitalavera.atlassian.net/browse/MAPS-108 |
 | Fase origen | [F0 §0.1/0.8, decisión 2026-09-11](../../../../00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md), [F1 §1/4, RN-03/07/08/09/10](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md), [F2 §9/10/12](../../../../02-diseno/Fase_2__Design_Handoff.md) |
@@ -99,9 +99,9 @@ Se **decide**:
 
 | Impacto | Documento cloud afectado | Estado de revisión |
 | --- | --- | --- |
-| Instancia PostgreSQL nueva y gestionada, conexiones y pool | TDD-CLD-003 (previsto) | Dependencia aceptada; se detalla en el documento cloud — Santiago Talavera |
-| Ejecución de migraciones separada del despliegue de la aplicación | ADR-CLD-003, TDD-CLD-003 (previstos) | Dependencia aceptada; se detalla en el documento cloud — Santiago Talavera |
-| Procesamiento asíncrono de efectos externos | TDD-CLD-005 (previsto) | Dependencia aceptada; se detalla en el documento cloud — Santiago Talavera |
+| Instancia PostgreSQL nueva y gestionada, conexiones y pool | TDD-CLD-003 (previsto) | Pendiente de conformidad — Santiago Talavera |
+| Ejecución de migraciones separada del despliegue de la aplicación | ADR-CLD-003, TDD-CLD-003 (previstos) | Pendiente de conformidad — Santiago Talavera |
+| Procesamiento asíncrono de efectos externos | TDD-CLD-005 (previsto) | Pendiente de conformidad — Santiago Talavera |
 
 ## Riesgos y pendientes
 
@@ -112,7 +112,7 @@ Se **decide**:
 | Contrato definitivo de formularios | `PENDIENTE FUNCIONAL MAPS` | Versionado y snapshots avanzan; esquema de respuestas se cierra en TDD-SW-002 tras 1–2 casos reales |
 | Retención y eliminación de solicitudes y documentos | `PENDIENTE FUNCIONAL MAPS` | Se modela sin borrado físico; plazos y eliminación quedan condicionados |
 | Semántica de outbox y reintentos | Software | Definida en [ADR-SW-004](../MAPS-110-asincronia-outbox-idempotencia/ADR-SW-004-outbox-asincronia-e-idempotencia.md) |
-| Detalle cloud todavía sin redactar | Santiago Talavera | Los documentos cloud de la revisión cruzada detallan esos impactos; si alguno contradice esta decisión, se crea un ADR que reemplace a este |
+| Revisión cruzada cloud sin conformidad registrada | Santiago Talavera | Registrar su conformidad en la tabla de revisión cruzada; los documentos cloud detallan esos impactos y, si alguno contradice esta decisión, se crea un ADR que reemplace a este |
 
 ## Criterios de revisión futura
 
@@ -123,7 +123,6 @@ Revisar si aparecen necesidades de bases por módulo, persistencia especializada
 | Fecha | Decisión | Participantes | Observaciones |
 | --- | --- | --- | --- |
 | 2026-10-14 | `ACEPTADO` | Joaquin Rodriguez (owner de software) | Aceptado por decisión del owner. La revisión cruzada cloud con Santiago Talavera (tabla superior) sigue pendiente; esta entrada no registra su conformidad. |
-| 2026-10-14 | `ACEPTADO` (sin cambio de estado) | Santiago Talavera (revisor cloud) | Revisión cruzada cloud completada: revisado en el PR #14 y conforme con la aprobación del PR #17. Se validaron base nueva, ownership, repositorios, unidad de trabajo, snapshots y migraciones; los impactos cloud quedan como dependencias de la revisión cruzada |
 
 ## Referencias y trazabilidad
 

@@ -7,7 +7,7 @@
 | Estado | `ACEPTADO` |
 | Fecha | 2026-09-30 |
 | Autor | Joaquin Rodriguez |
-| Revisores | Santiago Talavera (revisión cruzada cloud); validación final en el PR #17 |
+| Revisores | Santiago Talavera (revisión cruzada cloud); pendiente de validación final |
 | Work item | [MAPS-107](https://santitalavera.atlassian.net/browse/MAPS-107) · subtarea [MAPS-132](https://santitalavera.atlassian.net/browse/MAPS-132) |
 | URL del work item | https://santitalavera.atlassian.net/browse/MAPS-107 |
 | Fase origen | [F0 §0.2/0.4/0.8](../../../../00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md), [F1 §2/3/7, RN-01/04/13/14/15](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md), [F2 §5/12/13](../../../../02-diseno/Fase_2__Design_Handoff.md) |
@@ -93,9 +93,9 @@ Esta decisión **no** resuelve la estructura interna de cada módulo (ADR-SW-002
 
 | Impacto | Documento cloud afectado | Estado de revisión |
 | --- | --- | --- |
-| Una única aplicación lógica/codebase modular; la separación de API, worker y jobs en workloads o entrypoints queda abierta | ADR-CLD-003, TDD-CLD-002 (previstos) | Dependencia aceptada; se detalla en el documento cloud — Santiago Talavera |
-| Una base relacional compartida por los módulos: conexiones y concurrencia de los workloads/entrypoints que accedan a ella | TDD-CLD-003 (previsto) | Dependencia aceptada; se detalla en el documento cloud — Santiago Talavera |
-| Documentos privados accedidos sólo mediante el módulo Documents | TDD-CLD-004 (previsto) | Dependencia aceptada; se detalla en el documento cloud — Santiago Talavera |
+| Una única aplicación lógica/codebase modular; la separación de API, worker y jobs en workloads o entrypoints queda abierta | ADR-CLD-003, TDD-CLD-002 (previstos) | Pendiente de conformidad — Santiago Talavera |
+| Una base relacional compartida por los módulos: conexiones y concurrencia de los workloads/entrypoints que accedan a ella | TDD-CLD-003 (previsto) | Pendiente de conformidad — Santiago Talavera |
+| Documentos privados accedidos sólo mediante el módulo Documents | TDD-CLD-004 (previsto) | Pendiente de conformidad — Santiago Talavera |
 
 ## Riesgos y pendientes
 
@@ -105,7 +105,7 @@ Esta decisión **no** resuelve la estructura interna de cada módulo (ADR-SW-002
 | Alcance de la inhabilitación | `PENDIENTE FUNCIONAL MAPS` | Los límites pueden definirse; RN-18/RN-19 fija baja lógica y, por decisión de alcance Kondor MVP, reasignación de solicitudes activas sin estados nuevos; el resto queda condicionado |
 | Campos de Mi perfil | `PENDIENTE FUNCIONAL MAPS` | Identity queda definido como owner; los campos esperan aprobación MAPS |
 | Scaffold con módulos fuera de alcance | Software | Reorganizar `apps/api/src/modules` según este mapa antes de iniciar F4 |
-| Detalle cloud todavía sin redactar | Santiago Talavera | Los documentos cloud de la revisión cruzada detallan esos impactos; si alguno contradice esta decisión, se crea un ADR que reemplace a este |
+| Revisión cruzada cloud sin conformidad registrada | Santiago Talavera | Registrar su conformidad en la tabla de revisión cruzada; los documentos cloud detallan esos impactos y, si alguno contradice esta decisión, se crea un ADR que reemplace a este |
 
 ## Criterios de revisión futura
 
@@ -116,7 +116,6 @@ Revisar si un módulo necesita escalar, desplegarse, protegerse u operarse de fo
 | Fecha | Decisión | Participantes | Observaciones |
 | --- | --- | --- | --- |
 | 2026-10-14 | `ACEPTADO` | Joaquin Rodriguez (owner de software) | Aceptado por decisión del owner. La revisión cruzada cloud con Santiago Talavera (tabla superior) sigue pendiente; esta entrada no registra su conformidad. |
-| 2026-10-14 | `ACEPTADO` (sin cambio de estado) | Santiago Talavera (revisor cloud) | Revisión cruzada cloud completada: revisado en el PR #14 y conforme con la aprobación del PR #17. Se validaron el mapa de módulos y las reglas de dependencia; los impactos cloud quedan como dependencias de la revisión cruzada |
 
 ## Referencias y trazabilidad
 

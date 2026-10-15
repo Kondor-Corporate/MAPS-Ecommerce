@@ -7,7 +7,7 @@
 | Estado | `APROBADO` |
 | Fecha | 2026-09-30 |
 | Autor | Joaquin Rodriguez |
-| Revisores | Santiago Talavera (revisión cruzada cloud); validación final en el PR #17 |
+| Revisores | Santiago Talavera (revisión cruzada cloud); pendiente de validación final |
 | Work item | [MAPS-109](https://santitalavera.atlassian.net/browse/MAPS-109) · subtarea [MAPS-138](https://santitalavera.atlassian.net/browse/MAPS-138) |
 | URL del work item | https://santitalavera.atlassian.net/browse/MAPS-109 |
 | Fase origen | [F0 §0.4/0.5/0.6](../../../../00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md), [F1 §2/3/4/5/7, RN-02 a RN-20](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md), [F2 §5/6/8/9/10/12/13](../../../../02-diseno/Fase_2__Design_Handoff.md) |
@@ -204,4 +204,4 @@ Secuencia sugerida: Identity y Catalog → Forms → Requests (BORRADOR/ENVIADA)
 
 ## Criterio de aprobación
 
-`APROBADO` el 2026-10-14 por el owner de software; la revisión cruzada de Santiago Talavera se completó en los PR #14 y #17: ADR-SW-001/002/003 están `ACEPTADO` y se validaron entidades, estados, invariantes, snapshots y pendientes explícitos. Las decisiones abiertas de este documento siguen abiertas: aprobar el TDD no cierra un `PENDIENTE FUNCIONAL MAPS`. Si una de ellas cambia el modelo, se actualiza este TDD o se crea uno que lo reemplace.
+`APROBADO` el 2026-10-14 por el owner de software: ADR-SW-001/002/003 están `ACEPTADO` y se validaron entidades, estados, invariantes, snapshots y pendientes explícitos. Las decisiones abiertas de este documento siguen abiertas: aprobar el TDD no cierra un `PENDIENTE FUNCIONAL MAPS`. La conformidad de la revisión cruzada cloud de Santiago Talavera sigue pendiente y no se registra anticipadamente. Si una de ellas cambia el modelo, se actualiza este TDD o se crea uno que lo reemplace.

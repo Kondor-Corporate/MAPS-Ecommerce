@@ -4,10 +4,10 @@
 | --- | --- |
 | ID | `ADR-SW-004` |
 | Título | Outbox transaccional, asincronía e idempotencia de efectos externos |
-| Estado | `ACEPTADO` |
+| Estado | `PROPUESTO` |
 | Fecha | 2026-10-01 |
 | Autor | Joaquin Rodriguez |
-| Revisores | Santiago Talavera (revisión cruzada cloud); validación final en el PR #17 |
+| Revisores | Santiago Talavera (revisión cruzada cloud; conformidad pendiente) |
 | Work item | [MAPS-110](https://santitalavera.atlassian.net/browse/MAPS-110) · subtarea [MAPS-135](https://santitalavera.atlassian.net/browse/MAPS-135) |
 | URL del work item | https://santitalavera.atlassian.net/browse/MAPS-110 |
 | Fase origen | [F0 §0.4/0.5](../../../../00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md), [F1 §3/5, RN-06/07/10/18/19, RF-DELIVERY-01, RNF-COM-01](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md), [F2 §5/12](../../../../02-diseno/Fase_2__Design_Handoff.md) |
@@ -148,10 +148,10 @@ Esta decisión **no** elige proveedor de email, cola gestionada ni runtime del p
 
 | Impacto | Documento cloud afectado | Estado de revisión |
 | --- | --- | --- |
-| Runtime del procesador (worker dedicado, job programado o mismo artefacto con otro entrypoint) y su escalado | ADR-CLD-003, TDD-CLD-002 (previstos) | Dependencia aceptada; se detalla en el documento cloud — Santiago Talavera |
-| Proveedor de email, credenciales, webhooks de resultado, valores de reintento y espera | TDD-CLD-005, TDD-CLD-006 (previstos) | Dependencia aceptada; se detalla en el documento cloud — Santiago Talavera |
-| Carga adicional sobre la base (lectura periódica del outbox, bloqueo de filas) y depuración | TDD-CLD-003 (previsto) | Dependencia aceptada; se detalla en el documento cloud — Santiago Talavera |
-| Alertas sobre eventos atascados o agotados | TDD-CLD-007 (previsto) | Dependencia aceptada; se detalla en el documento cloud — Santiago Talavera |
+| Runtime del procesador (worker dedicado, job programado o mismo artefacto con otro entrypoint) y su escalado | ADR-CLD-003, TDD-CLD-002 (previstos) | Pendiente de conformidad — Santiago Talavera |
+| Proveedor de email, credenciales, webhooks de resultado, valores de reintento y espera | TDD-CLD-005, TDD-CLD-006 (previstos) | Pendiente de conformidad — Santiago Talavera |
+| Carga adicional sobre la base (lectura periódica del outbox, bloqueo de filas) y depuración | TDD-CLD-003 (previsto) | Pendiente de conformidad — Santiago Talavera |
+| Alertas sobre eventos atascados o agotados | TDD-CLD-007 (previsto) | Pendiente de conformidad — Santiago Talavera |
 
 ## Riesgos y pendientes
 
@@ -161,7 +161,7 @@ Esta decisión **no** elige proveedor de email, cola gestionada ni runtime del p
 | Rebote informado después de DERIVADA | Software | TDD-SW-005 define cómo se registra sin revertir DERIVADA (no hay transición de salida a ASIGNADA en la baseline) |
 | SLA de derivación y tratamiento operativo de incidencias | `PENDIENTE FUNCIONAL MAPS` | Reintentos técnicos e incidencia visible avanzan; plazos y acciones operativas adicionales quedan condicionados |
 | Handlers no idempotentes | Software | Pruebas de doble procesamiento obligatorias por handler |
-| Detalle cloud todavía sin redactar | Santiago Talavera | Los documentos cloud de la revisión cruzada detallan esos impactos; si alguno contradice esta decisión, se crea un ADR que reemplace a este |
+| Revisión cruzada cloud sin conformidad registrada | Santiago Talavera | Registrar su conformidad en la tabla de revisión cruzada; los documentos cloud detallan esos impactos y, si alguno contradice esta decisión, se crea un ADR que reemplace a este |
 
 ## Criterios de revisión futura
 
@@ -171,7 +171,7 @@ Revisar si el volumen de eventos o la latencia requerida justifican un broker ge
 
 | Fecha | Decisión | Participantes | Observaciones |
 | --- | --- | --- | --- |
-| 2026-10-14 | `ACEPTADO` | Joaquin Rodriguez (autor), Santiago Talavera (revisor cloud) | Aceptado con la aprobación del PR #17. Se validaron el contrato de outbox, la idempotencia, los reintentos y el descarte de eventos obsoletos; los impactos cloud quedan como dependencias de la revisión cruzada |
+| 2026-10-14 | `PROPUESTO` | Joaquin Rodriguez (owner de software) | Propuesto en el PR #17 (contrato de outbox, idempotencia, reintentos y descarte de eventos obsoletos). La revisión cruzada cloud de Santiago Talavera (2026-10-14) dictaminó favorable al enfoque con cambios solicitados; su conformidad y la aceptación se registran cuando se cierren |
 
 ## Referencias y trazabilidad
 
