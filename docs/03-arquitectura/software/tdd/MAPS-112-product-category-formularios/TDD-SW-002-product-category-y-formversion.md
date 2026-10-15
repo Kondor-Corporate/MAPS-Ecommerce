@@ -5,14 +5,14 @@
 | ID | `TDD-SW-002` |
 | Título | Product, Category, formularios y FormVersion |
 | Estado | `BORRADOR` |
-| Fecha | 2026-10-12 |
+| Fecha | 2026-10-15 |
 | Autor | Joaquin Rodriguez |
 | Revisores | Santiago Talavera (revisión cruzada cloud sobre publicación, almacenamiento y consistencia); pendiente de validación final |
 | Work item | [MAPS-112](https://santitalavera.atlassian.net/browse/MAPS-112) · subtarea pendiente de identificar |
 | URL del work item | https://santitalavera.atlassian.net/browse/MAPS-112 |
 | Fase origen | [F0 §0.2/0.3](../../../../00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md), [F1 §4/7, RN-08/09/13, RF-PROD-01, RF-CAT-01, RF-FORM-01, RF-SOL-04](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md), [F2 §9/10](../../../../02-diseno/Fase_2__Design_Handoff.md) |
 | Decisiones relacionadas | [ADR-SW-001](../../adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-001-monolito-modular-y-limites.md); [ADR-SW-002](../../adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-002-arquitectura-hexagonal-y-capas.md); [ADR-SW-003](../../adr/MAPS-108-persistencia-fronteras-transaccionales/ADR-SW-003-persistencia-y-fronteras-transaccionales.md); [ADR-SW-004](../../adr/MAPS-110-asincronia-outbox-idempotencia/ADR-SW-004-outbox-asincronia-e-idempotencia.md); [TDD-SW-001](../MAPS-109-modelo-dominio-datos/TDD-SW-001-modelo-de-dominio-y-datos.md); [TDD-SW-003](../MAPS-113-insurance-request-estados/TDD-SW-003-insurance-request-y-maquina-de-estados.md); TDD-SW-004, TDD-SW-006 y TDD-SW-008 (previstos, sin redactar) |
-| Depende de | ADR-SW-001, ADR-SW-002 y ADR-SW-003 (`PROPUESTO`); TDD-SW-001 (`BORRADOR`). Contrato definitivo de formularios: `PENDIENTE FUNCIONAL MAPS` |
+| Depende de | ADR-SW-001 (`ACEPTADO`, con [enmienda 2026-10-15](../../adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-001-monolito-modular-y-limites.md#enmienda-2026-10-15-dependencia-catalog--forms)), ADR-SW-002 y ADR-SW-003 (`ACEPTADO`); ADR-SW-004 (`PROPUESTO`); TDD-SW-001 (`APROBADO`). Contrato definitivo de formularios: `PENDIENTE FUNCIONAL MAPS` |
 | Reemplaza | No aplica |
 | Reemplazado por | No aplica |
 
@@ -35,7 +35,7 @@ No fija:
 | Product con precio fijo vigente, información comercial y publicación administradas por MAPS | RF-PROD-01 — CONFIRMADO | Product con precio como revisión histórica y bandera de publicación |
 | Categorías con ABM (crear, editar y renombrar) sin cambios de código | RN-13, RF-CAT-01 — CONFIRMADO | Category con ABM. F2 ADM-06 muestra además "estado" y "conflicto de uso", sin definir su semántica; ver [Decisiones abiertas](#decisiones-abiertas) |
 | FormVersion PUBLICADA inmutable; un cambio produce una versión nueva | RN-08, [F2 §10](../../../../02-diseno/Fase_2__Design_Handoff.md) — CONFIRMADO | El esquema sólo es editable en BORRADOR |
-| Product disponible o publicado requiere al menos una versión utilizable | [F2 §10](../../../../02-diseno/Fase_2__Design_Handoff.md), tabla de versionado F1 §4 — CONFIRMADO | Disponibilidad derivada; el retiro normal de la última versión se bloquea |
+| Publicar un Product exige al menos una versión utilizable; un Product disponible la requiere de forma continua | [F2 §10](../../../../02-diseno/Fase_2__Design_Handoff.md), tabla de versionado F1 §4 — CONFIRMADO | Precondición de publicación e invariante de disponibilidad derivada; el retiro normal de la última versión se bloquea (ver «Disponibilidad» en Product) |
 | Retiro urgente deja el Product no disponible hasta publicar reemplazo | F2 §10 — CONFIRMADO | Disponibilidad derivada sin escritura cruzada entre módulos |
 | Precio cambiado con BORRADOR se informa y reconfirma; ENVIADA conserva el precio confirmado | RN-09, RF-SOL-04 — CONFIRMADO | Revisión de precio con referencia estable (ver [Precio](#precio)) |
 | Tipos y propiedades de campos | F1 §4 — preliminar/candidato; `PENDIENTE FUNCIONAL MAPS` | Se modelan tipos del contrato candidato y estructura de versionado; las propiedades finales quedan condicionadas |
@@ -72,7 +72,7 @@ Forms (owner de FormDefinition y FormVersion)
 
 **Dirección de dependencias.** Catalog consulta a Forms para calcular disponibilidad y validar publicación. Forms **no** consulta a Catalog: la existencia del Product se garantiza con la clave foránea `FormDefinition.productId`, que ADR-SW-003 permite para integridad. Así no hay ciclos de llamada entre módulos.
 
-Esta dependencia Catalog → Forms **no figura** en la dirección esperada de [ADR-SW-001](../../adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-001-monolito-modular-y-limites.md), que sólo lista Requests → Catalog/Forms/Identity y Assignment → Requests/Identity. No es circular, pero es una adición que ADR-SW-001 debe registrar antes de aceptarse. La alternativa sin dependencia entre ambos es que Requests o la capa de consulta compongan `publicado` (Catalog) con `versión utilizable` (Forms); se descarta como propuesta porque ADR-SW-001 asigna "disponibilidad" a Catalog. Ver [Decisiones abiertas](#decisiones-abiertas).
+Esta dependencia Catalog → Forms, de sólo lectura, queda registrada en la [enmienda 2026-10-15 de ADR-SW-001](../../adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-001-monolito-modular-y-limites.md#enmienda-2026-10-15-dependencia-catalog--forms). No es circular. La alternativa de componer `publicado` (Catalog) con `versión utilizable` (Forms) en Requests o en la capa de consulta se descartó porque ADR-SW-001 asigna la disponibilidad a Catalog.
 
 **Disponibilidad calculada, no almacenada.** Catalog no guarda un flag de "disponible". Lo calcula al leer. Como Forms nunca escribe en la tabla de Product, un retiro urgente no requiere escritura cruzada: el Product deja de estar disponible en la misma transacción que retira la versión, sin un segundo cambio que pueda quedar desincronizado.
 
@@ -112,6 +112,13 @@ disponible(Product) = publicado
 ```
 
 El catálogo público y `CreateDraft` de Requests usan esta misma regla. Un Product no `publicado` nunca sale en la consulta pública. Un Product `publicado` y no disponible no admite iniciar una solicitud; si además se lista con la marca "no disponible" o se oculta es una decisión de UX abierta (F2 PUB-01 menciona "disponibilidad" y un estado "no disponible").
+
+**Precondición frente a invariante.** Son dos reglas distintas:
+
+- **Precondición de publicación** (`Publicar Product`): sólo se puede pasar `publicado` a `true` si existen precio vigente y versión utilizable en ese momento.
+- **Invariante de disponibilidad** (derivada): `disponible = false` cuando falta una de las condiciones de la fórmula. Esto puede ocurrir después de publicar, por ejemplo tras un retiro urgente de la última versión. En ese caso `publicado` sigue en `true` y el Product no está disponible; no se escribe ningún flag.
+
+Por eso la métrica de [Operación](#operación-y-observabilidad) mide Products `publicado` y no disponibles, y no exige que sea cero. Un Product en ese estado no aparece como disponible ni admite solicitudes; su presentación en la consulta pública queda en [Decisiones abiertas](#decisiones-abiertas).
 
 ### ProductAttribute (ficha)
 
@@ -223,7 +230,7 @@ Una versión `RETIRADA` no se restaura ni reactiva en el MVP.
 
 **Cambiar precio** (una transacción): insertar `ProductPriceRevision`, apuntar `currentPriceRevisionId`, auditar monto anterior y nuevo. No modifica solicitudes existentes: ENVIADA conserva su snapshot y BORRADOR detecta la diferencia de referencia.
 
-**Publicar Product** (una transacción): exige precio vigente y versión utilizable en ese momento; si no, `PRODUCTO_SIN_VERSION_UTILIZABLE` o `PRECIO_NO_CONFIGURADO`.
+**Publicar Product** (una transacción): exige precio vigente y versión utilizable en ese momento (precondición de publicación; ver «Disponibilidad» en Product); si no, `PRODUCTO_SIN_VERSION_UTILIZABLE` o `PRECIO_NO_CONFIGURADO`. Toma bloqueo sobre la fila de Product y comprueba la FormVersion según el [orden de bloqueo](#garantías-de-consistencia-entre-módulos).
 
 **Consulta pública** (F2 PUB-01/PUB-02, sin autenticación): devuelve productos `publicado` con categoría, precio vigente y el indicador `disponible`, en orden determinístico por `nombre`. No expone versiones, esquemas ni precios históricos.
 
@@ -260,17 +267,33 @@ Una versión `RETIRADA` no se restaura ni reactiva en el MVP.
 
 - `category.slug` único e inmutable.
 - `form_definition.product_id` único.
-- `form_version (form_definition_id, numero)` único cuando `numero` no es nulo. Es lo que resuelve dos publicaciones concurrentes.
-- `product_price_revision`: sin `UPDATE`; reforzado con permisos o trigger, a validar en TDD-CLD-003.
-- `form_version.schema` sólo modificable si `estado = 'BORRADOR'`; reforzado con trigger además de la regla de dominio, a validar en TDD-CLD-003.
+- `form_version (form_definition_id, numero)` único cuando `numero` no es nulo. Impide duplicados; el manejo del choque se describe en [Numeración concurrente](#numeración-concurrente-de-versiones).
+- `product_price_revision`: sin `UPDATE`. Software define esta regla y su enforcement (permisos o trigger) en el modelo de persistencia; TDD-CLD-003 verifica que sea operable y compatible con las migraciones.
+- `form_version.schema` sólo modificable si `estado = 'BORRADOR'`: regla de dominio, con trigger como refuerzo. El DDL del trigger es responsabilidad de Software; TDD-CLD-003 verifica su ejecución en migraciones y operación.
 
 ### Transacciones
 
 Cada operación de la sección [Flujos de Forms](#flujos-de-forms) y de Catalog es **una** unidad de trabajo que incluye auditoría y, cuando corresponde, el `OutboxEvent`. Ninguna escribe en otro módulo: Forms y Catalog sólo leen entre sí por puertos.
 
+### Garantías de consistencia entre módulos
+
+Las comprobaciones de `Submit` en Requests (precio, disponibilidad y FormVersion) y las de `Publicar Product` leen filas que otras operaciones modifican. Un cálculo derivado no vuelve atómicas esas comprobaciones, así que la garantía se declara explícitamente:
+
+- **Bloqueos de fila dentro de la misma transacción.** `Submit` toma `FOR SHARE` sobre la fila de `product` y sobre la de `form_version` usada, y sólo después valida precio vigente, disponibilidad y utilizabilidad. Así, el commit queda serializado frente a los cambios concurrentes.
+- **Operaciones que cambian lo validado.** Cambio de precio y Publicar Product toman `FOR UPDATE` sobre `product`. Retiro normal y urgente toman `FOR UPDATE` sobre `form_version`. Con los bloqueos anteriores, un cambio concurrente espera al commit de `Submit` o `Submit` espera a que el cambio confirme, y en ambos casos la validación se hace sobre datos confirmados.
+- **Orden de bloqueo.** Siempre `product` antes que `form_version`. Así se evitan interbloqueos entre Publicar Product, Submit y retiro urgente.
+- **Puertos.** Los puertos de Requests reciben la transacción de la unidad de trabajo para ejecutar estas comprobaciones dentro de ella; no abren una transacción propia.
+- **Alternativa.** Si ADR-SW-003 no admite bloqueos desde el puerto de consulta, la garantía se cambia por comprobación de `version` de ambas filas al confirmar, con reintento en error de concurrencia. La garantía sigue siendo la misma.
+
+Las pruebas de carrera de esta garantía están en [Pruebas y criterios de fallo](#pruebas-y-criterios-de-fallo).
+
+### Numeración concurrente de versiones
+
+Si dos procesos publican versiones de la misma FormDefinition, el índice único `(form_definition_id, numero)` rechaza al segundo. PostgreSQL aborta la transacción en ese punto, así que **no se continúa en la misma transacción**: el proceso abre una **nueva transacción**, vuelve a leer la FormVersion y el estado de la FormDefinition, y reevalúa si la versión sigue en `BORRADOR` y qué `numero` corresponde. Sólo reintenta la publicación de una versión que siga en `BORRADOR`; si otro proceso ya la publicó, recibe `CONFLICTO_CONCURRENCIA`.
+
 ### Migraciones
 
-Esquema versionado con expand/contract ([ADR-SW-003](../../adr/MAPS-108-persistencia-fronteras-transaccionales/ADR-SW-003-persistencia-y-fronteras-transaccionales.md)). Sin migración de datos desde el PostgreSQL histórico de MAPS. Los productos del prototipo se cargan como datos semilla controlados, no como migración.
+Esquema versionado con expand/contract ([ADR-SW-003](../../adr/MAPS-108-persistencia-fronteras-transaccionales/ADR-SW-003-persistencia-y-fronteras-transaccionales.md)). Sin migración de datos desde el PostgreSQL histórico de MAPS. Los productos del prototipo se cargan como datos semilla controlados, no como migración. Los datos semilla y los cambios de esquema se aplican con expand/contract: primero se agregan columnas o restricciones compatibles, luego se cargan datos, y sólo al final se retiran las estructuras anteriores.
 
 ### Retención
 
@@ -287,7 +310,7 @@ Sin borrado físico de Product, FormVersion ni ProductPriceRevision en el MVP. R
 ## Operación y observabilidad
 
 - Auditoría de publicar, editar esquema, retirar (normal y urgente), cambiar precio y publicar/despublicar Product.
-- Métrica: Products `publicado` sin versión utilizable (debe ser cero; si no, alerta).
+- Métrica: Products `publicado` y no disponibles por falta de versión utilizable. No debe ser cero, porque el retiro urgente de la última versión es una operación admitida; sirve para alertar sobre productos que requieren atención (reemplazo de versión o revisión de publicación).
 - Métrica: retiros urgentes ejecutados (evento de baja frecuencia que requiere atención).
 - Cache del listado público y encabezados HTTP: TDD-SW-008 y TDD-CLD-007.
 
@@ -310,6 +333,10 @@ De aplicación (con dobles de puertos) e integración (con base real):
 - Retiro urgente: el `OutboxEvent` existe si y sólo si la transacción confirma.
 - Dos publicaciones concurrentes de versiones distintas de la misma FormDefinition: ambas quedan `PUBLICADA` con `numero` distinto; la que choca con el índice único reintenta con el siguiente. Dos publicaciones de la misma versión: una gana y la otra recibe `CONFLICTO_CONCURRENCIA`.
 - Cambio de precio concurrente con la creación de un BORRADOR: el BORRADOR queda con la referencia que realmente vio.
+- Carrera `Submit` vs cambio de precio: si el cambio confirma antes del bloqueo de `Submit`, `Submit` usa la referencia nueva o rechaza por precio cambiado; nunca confirma con una referencia obsoleta.
+- Carrera `Submit` vs retiro urgente: si el retiro confirma antes, `Submit` rechaza por versión no utilizable; si `Submit` confirma antes, la solicitud queda ENVIADA con la versión que validó.
+- Carrera Publicar Product vs retiro urgente: el resultado final es un Product `publicado` sin disponibilidad o un Product no publicado, nunca un Product disponible sin versión utilizable.
+- Numeración: dos publicaciones de versiones distintas con el mismo `numero` candidato; la perdedora abre nueva transacción y obtiene el siguiente `numero`.
 
 ## Implementación y handoff a F4
 
@@ -322,8 +349,8 @@ Dependencias: TDD-SW-006 para campos `file`; TDD-SW-004 para RBAC; TDD-SW-008 pa
 | Tema | Responsable | Qué puede avanzar | Condición de cierre |
 | --- | --- | --- | --- |
 | Propiedades definitivas de los campos de formulario | MAPS + Kondor | Tipos, versionado, `key` estable y referencia de respuestas | Validar 1–2 formularios reales (`PENDIENTE FUNCIONAL MAPS`) |
-| Productos sin formulario en el prototipo (Incendio y Retiro) frente a "publicado requiere versión utilizable" (F2 §10) | MAPS | Modelo de disponibilidad y consulta pública | MAPS decide si esos productos tienen formulario, o se publican sólo como informativos. Cambiaría la regla de publicación |
-| Dependencia Catalog → Forms para calcular disponibilidad | Software | Puertos y regla derivada | Registrarla en ADR-SW-001 antes de su aceptación, o mover la composición fuera de Catalog |
+| Productos sin formulario en el prototipo (Incendio y Retiro) frente a "publicado requiere versión utilizable" (F2 §10). **Bloqueante de `EN REVISIÓN`** | MAPS | Modelo de disponibilidad y consulta pública | MAPS decide si esos productos tienen formulario, o se publican sólo como informativos (sin iniciar `InsuranceRequest`). Cambiaría la regla de publicación; se alinean F1/F2, prototipo y este TDD según la elección |
+| Dependencia Catalog → Forms para calcular disponibilidad | Software | Puertos y regla derivada | **Registrada** en la [enmienda 2026-10-15 de ADR-SW-001](../../adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-001-monolito-modular-y-limites.md#enmienda-2026-10-15-dependencia-catalog--forms) (sólo lectura). Pendiente la conformidad de la revisión cruzada de Santiago |
 | `estado` de Category y "conflicto de uso" (F2 ADM-06) | Kondor (F2) + MAPS | Crear, editar y renombrar | Definir valores del estado y su efecto sobre los Products de la categoría |
 | Products publicados y no disponibles en el catálogo público | Kondor (F2) | Indicador `disponible` en la consulta | Decidir si se listan con la marca "no disponible" o se ocultan |
 | Aviso de retiro urgente a los BORRADOR afectados | MAPS | Outbox y plantilla técnica | Validación funcional del aviso (ADR-SW-004 lo marca como propuesta) |
@@ -338,6 +365,22 @@ Dependencias: TDD-SW-006 para campos `file`; TDD-SW-004 para RBAC; TDD-SW-008 pa
 - Fuentes F0/F1/F2: [F1 §4/7, RN-08/09/13, RF-PROD-01, RF-CAT-01, RF-FORM-01, RF-SOL-04](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md); [F2 §9/10](../../../../02-diseno/Fase_2__Design_Handoff.md).
 - Filas de [traceability.md](../../../traceability.md): Product/FormVersion; contrato dinámico de formularios; ABM de categorías.
 
+## Respuesta a la revisión cruzada
+
+Revisión de Santiago Talavera en la PR #20 (Software–Cloud, TDD-SW-002). Cada punto y dónde quedó atendido:
+
+| # | Punto | Respuesta en este documento |
+| --- | --- | --- |
+| 1 | Productos sin formulario | Decisión MAPS registrada como bloqueante en [Decisiones abiertas](#decisiones-abiertas); no se asume resuelta |
+| 2 | Dependencia Catalog → Forms | Registrada en la [enmienda 2026-10-15 de ADR-SW-001](../../adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-001-monolito-modular-y-limites.md#enmienda-2026-10-15-dependencia-catalog--forms); ADR-SW-001 no se reescribe |
+| 3 | Publicación vs disponibilidad | Precondición e invariante separadas en Product; métrica reformulada en [Operación](#operación-y-observabilidad) |
+| 4 | Concurrencia Submit vs cambios | [Garantías de consistencia entre módulos](#garantías-de-consistencia-entre-módulos): bloqueos, orden de bloqueo y pruebas de carrera |
+| 5 | Numeración concurrente | [Numeración concurrente de versiones](#numeración-concurrente-de-versiones): nueva transacción y reevaluación |
+| 6 | Responsabilidad DB/Cloud | Software define invariantes y DDL; TDD-CLD-003 verifica operación y migraciones ([Restricciones](#restricciones)) |
+| — | Metadatos | Dependencias actualizadas a ADR-SW-001/002/003 (`ACEPTADO`) y TDD-SW-001 (`APROBADO`) según `main` |
+
+Las condiciones trazables de la revisión (validar formularios reales con MAPS, estado de Category, precio e impuestos, caché pública, almacenamiento de imágenes y adjuntos) siguen en [Decisiones abiertas](#decisiones-abiertas) y en los TDD enlazados.
+
 ## Criterio de aprobación
 
-Puede pasar a `EN REVISIÓN` cuando Santiago complete la revisión cruzada de publicación y almacenamiento, y la decisión sobre productos sin formulario esté registrada. Pasa a `APROBADO` cuando ADR-SW-001/002/003 estén `ACEPTADO`, TDD-SW-001 esté `APROBADO` y las propiedades de formularios estén validadas con MAPS.
+Puede pasar a `EN REVISIÓN` cuando Santiago complete la revisión cruzada de publicación y almacenamiento, y la decisión sobre productos sin formulario esté registrada. Pasa a `APROBADO` cuando TDD-SW-001 esté `APROBADO`, ADR-SW-001/002/003 estén `ACEPTADO` (ya cumplido) y las propiedades de formularios estén validadas con MAPS.

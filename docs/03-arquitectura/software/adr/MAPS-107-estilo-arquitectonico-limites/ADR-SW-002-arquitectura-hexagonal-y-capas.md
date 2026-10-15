@@ -4,7 +4,7 @@
 | --- | --- |
 | ID | `ADR-SW-002` |
 | Título | Arquitectura hexagonal y separación domain/application/ports/adapters |
-| Estado | `PROPUESTO` |
+| Estado | `ACEPTADO` |
 | Fecha | 2026-09-30 |
 | Autor | Joaquin Rodriguez |
 | Revisores | Santiago Talavera (revisión cruzada cloud); pendiente de validación final |
@@ -109,7 +109,7 @@ Revisar si el costo de mapeos supera el beneficio en módulos de puro ABM o si s
 
 | Fecha | Decisión | Participantes | Observaciones |
 | --- | --- | --- | --- |
-| — | Pendiente: `ACEPTADO` o `RECHAZADO` | — | Requiere validar estructura de referencia, reglas de dependencia y revisión cruzada cloud |
+| 2026-10-14 | `ACEPTADO` | Joaquin Rodriguez (owner de software) | Aceptado por decisión del owner. La revisión cruzada cloud con Santiago Talavera (tabla superior) sigue pendiente; esta entrada no registra su conformidad. |
 
 ## Referencias y trazabilidad
 

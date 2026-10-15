@@ -5,14 +5,14 @@
 | ID | `TDD-SW-005` |
 | Título | Assignment, DeliveryAttempt y coordinación con Outbox |
 | Estado | `BORRADOR` |
-| Fecha | 2026-10-12 |
+| Fecha | 2026-10-15 |
 | Autor | Joaquin Rodriguez |
 | Revisores | Santiago Talavera (revisión cruzada cloud sobre proveedor de email, webhooks y procesador); pendiente de validación final |
 | Work item | [MAPS-114](https://santitalavera.atlassian.net/browse/MAPS-114) · subtarea pendiente de identificar. Relacionado con [MAPS-110](https://santitalavera.atlassian.net/browse/MAPS-110) |
 | URL del work item | https://santitalavera.atlassian.net/browse/MAPS-114 |
 | Fase origen | [F0 §0.4/0.5](../../../../00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md), [F1 §3/5, RN-04/05/06/07/10/16/19, RF-DELIVERY-01, RF-ADM-01, RF-PRODUCER-02](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md), [F2 §5/6/12](../../../../02-diseno/Fase_2__Design_Handoff.md) |
 | Decisiones relacionadas | [ADR-SW-003](../../adr/MAPS-108-persistencia-fronteras-transaccionales/ADR-SW-003-persistencia-y-fronteras-transaccionales.md); [ADR-SW-004](../../adr/MAPS-110-asincronia-outbox-idempotencia/ADR-SW-004-outbox-asincronia-e-idempotencia.md); [ADR-SW-005](../../adr/MAPS-111-identidad-autorizacion/ADR-SW-005-identidad-y-autorizacion.md); [TDD-SW-001](../MAPS-109-modelo-dominio-datos/TDD-SW-001-modelo-de-dominio-y-datos.md); [TDD-SW-003](../MAPS-113-insurance-request-estados/TDD-SW-003-insurance-request-y-maquina-de-estados.md); ADR-CLD-003, TDD-CLD-003, TDD-CLD-005 (previstos, sin redactar) |
-| Depende de | ADR-SW-003, ADR-SW-004 y ADR-SW-005 (`PROPUESTO`); TDD-SW-003 (`BORRADOR`). Estado técnico que acredita la entrega: decisión abierta 1 |
+| Depende de | ADR-SW-003 (`ACEPTADO`); ADR-SW-004 y ADR-SW-005 (`PROPUESTO`); TDD-SW-003 (`BORRADOR`). Estado técnico que acredita la entrega: decisión abierta 1 |
 | Reemplaza | No aplica |
 | Reemplazado por | No aplica |
 
@@ -118,12 +118,22 @@ Assignment (owner de Assignment y DeliveryAttempt)
 | `destinatarioProducerId` | Productor destinatario |
 | `emailEnmascarado` | Dirección enmascarada (p. ej. `j***@dominio`). La dirección completa sólo vive en Identity y en el proveedor |
 | `estadoTecnico` | `PENDIENTE`, `ACEPTADO`, `ENTREGADO`, `REBOTADO` o `FALLIDO` |
-| `providerMessageId` | Identificador del mensaje en el proveedor; único junto con el proveedor |
+| `providerMessageId` | Identificador del mensaje en el proveedor. Es **nulo al crear el intento** y puede llegar después del resultado síncrono; no es garantizado por todos los proveedores. Único junto con el proveedor cuando no es nulo |
 | `codigoError` | Código controlado, sin texto libre del proveedor |
 | `outboxIdempotencyKey` | Clave del `OutboxEvent` que lo originó |
 | `createdAt`, `resultAt` | Auditoría temporal |
 
-**Estados técnicos** (F1 §5): `PENDIENTE` → `ACEPTADO` (el proveedor aceptó el envío). Desde `ACEPTADO`: `ENTREGADO` o `REBOTADO` sólo si el proveedor informa por webhook. `PENDIENTE` → `FALLIDO` si el fallo es permanente o se agotan los reintentos automáticos.
+**Estados técnicos** (F1 §5). El paso a `ACEPTADO` como criterio de entrega es **provisional** hasta cerrar la decisión abierta 1:
+
+| Desde | Hacia | Condición | Efecto |
+| --- | --- | --- | --- |
+| `PENDIENTE` | `ACEPTADO` | Resultado síncrono del proveedor: aceptó el envío | Puede acreditar la entrega según la decisión 1 |
+| `PENDIENTE` | `FALLIDO` | Fallo permanente o agotamiento de reintentos automáticos | Incidencia para Admin |
+| `ACEPTADO` | `ENTREGADO` / `REBOTADO` | Sólo por webhook del proveedor | Si la decisión 1 es (B), `ENTREGADO` acredita la entrega |
+| `PENDIENTE` | `ENTREGADO` / `REBOTADO` | Webhook que llega antes que el resultado síncrono | Se acepta sólo si correlaciona por `providerMessageId` y el intento no es terminal |
+| `ENTREGADO`, `REBOTADO`, `FALLIDO` | — | Estados terminales del intento | Un webhook posterior se registra en `delivery_provider_event` sin cambiar el intento |
+
+Un webhook tardío o duplicado se guarda para auditoría. Si contradice un estado terminal (p. ej. `ENTREGADO` después de `REBOTADO`), se marca como **contradictorio** y genera una incidencia visible para Admin; no se corrige en silencio. Los reintentos crean un `DeliveryAttempt` nuevo, nunca reabren el anterior.
 
 Los reintentos automáticos de transporte **no** crean nuevos `DeliveryAttempt`: quedan en el `OutboxEvent` (`attempts`, `nextAttemptAt`). Cada `DeliveryAttempt` representa una decisión del Admin o de la asignación, no un reintento de red.
 
@@ -147,7 +157,9 @@ Si cualquier paso falla, no queda ningún cambio: ni solicitud asignada, ni outb
 
 El handler `DerivationEventHandler` procesa el evento:
 
-1. **Revalidar vigencia** con `AssignmentQueryPort` y `InsuranceRequestAssignmentPort`. Si el Assignment ya no está en `PENDIENTE_ENTREGA`, si el `DeliveryAttempt` ya tiene resultado, o si el Productor no está `ACTIVA`, el evento pasa a `DESCARTADO` **sin enviar nada**. Así una reasignación, una cancelación, una baja o un reprocesamiento no producen un email obsoleto ni duplicado.
+1. **Revalidar vigencia** con `AssignmentQueryPort` y `InsuranceRequestAssignmentPort`. Si el Assignment ya no está en `PENDIENTE_ENTREGA`, si el `DeliveryAttempt` ya tiene resultado, o si el Productor no está `ACTIVA`, el evento pasa a `DESCARTADO` **sin enviar nada**. Así una reasignación, una cancelación, una baja o un reprocesamiento reducen los emails obsoletos o duplicados.
+
+   **Limitación.** Entre esta revalidación y la llamada al proveedor puede ocurrir una cancelación o reasignación; el aviso puede salir igual. La garantía que este diseño ofrece es **no duplicar el resultado funcional** (la transición de estado ocurre una vez), no que el envío sea único. El envío duplicado residual se mitiga con la clave de idempotencia si el proveedor la respeta (TDD-CLD-005). La limitación debe reflejarse en ADR-SW-004 al revisarlo; esta enmienda no modifica ADR-SW-004.
 2. Armar el contenido mínimo (identificador de la solicitud, producto, fecha, nombre autorizado y enlace de acceso) con datos leídos en el momento, no del payload.
 3. Llamar a `EmailProviderPort.enviar(..., idempotencyKey)`.
 4. Llamar a `DeliveryResultPort.registrarResultado(attemptId, resultado)` con el resultado obtenido.
@@ -160,12 +172,12 @@ El procesador **no** decide transiciones: sólo reporta. Ver [Aplicar el resulta
 
 | Resultado | Condición | Efecto en la misma transacción |
 | --- | --- | --- |
-| Éxito (`ACEPTADO`) | Assignment `PENDIENTE_ENTREGA` y solicitud `ASIGNADA` | `DeliveryAttempt` `ACEPTADO`; Assignment → `VIGENTE`; `InsuranceRequestAssignmentPort.marcarDerivada` (ASIGNADA → DERIVADA); auditoría |
-| Éxito (`ACEPTADO`) | Assignment `PENDIENTE_ENTREGA` y solicitud `DERIVADA` (reasignación de DERIVADA) | `DeliveryAttempt` `ACEPTADO`; Assignment → `VIGENTE`; la solicitud **no** cambia; auditoría |
+| Éxito (`ACEPTADO`, provisional según decisión 1) | Assignment `PENDIENTE_ENTREGA` y solicitud `ASIGNADA` | `DeliveryAttempt` `ACEPTADO`; Assignment → `VIGENTE` (`UPDATE ... WHERE version = :leida AND estado = 'PENDIENTE_ENTREGA'`); `InsuranceRequestAssignmentPort.marcarDerivada` (ASIGNADA → DERIVADA); auditoría |
+| Éxito (`ACEPTADO`, provisional según decisión 1) | Assignment `PENDIENTE_ENTREGA` y solicitud `DERIVADA` (reasignación de DERIVADA) | `DeliveryAttempt` `ACEPTADO`; Assignment → `VIGENTE` con la misma condición de versión; la solicitud **no** cambia; auditoría |
 | Éxito obsoleto | Assignment ya `CERRADA` o solicitud en otro estado | `DeliveryAttempt` registrado como resultado obsoleto para diagnóstico; sin transiciones; auditoría técnica. El email ya salió hacia un Productor que dejó de estar asignado: no le concede acceso ni expone datos más allá del mínimo de F1 §5, pero es un aviso sobrante que la revalidación previa al envío reduce y no elimina |
 | Fallo permanente o agotamiento | Cualquier caso | `DeliveryAttempt` `FALLIDO` (o `REBOTADO` si el proveedor lo informa); la solicitud **permanece** ASIGNADA o DERIVADA; incidencia visible para Admin |
 
-**Rebote posterior.** Si el proveedor informa un rebote después de `DERIVADA` (webhook), el `DeliveryAttempt` pasa a `REBOTADO` y **no** revierte la solicitud: no hay transición de salida desde DERIVADA (ADR-SW-004). La baseline no define qué puede hacer el Admin en ese caso: F2 §6 y ADM-04 sólo prevén reintentar o reasignar en ASIGNADA. Este documento registra el rebote y lo deja consultable, pero no inventa una acción; ver decisiones abiertas 1 y 6.
+**Rebote posterior.** Si el proveedor informa un rebote después de `DERIVADA` (webhook), el `DeliveryAttempt` pasa a `REBOTADO` y **no** revierte la solicitud: no hay transición de salida desde DERIVADA (ADR-SW-004). La baseline no define qué puede hacer el Admin en ese caso: F2 §6 y ADM-04 sólo prevén reintentar o reasignar en ASIGNADA. Este documento registra el rebote y lo deja consultable, pero no inventa una acción; ver decisiones abiertas 1 y 6. **Mientras la decisión 6 no esté cerrada, esta incidencia no tiene tratamiento en el diseño y se mantiene como bloqueante, no como resuelta.**
 
 **Idempotencia del resultado.** Aplicar dos veces el mismo `(attemptId, resultado)` no cambia nada. La transición `ASIGNADA → DERIVADA` sólo ocurre si la solicitud sigue ASIGNADA y el Assignment sigue `PENDIENTE_ENTREGA`.
 
@@ -193,7 +205,7 @@ Precondiciones: la cuenta del Productor actual está en `BAJA`; no hay `Cancella
 
 Una unidad de trabajo:
 
-1. Cerrar el Assignment `VIGENTE` como `CERRADA` con `motivoCierre = BAJA_PRODUCTOR`, fecha, Admin y motivo.
+1. Cerrar el Assignment abierto de la solicitud (`VIGENTE` o `PENDIENTE_ENTREGA`, por ejemplo si el Productor anterior todavía no había recibido la entrega) como `CERRADA` con `motivoCierre = BAJA_PRODUCTOR`, fecha, Admin y motivo.
 2. Insertar el nuevo Assignment en `PENDIENTE_ENTREGA`.
 3. **No** llamar a Requests: la solicitud permanece DERIVADA.
 4. Insertar `DeliveryAttempt` y `OutboxEvent`.
@@ -223,12 +235,13 @@ Un resultado de entrega posterior se descarta por la regla de vigencia.
 
 ### Baja de Productor
 
-La baja de la cuenta es un caso de uso de **Identity** ([ADR-SW-005](../../adr/MAPS-111-identidad-autorizacion/ADR-SW-005-identidad-y-autorizacion.md) §4), no de Assignment. Este módulo aporta dos cosas:
+La baja de la cuenta es un caso de uso de **Identity** ([ADR-SW-005](../../adr/MAPS-111-identidad-autorizacion/ADR-SW-005-identidad-y-autorizacion.md) §4), no de Assignment. Esta es la **secuencia única** propuesta para el tratamiento de asignaciones:
 
-1. **Efecto inmediato sin escritura.** Cuando Identity pone la cuenta en `BAJA`, el Productor pierde el acceso a sus DERIVADAS porque la regla de acceso exige cuenta `ACTIVA`. Assignment no necesita cambiar nada en esa transacción. Las derivaciones pendientes hacia ese Productor quedan `DESCARTADO` al procesarse, por la revalidación de elegibilidad.
-2. **Tratamiento de asignaciones.** `AssignmentQueryPort.asignacionesAbiertas(producerId)` lista los Assignment vigentes del Productor, con el estado de su solicitud. El Admin reasigna cada ASIGNADA y cada DERIVADA con los flujos anteriores. La baja queda **completada** cuando esa lista está vacía.
+1. **Corte de acceso (Identity, commit propio).** La cuenta pasa a `BAJA`. El Productor pierde el acceso a sus DERIVADAS en ese mismo commit porque la regla de acceso exige cuenta `ACTIVA`. Assignment no escribe nada en esta transacción. Las derivaciones pendientes hacia ese Productor quedan `DESCARTADO` al procesarse.
+2. **Tratamiento de asignaciones (Admin, flujos de Assignment).** Cada ASIGNADA se reasigna con el flujo de reasignación de ASIGNADA; cada DERIVADA, con el flujo de reasignación de DERIVADA por baja.
+3. **Baja completada (vista derivada).** `AssignmentQueryPort.asignacionesAbiertas(producerId)` lista los Assignment abiertos del Productor, con el estado de su solicitud. La baja se considera **completada** cuando esa lista está vacía. Esta comprobación la hace la consulta de Admin en la capa que compone Identity y Assignment; **no** se escribe nada en Identity y no existe dependencia Identity → Assignment (ADR-SW-001).
 
-Quién consulta esa lista y en qué momento es lo que queda abierto. ADR-SW-005 separa el corte de acceso (inmediato) de la baja completada; el prototipo de PR #19 bloquea la baja mientras haya ASIGNADAS. Si se elige el bloqueo, la verificación no puede vivir en Identity llamando a Assignment, porque crearía la dependencia Identity → Assignment que ADR-SW-001 no prevé: habría que resolverla en la capa que compone ambos módulos o con un nuevo ADR. Ver [Decisiones abiertas](#decisiones-abiertas).
+El prototipo de PR #19 bloquea la baja mientras haya ASIGNADAS, lo que contradice el paso 1. Eso no está confirmado por MAPS: se trata como pendiente en la decisión 2. Si se confirma el bloqueo, la verificación se hace en la misma capa de composición del paso 3, sin llevarla a Identity. Ver [Decisiones abiertas](#decisiones-abiertas).
 
 ### Errores observables
 
@@ -252,12 +265,21 @@ Quién consulta esa lista y en qué momento es lo que queda abierto. ADR-SW-005 
 
 - `assignment`: índice único parcial sobre `request_id` con `estado IN ('PENDIENTE_ENTREGA','VIGENTE')`.
 - `delivery_attempt`: único por `(assignment_id, numero)`; único por `providerMessageId` cuando no es nulo.
-- `delivery_provider_event`: único por `(proveedor, providerMessageId, tipoEvento)`. Deduplica webhooks repetidos.
+- `delivery_provider_event`: deduplicación por identidad real del evento cuando el proveedor la expone (`providerEventId`). **No** se usa `(proveedor, providerMessageId, tipoEvento)` como clave única por defecto: si el proveedor emite un ID por evento, esa clave colapsaría dos eventos legítimos del mismo tipo para el mismo mensaje. Si el proveedor no expone ID de evento, la clave y la deduplicación se fijan en TDD-CLD-005 (decisión 5).
 - `outbox_event`: único por `idempotency_key` (ADR-SW-004 §4).
 
 ### Transacciones
 
 Cada flujo de la sección [Contratos y flujos](#contratos-y-flujos) es una unidad de trabajo. El envío de email **nunca** ocurre dentro de ellas (punto 5 de la decisión de ADR-SW-003).
+
+### Concurrencia de reintentos, resultados y vigencia
+
+Las garantías se apoyan en la base de datos, no en locks locales al proceso:
+
+- **Transición atómica a vigente.** `PENDIENTE_ENTREGA → VIGENTE` es un `UPDATE` condicionado por `version` y `estado`; si no afecta una fila, el resultado se descarta como obsoleto.
+- **Claim del outbox.** Dos workers con el lease vencido no pueden procesar el mismo evento a la vez: el reclamo del evento usa un token de lease que se verifica al registrar el resultado (TDD-CLD-005 define tiempos).
+- **Acciones Admin concurrentes.** Dos reasignaciones o un reintento y una cancelación sobre la misma solicitud: la segunda recibe `CONFLICTO_CONCURRENCIA` o `TRANSICION_INVALIDA` por la condición de versión y el índice único parcial.
+- **Resultado tardío.** Un resultado que llega tras baja o cancelación se registra y no muta el Assignment cerrado.
 
 ### Migraciones
 
@@ -313,7 +335,13 @@ De integración, con base real y proveedor simulado:
 - Carrera asignar vs. cancelar: sólo una gana; la otra recibe error de concurrencia o transición inválida.
 - Índice único parcial impide dos Assignment vigentes para la misma solicitud.
 - Webhook duplicado: un solo registro y un solo cambio.
-- Procesamiento doble de un mismo evento: una sola entrega (clave de idempotencia).
+- Webhook que llega antes que el resultado síncrono: correlaciona por `providerMessageId` y no duplica el cambio.
+- Webhook contradictorio sobre un intento terminal: queda registrado como contradictorio y genera incidencia, sin cambiar el intento.
+- Procesamiento doble de un mismo evento: el resultado funcional se aplica una sola vez. El envío duplicado residual se valida con el proveedor simulado y la clave de idempotencia, no se afirma como imposible.
+- Dos workers con el lease vencido sobre el mismo evento: sólo uno registra resultado; el otro queda descartado por el token de lease.
+- Dos acciones Admin concurrentes (reasignar y cancelar, o reintentar y reasignar): una sola tiene efecto.
+- Resultado de entrega que llega después de baja o cancelación: Assignment cerrado sin cambios; el resultado queda auditado.
+- Pruebas de integración contra base real. Las comprobaciones con locks locales al proceso no cuentan como evidencia.
 
 La entrega real de email se valida en TDD-CLD-005, no aquí.
 
@@ -327,11 +355,11 @@ Dependencias: TDD-SW-003 (ya en PR #17), ADR-SW-004 (PR #17) para el componente 
 
 | Tema | Responsable | Qué puede avanzar | Condición de cierre |
 | --- | --- | --- | --- |
-| **1. Estado técnico que acredita la entrega requerida** | Software + Cloud; MAPS/Kondor para la regla funcional | Estados, separación de solicitud y entrega | Elegir entre **(A)** `ACEPTADO` con `providerMessageId` (propuesta de este documento): habilita la derivación sin esperar webhook, pero una solicitud puede quedar DERIVADA con un email que después rebota, y la baseline no le da al Admin ninguna acción en DERIVADA para corregirlo; **(B)** `ENTREGADO` por webhook: cumple RN-07 de forma más estricta, pero la solicitud queda ASIGNADA si el proveedor no informa entregas. Cierra con las capacidades del proveedor en TDD-CLD-005. Si se elige (A), la decisión 6 pasa a ser bloqueante |
-| **2. Alcance de la baja de Productor** | Kondor + MAPS | Corte de acceso derivado y reasignación | El prototipo (PR #19) bloquea la baja con ASIGNADAS; ADR-SW-005 separa el corte de acceso de la baja completada. En el relevamiento, a "¿el sistema debe impedir la baja si el Productor todavía tiene solicitudes activas?" MAPS respondió "debe informar a la Org para analizar cada caso": pide aviso y análisis, no un bloqueo. Eso respalda la secuencia propuesta aquí y contradice el bloqueo del prototipo. Confirmar con Kondor y, si igual se bloquea, dónde vive esa verificación sin crear la dependencia Identity → Assignment |
+| **1. Estado técnico que acredita la entrega requerida** (**bloqueante de `EN REVISIÓN`**) | Software + Cloud; MAPS/Kondor para la regla funcional | Estados, separación de solicitud y entrega | Elegir entre **(A)** `ACEPTADO` con `providerMessageId` (propuesta de este documento, provisional): habilita la derivación sin esperar webhook, pero una solicitud puede quedar DERIVADA con un email que después rebota, y la baseline no le da al Admin ninguna acción en DERIVADA para corregirlo; **(B)** `ENTREGADO` por webhook: cumple RN-07 de forma más estricta, pero la solicitud queda ASIGNADA mientras no llegue la confirmación. Con (B), si la confirmación nunca llega, el intento queda con incidencia visible para Admin y el plazo y la acción son la decisión 5. Cierra con las capacidades del proveedor en TDD-CLD-005. Aceptación del proveedor no equivale a entrega al destinatario. Si se elige (A), la decisión 6 pasa a ser bloqueante |
+| **2. Alcance de la baja de Productor** (bloqueante de `EN REVISIÓN`) | Kondor + MAPS | Corte de acceso derivado y reasignación | El prototipo (PR #19) bloquea la baja con ASIGNADAS; ADR-SW-005 separa el corte de acceso de la baja completada. En el relevamiento, a "¿el sistema debe impedir la baja si el Productor todavía tiene solicitudes activas?" MAPS respondió "debe informar a la Org para analizar cada caso": pide aviso y análisis, no un bloqueo. Eso respalda la secuencia propuesta aquí y contradice el bloqueo del prototipo. Confirmar con Kondor y, si igual se bloquea, dónde vive esa verificación sin crear la dependencia Identity → Assignment |
 | **3. Bandeja de solicitudes sin Productor efectivo** | Kondor (F2) | Incidencia derivada de Assignment `PENDIENTE_ENTREGA` | Diseño de la bandeja del Admin |
 | **4. Política de reintentos automáticos y manuales** | Cloud | Límite de intentos y espera como parámetros | Valores definidos en TDD-CLD-005 |
-| **5. Tratamiento operativo de incidencias y SLA de derivación** | `PENDIENTE FUNCIONAL MAPS` | Registro, separación de estados y recuperación técnica | Plazos y acciones operativas |
+| **5. Tratamiento operativo de incidencias y SLA de derivación** | `PENDIENTE FUNCIONAL MAPS` | Registro, separación de estados y recuperación técnica. Incluye: plazo sin confirmación de webhook con opción (B) de la decisión 1, y clave de deduplicación de eventos de proveedor (ver Restricciones) | Plazos, acciones operativas y capacidades del proveedor confirmadas en TDD-CLD-005 |
 | **6. Rebote posterior a DERIVADA** | MAPS + Kondor (F2) | Registro del rebote sin revertir la solicitud | Definir si el Admin puede reenviar el aviso o reasignar una DERIVADA con Productor activo. Hoy F2 §6 no lo permite; habilitarlo es un cambio controlado de F1/F2 |
 | **7. Inhabilitación de Productor en la elegibilidad** | MAPS (RN-20) | Elegibilidad por cuenta `ACTIVA` | RN-15 y F2 ADM-03 mencionan no asignar a inhabilitados, pero ADR-SW-005 §5 no modela ese estado hasta que MAPS cierre RN-20. MAPS respondió "no van a existir casos inhabilitados" a las tres preguntas sobre inhabilitación del relevamiento, lo que apunta a quitarla del MVP; falta el cambio controlado en F1/F2 |
 
@@ -341,6 +369,22 @@ Dependencias: TDD-SW-003 (ya en PR #17), ADR-SW-004 (PR #17) para el componente 
 - Fuentes F0/F1/F2: [F1 §3/5, RN-04/05/06/07/10/16/19, RF-DELIVERY-01](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md); [F2 §5/6/12](../../../../02-diseno/Fase_2__Design_Handoff.md).
 - Filas de [traceability.md](../../../traceability.md): Admin asigna; fallo conserva ASIGNADA; entrega requerida exitosa precede DERIVADA; acceso del Productor; reasignación de DERIVADA.
 
+## Respuesta a la revisión cruzada
+
+Revisión de Santiago Talavera en la PR #20 (Software–Cloud, TDD-SW-005). Cada punto y dónde quedó atendido:
+
+| # | Punto | Respuesta en este documento |
+| --- | --- | --- |
+| 1 | Semántica de "entrega requerida exitosa" | Marcada como provisional en el flujo y en la tabla de estados técnicos; decisión 1 bloqueante, con la opción (B) y su caso de webhook que nunca llega |
+| 2 | Rebote posterior a DERIVADA | Marcado como bloqueante, no resuelto, mientras no se cierre la decisión 6 |
+| 3 | Secuencia de baja de Productor | [Baja de Productor](#baja-de-productor): secuencia única en tres pasos; precondición de reasignación corregida (`VIGENTE` o `PENDIENTE_ENTREGA`) |
+| 4 | Garantía de descarte y entrega única | [Procesar la derivación](#procesar-la-derivación-fuera-de-la-unidad-de-trabajo): limitación documentada; garantía reformulada como no duplicar el resultado funcional |
+| 5 | Máquina de resultados y webhooks | Tabla de transiciones y estados terminales; `providerMessageId` nulo al inicio; clave de `delivery_provider_event` corregida |
+| 6 | Concurrencia de reintentos, resultados y vigencia | [Concurrencia de reintentos, resultados y vigencia](#concurrencia-de-reintentos-resultados-y-vigencia) y pruebas de integración correspondientes |
+| — | Dependencias Cloud y funcionales | Decisiones 1, 2, 5 y 6 explícitas; ADR-SW-004 se revisa aparte para reflejar la limitación de envío |
+
+Pendiente, fuera de este documento: la revisión de ADR-SW-004 (limitación de envío y semántica de resultado) y la decisión 1, que depende de las capacidades del proveedor en TDD-CLD-005.
+
 ## Criterio de aprobación
 
-Puede pasar a `EN REVISIÓN` cuando Santiago complete la revisión cruzada del proveedor, los webhooks y el procesador (TDD-CLD-005 y ADR-CLD-003), y la decisión 1 esté registrada. Pasa a `APROBADO` cuando ADR-SW-003/004/005 estén `ACEPTADO`, TDD-SW-003 esté `APROBADO` y las decisiones 1 y 2 estén cerradas.
+Puede pasar a `EN REVISIÓN` cuando Santiago complete la revisión cruzada del proveedor, los webhooks y el procesador (TDD-CLD-005 y ADR-CLD-003), y las decisiones 1 y 2 estén registradas. Pasa a `APROBADO` cuando ADR-SW-004/005 estén `ACEPTADO`, TDD-SW-003 esté `APROBADO` y las decisiones 1 y 2 estén cerradas.

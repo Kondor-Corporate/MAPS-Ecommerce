@@ -1,6 +1,6 @@
 # Fase 2 — Design Handoff
 
-> **Estado:** Primera versión para revisión interna / propuesta para revisión interna.  
+> **Estado:** Aprobado (primera versión). F2 no está cerrada; los pendientes de §16 siguen abiertos.  
 > **Baseline:** Fase 0 y Fase 1 vigentes; el prototipo standalone es referencia visual e interactiva.  
 > **Propósito:** especificar cómo se experimenta el Portal de Solicitudes sin definir su implementación técnica.
 
@@ -235,7 +235,7 @@ En cancelación, BORRADOR se descarta sin motivo obligatorio. En ENVIADA y ASIGN
 
 ### Baja e inhabilitación
 
-Confirmado por MAPS (respuestas registradas en `Relevamiento-MAPS-Ecommerce (1).pdf`; ver F1 RN-18 y RN-19):
+Confirmado por MAPS (respuestas registradas en `Relevamiento-MAPS-Ecommerce (1).pdf` ([transcripción](../01-producto/Relevamiento-MAPS-bajas-e-inhabilitacion.md)); ver F1 RN-18 y RN-19):
 
 - **Baja de Cliente:** pierde el inicio de sesión de forma inmediata. Sus solicitudes ENVIADA, ASIGNADA y DERIVADA siguen su curso. Su historial queda visible para Admin y recibe notificación. Es una baja lógica: desactiva el acceso operativo y no borra su información.
 - **Baja de Productor:** pierde de inmediato el acceso al Portal y a las DERIVADAS asignadas. MAPS confirmó que las solicitudes afectadas se deben reasignar y que los casos activos requieren intervención de la Org. **Decisión de alcance Kondor para el MVP:** antes de completar la baja, el Admin debe tratar toda ASIGNADA o DERIVADA; ninguna solicitud queda sin responsable. La baja es lógica (sin borrado de su información), reversible, conserva al Productor en historial y auditoría, y se le notifica.
