@@ -87,12 +87,24 @@ Se **decide**:
 ### 1. Identidad
 
 - La autenticación se delega en un proveedor de identidad gestionado compatible con OIDC, accedido sólo mediante el puerto `IdentityProviderPort` del módulo Identity ([ADR-SW-002](../MAPS-107-estilo-arquitectonico-limites/ADR-SW-002-arquitectura-hexagonal-y-capas.md)). El proveedor concreto lo decide ADR-CLD-007.
-- La cuenta del Portal (`UserIdentity`, [TDD-SW-001](../../tdd/MAPS-109-modelo-dominio-datos/TDD-SW-001-modelo-de-dominio-y-datos.md)) es la fuente de verdad de rol, estado de cuenta y vínculos con Customer/Producer. Se vincula con la identidad externa por su identificador estable (`subject`); el email no se usa como vínculo.
-- En el MVP cada cuenta representa un único tipo de actor operativo: Cliente o Productor. Es una restricción explícita adoptada para simplificar el MVP: una misma persona que necesite ambos roles deberá utilizar dos cuentas independientes; no se modelan cuentas multirol en esta etapa. Cada cuenta del Portal se vincula a un único `subject` OIDC y un mismo `subject` no puede vincularse a dos cuentas; por lo tanto, las dos cuentas requieren identidades externas diferenciadas o un mecanismo equivalente que el proveedor permita y TDD-SW-004 debe precisar. El Cliente se registra por sí mismo. El Productor y el Admin no tienen autorregistro: el Admin da de alta Productores (invitación al email verificado) y las cuentas Admin se crean por un procedimiento controlado fuera del flujo público.
+- La cuenta del Portal (`UserIdentity`, [TDD-SW-001](../../tdd/MAPS-109-modelo-dominio-datos/TDD-SW-001-modelo-de-dominio-y-datos.md)) es la fuente de verdad de rol, estado de cuenta y vínculos con Customer/Producer. Se vincula con la identidad externa por su identificador estable: el par `issuer + subject`, que admite más de un emisor sin colisiones. El email no se usa como vínculo.
+- En el MVP cada cuenta tiene un único rol: Cliente, Productor o Admin. Es una **restricción propuesta del MVP, condicionada a la factibilidad que confirme ADR-CLD-007**: una persona que necesite dos roles usa dos cuentas independientes y no se modelan cuentas multirol en esta etapa.
+  - Cada cuenta se vincula a un único `issuer + subject` y un mismo `issuer + subject` no puede vincularse a dos cuentas. Como la mayoría de los proveedores OIDC asocian una identidad por email, la consecuencia práctica esperada es que esa persona necesite **dos emails distintos**; si el proveedor elegido no lo admite o MAPS no lo acepta, la restricción se revisa antes de cerrar TDD-SW-004.
+  - Revertirla es de bajo costo: el modelo de TDD-SW-001 (`UserIdentity → Customer 0..1`, `UserIdentity → Producer 0..1`) ya admite ambos vínculos; lo que cambiaría es la selección de rol activo en la sesión y las políticas.
+  - El Cliente se registra por sí mismo. El Productor no tiene autorregistro: el Admin lo da de alta mediante invitación al email verificado.
+  - Admin: cuenta de rol único, sin vínculos a Customer ni Producer, con su propio `issuer + subject`, creada por un procedimiento controlado fuera del flujo público. Una persona Admin que también sea Cliente o Productor usa otra cuenta. **MFA obligatorio para Admin** como requisito mínimo de seguridad, a verificar en soporte y enforcement del IdP elegido (ADR-CLD-007).
 
 ### 2. Sesión y verificación por request
 
-- Cada request autenticado valida el token del proveedor y además consulta el estado de la cuenta en el Portal. Una cuenta dada de baja recibe rechazo en el siguiente request, aunque su token no haya expirado. La revocación de sesiones o tokens en el proveedor se solicita cuando sus capacidades lo permitan; la garantía efectiva para MAPS es el chequeo del estado local de la cuenta.
+- Cada request autenticado valida el token del proveedor (firma, emisor, audiencia y expiración; el detalle lo fijan TDD-SW-004 y TDD-CLD-006) y además consulta el estado de la cuenta en el Portal.
+- La revocación tiene tres capas distintas, con garantías distintas:
+
+| Capa | Garantía |
+| --- | --- |
+| Permisos locales del Portal | **Garantía verificable para MAPS:** toda request que empieza después del commit de la baja es rechazada, aunque el token siga vigente. Para sostenerla, el estado de cuenta no se cachea en el MVP; si Cloud introduce una caché, su TTL máximo es la demora aceptada y debe documentarse en TDD-CLD-006. Las operaciones sensibles (comandos de escritura y apertura de expediente) releen el estado de cuenta dentro de su propia unidad de trabajo, sin caché. Una lectura ya autorizada que estaba en curso puede terminar; un comando en curso que relee una cuenta en `BAJA` se rechaza |
+| Sesión en el IdP | Se solicita su revocación cuando el proveedor lo permita (ADR-CLD-007/TDD-CLD-006); no es la garantía de aplicación |
+| Tokens ya emitidos | Siguen siendo criptográficamente válidos hasta expirar; se recomienda un TTL corto de access token. El chequeo local los vuelve inútiles para operar en el Portal |
+
 - El email de derivación contiene un enlace al Portal sin credenciales ni tokens de acceso: abrirlo exige iniciar sesión.
 
 ### 3. Autorización: RBAC + ownership
@@ -104,10 +116,18 @@ Se **decide**:
 | Rol | Regla de acceso a `InsuranceRequest` |
 | --- | --- |
 | Cliente | `request.customerId == actor.customerId`; acciones según estado ([F2 §6](../../../../02-diseno/Fase_2__Design_Handoff.md)) |
-| Productor | `estado == DERIVADA`, Assignment vigente con `producerId == actor.producerId`, acceso no revocado y cuenta activa; sólo lectura |
+| Productor | `estado == DERIVADA`, Assignment **`EFECTIVO`** con `producerId == actor.producerId` y cuenta activa; sólo lectura |
 | Admin | Operaciones de [F2 §13](../../../../02-diseno/Fase_2__Design_Handoff.md); no crea ni edita BORRADORES de Clientes |
 
-El acceso del Productor se calcula a partir de estado, Assignment vigente y revocaciones, sin un permiso guardado aparte que pueda desincronizarse. Por eso cancelar una DERIVADA, reasignarla o dar de baja al Productor le quita el acceso sin pasos adicionales.
+El acceso del Productor se calcula a partir de estado y Assignment efectivo, sin un permiso guardado aparte que pueda desincronizarse. Por eso cancelar una DERIVADA, reasignarla o dar de baja al Productor le quita el acceso sin pasos adicionales.
+
+**Asignación autorizante (RN-19).** "Assignment vigente" no alcanza como regla: en `ReassignDerived` la solicitud ya es DERIVADA mientras la nueva asignación todavía espera su entrega, así que la condición de estado no protege. Por eso la política exige un Assignment `EFECTIVO`:
+
+- `PENDIENTE_ENTREGA` (asignación creada, entrega aún no exitosa) **no autoriza**: el nuevo Productor no obtiene acceso antes de la entrega exitosa.
+- `EFECTIVO` (entrega exitosa acreditada) autoriza.
+- `CERRADO` (reasignada, cancelada o baja del Productor) **no autoriza**: el Productor anterior pierde el acceso al cerrarse su asignación.
+
+Estos estados son de Assignment, no de `InsuranceRequest`; los define [TDD-SW-003](../../tdd/MAPS-113-insurance-request-estados/TDD-SW-003-insurance-request-y-maquina-de-estados.md) y su vigencia, efectividad y concurrencia se detallan en TDD-SW-005. Un resultado de entrega duplicado o tardío nunca vuelve `EFECTIVO` un Assignment `CERRADO`.
 
 ### 4. Estado de cuenta y efectos de baja
 
@@ -115,8 +135,8 @@ Estados de cuenta: `ACTIVA` y `BAJA` (reversible). Pertenecen a la cuenta y no m
 
 | Evento | Efecto en la aplicación |
 | --- | --- |
-| Baja de Cliente | Cuenta `BAJA`; sesiones revocadas; sin login. Los datos personales se conservan. ENVIADA/ASIGNADA/DERIVADA siguen su ciclo sin cambios. El Admin sigue viendo su historial. Aviso al Cliente por outbox ([ADR-SW-004](../MAPS-110-asincronia-outbox-idempotencia/ADR-SW-004-outbox-asincronia-e-idempotencia.md)). Auditoría |
-| Baja de Productor | Cuenta `BAJA`; sesiones revocadas; acceso derivado a sus DERIVADAS deja de existir de inmediato. No recibe nuevas asignaciones. Antes de completar la baja, un Admin trata toda ASIGNADA o DERIVADA afectada; la DERIVADA conserva su estado y se reasigna mediante una nueva asignación, efectiva tras entrega exitosa. El Productor permanece en historial y auditoría. Aviso al Productor. Auditoría |
+| Baja de Cliente | Cuenta `BAJA`; rechazo desde la siguiente request y revocación de sesión en el IdP cuando lo permita; sin login. Los datos personales se conservan. ENVIADA/ASIGNADA/DERIVADA siguen su ciclo sin cambios. El Admin sigue viendo su historial. Aviso al Cliente por outbox ([ADR-SW-004](../MAPS-110-asincronia-outbox-idempotencia/ADR-SW-004-outbox-asincronia-e-idempotencia.md)). Auditoría |
+| Baja de Productor | Cuenta `BAJA`; rechazo desde la siguiente request y revocación de sesión en el IdP cuando lo permita; acceso derivado a sus DERIVADAS deja de existir de inmediato. No recibe nuevas asignaciones. Antes de completar la baja, un Admin trata toda ASIGNADA o DERIVADA afectada; la DERIVADA conserva su estado y se reasigna mediante una nueva asignación, efectiva tras entrega exitosa. El Productor permanece en historial y auditoría. Aviso al Productor. Auditoría |
 | Reactivación | Cuenta vuelve a `ACTIVA` por acción del Admin; auditoría y aviso. No restaura acceso a solicitudes ya reasignadas |
 | Solicitud de alta de Cliente en `BAJA` | Respuesta MAPS registrada en RN-18; por decisión de alcance Kondor, el journey, canal y datos se difieren fuera del MVP actual. El modelo no presupone reactivación automática. |
 
@@ -130,20 +150,21 @@ RN-20 mantiene pendiente de confirmación el alcance de la inhabilitación. Por 
 
 La aplicación audita los eventos que observa: alta/baja/reactivación de cuentas, cambios de rol, asignaciones, decisiones de autorización y cada apertura de expediente por un Productor. Los intentos de login fallidos sólo se incorporan cuando el IdP los expone mediante logs o eventos integrables; ADR-CLD-007/TDD-CLD-006 deben verificar esa capacidad. Los registros no incluyen respuestas, documentos ni PII innecesaria.
 
-Esta decisión **no** elige proveedor de identidad, formato de token, duración de sesión ni política de MFA (ver pendientes), y no define los campos de Mi perfil.
+Esta decisión **no** elige proveedor de identidad, formato de token ni duración de sesión (ver pendientes), y no define los campos de Mi perfil. Sí fija MFA obligatorio para Admin como requisito, sujeto a verificación en el IdP elegido.
 
 ## Consecuencias y trade-offs
 
 ### Positivas
 
 - Las reglas de acceso de F1/F2 quedan en un solo lugar y se prueban sin infraestructura.
-- La baja y la cancelación quitan acceso de inmediato, sin depender de la expiración de tokens.
+- La baja y la cancelación quitan acceso desde la siguiente request, sin depender de la expiración de tokens.
 - El acceso del Productor no puede quedar desincronizado con Assignment y estado.
 - El equipo no almacena ni recupera contraseñas.
 
 ### Negativas y riesgos
 
-- Una consulta de estado de cuenta por request (mitigable con caché corta, a evaluar con cloud).
+- Una consulta de estado de cuenta por request. Una caché reduce la carga pero agrega su TTL a la demora de revocación; sólo se introduce si Cloud la justifica y documenta ese límite.
+- Una persona con dos roles necesita dos cuentas y, probablemente, dos emails (restricción propuesta del MVP).
 - Dependencia de un proveedor externo para iniciar sesión; su caída impide nuevos logins.
 - Las consultas de listado deben aplicar siempre el filtro de alcance; un descuido expone datos.
 - La baja de Productor exige tratamiento operativo de ASIGNADAS y DERIVADAS antes de completarse; el detalle de interfaz se deriva en F2/F4.
@@ -164,7 +185,11 @@ Esta decisión **no** elige proveedor de identidad, formato de token, duración 
 | Alcance de inhabilitación de Productor | MAPS | Cerrar RN-20 antes de modelar un estado o efecto adicional de inhabilitación |
 | Journey de "solicitud de alta" de Cliente dado de baja | Kondor + MAPS | Diferido fuera del MVP por decisión de alcance Kondor (RN-18); no condiciona este ADR. Si se incorpora, se registra como cambio controlado en F1/F2 y se modela en TDD-SW-004 |
 | Campos de Mi perfil | `PENDIENTE FUNCIONAL MAPS` | Ownership y autorización avanzan; lista de campos se cierra en TDD-SW-004 |
-| Política de MFA para Admin | Software + Cloud | Evaluar en ADR-CLD-007; recomendación: obligatorio para Admin por su alcance |
+| Factibilidad de una cuenta por rol frente al IdP | Software + Cloud | ADR-CLD-007 confirma si el proveedor admite identidades diferenciadas para una misma persona (p. ej. dos emails); si no, o si MAPS no lo acepta, se revisa la restricción antes de cerrar TDD-SW-004 |
+| MFA obligatorio para Admin | Software + Cloud | Requisito fijado por este ADR; ADR-CLD-007 verifica soporte y enforcement en el IdP elegido |
+| Validación de tokens | Software + Cloud | TDD-SW-004 / TDD-CLD-006: firma, emisor, audiencia, expiración, rotación de claves y rechazo por cuenta inactiva |
+| Operación de identidad | Cloud + Software | ADR-CLD-007 / TDD-CLD-006: disponibilidad del IdP, invitaciones y altas de Productores, creación controlada de Admin, gestión y revocación de sesiones, recuperación de acceso y manejo de fallos |
+| Autorización de consultas y auditoría | Software + Cloud | TDD-SW-004: ninguna lectura optimizada saltea el filtro de ownership. TDD-CLD-007: minimizar PII en AuditEvent, logs y trazas |
 | Revisión cruzada cloud sin conformidad registrada | Santiago Talavera | Registrar su conformidad en la tabla de revisión cruzada; los documentos cloud detallan esos impactos y, si alguno contradice esta decisión, se crea un ADR que reemplace a este |
 
 ## Criterios de revisión futura

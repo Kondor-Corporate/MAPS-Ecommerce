@@ -81,17 +81,31 @@ Los estados del `OutboxEvent` son técnicos e internos. No se reflejan en el est
 - Un procesador toma eventos `PENDIENTE` con `nextAttemptAt` vencido o eventos `EN_PROCESO` cuyo `leaseUntil` expiró, los reclama de forma exclusiva y ejecuta el handler del `type`.
 - El reclamo registra `lockedAt`, `leaseUntil` y `claimedBy`. Si el procesador cae o no renueva el lease, otro procesamiento puede recuperar el evento vencido y volverlo a procesar; un claim abandonado nunca queda atascado indefinidamente.
 - La garantía es *at-least-once*. Si el proceso cae después de enviar y antes de marcar `PROCESADO`, el evento se vuelve a procesar, por eso todo handler tiene que ser idempotente.
-- No hay orden global entre eventos. Lo que sí se asegura es que un evento de un `Assignment` que ya no está vigente se descarta (punto 6).
+- No hay orden global entre eventos. Un evento de un `Assignment` que ya estaba cerrado al verificarse su vigencia se descarta sin envío; la ventana de carrera entre esa verificación y el envío se trata en el punto 6.
 - El procesador no decide transiciones de negocio: reporta el resultado al módulo owner, que aplica la transición en su propia transacción.
 
 ### 4. Idempotencia
 
 | Nivel | Regla |
 | --- | --- |
-| Registro | `idempotencyKey` único por efecto de negocio. Ejemplos: `derivacion:<assignmentId>:<deliveryAttemptId>`, `aviso-cancelacion:<requestId>:<destinatario>`. Reintentar un caso de uso no duplica el evento |
+| Registro | `idempotencyKey` único por **ocurrencia concreta del efecto**, no sólo por solicitud y destinatario (ver tabla siguiente). Reintentar un caso de uso no duplica el evento; una ocurrencia legítima posterior (nueva `CancellationRequest`, nueva baja tras una reactivación) genera una clave distinta |
 | Envío | Se pasa una clave de idempotencia al proveedor cuando lo soporte. Si no la soporta, consultar `DeliveryAttempt` reduce duplicaciones, pero no elimina la duplicación residual si el proveedor aceptó el email y el proceso cayó antes de registrar el éxito |
-| Resultado | Aplicar dos veces el mismo resultado no cambia nada: `ASIGNADA → DERIVADA` sólo ocurre si la solicitud sigue ASIGNADA y el `Assignment` sigue vigente |
+| Resultado | Aplicar dos veces el mismo resultado no cambia nada: `ASIGNADA → DERIVADA` sólo ocurre si la solicitud sigue ASIGNADA y el `Assignment` del resultado sigue `PENDIENTE_ENTREGA` |
 | Callbacks del proveedor | Si el proveedor informa entregas/rebotes por webhook, se deduplican por el identificador de mensaje del proveedor |
+
+La clave sigue el formato `<tipo>:<id de la ocurrencia>:<id del destinatario>`. El destinatario se identifica por su cuenta del Portal (`accountId`) o por el rol Admin, nunca por email, que es PII y mutable.
+
+| Evento del catálogo | `idempotencyKey` | Por qué identifica la ocurrencia |
+| --- | --- | --- |
+| Derivación al Productor | `derivacion:<assignmentId>:<deliveryAttemptId>` | Cada asignación y cada reintento manual tienen su propio `DeliveryAttempt` |
+| Aviso de cancelación ENVIADA/ASIGNADA | `cancelacion:<requestId>:<destinatario>` | CANCELADA es final: la cancelación directa ocurre una sola vez por solicitud |
+| Aviso de solicitud de cancelación DERIVADA | `cancelacion-solicitada:<cancellationRequestId>:admin` | RN-10 admite varias `CancellationRequest` por DERIVADA (p. ej. tras un rechazo) |
+| Aviso de decisión de cancelación DERIVADA | `cancelacion-decidida:<cancellationRequestId>:<destinatario>` | Cada `CancellationRequest` tiene una única decisión |
+| Aviso de retiro urgente de FormVersion | `retiro-formversion:<formVersionId>:<requestId>` | Una versión se retira una sola vez; un aviso por BORRADOR afectado |
+| Aviso de baja de cuenta | `baja-cuenta:<accountStatusChangeId>:<accountId>` | La baja es reversible: baja → reactivación → baja son ocurrencias distintas |
+| Aviso de reactivación de cuenta | `reactivacion-cuenta:<accountStatusChangeId>:<accountId>` | Ídem |
+
+`accountStatusChangeId` identifica el cambio de estado de cuenta registrado por Identity; su representación la fija TDD-SW-004.
 
 ### 5. Reintentos automáticos y manuales
 
@@ -99,23 +113,44 @@ Los estados del `OutboxEvent` son técnicos e internos. No se reflejan en el est
 - Una falla permanente (destinatario inválido, rechazo definitivo) o el agotamiento de los reintentos marcan el evento `AGOTADO` y el `DeliveryAttempt` como fallido o rebotado. El Admin ve la incidencia y la solicitud sigue ASIGNADA (RN-06).
 - El reintento manual del Admin crea otro `DeliveryAttempt` y otro `OutboxEvent` con su propia `idempotencyKey`, sin reactivar el evento agotado. Así cada intento queda trazado por separado ([F1 §5](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md)).
 
+Regla conceptual de intentos (cuatro niveles que no se confunden):
+
+| Concepto | Qué es | Efecto en el modelo |
+| --- | --- | --- |
+| Reintento automático | Nuevo procesamiento del **mismo** `OutboxEvent` tras una falla transitoria o un lease vencido | Incrementa `attempts` del evento; no crea `DeliveryAttempt` ni `OutboxEvent` nuevos |
+| Reintento del proveedor | Reintento interno del proveedor de email después de aceptar el mensaje | Invisible para el Portal salvo por el resultado que el proveedor informe |
+| `DeliveryAttempt` | Intento funcional de entrega que ve el Admin: destinatario, fecha, resultado | Uno por cada envío solicitado (asignación, reasignación o reintento manual), con un `OutboxEvent` asociado |
+| Reintento manual del Admin | Decisión del Admin ante una incidencia | Crea un `DeliveryAttempt` y un `OutboxEvent` nuevos; el evento agotado queda como registro |
+
+La representación, cardinalidades y trazabilidad de estos conceptos las fija TDD-SW-005 sin cambiar esta regla.
+
 ### 6. Consistencia entre transición de estado y eventos
 
 | Operación | En la transacción de negocio | Después (asíncrono) |
 | --- | --- | --- |
-| Asignar / reasignar | Assignment vigente, `ASIGNADA`, `DeliveryAttempt` pendiente, `OutboxEvent` de derivación, auditoría | Envío al Productor |
-| Resultado exitoso | `DeliveryAttempt` exitoso, `ASIGNADA → DERIVADA`, acceso habilitado, auditoría (transacción del módulo Assignment/Requests) | — |
+| Asignar / reasignar | Assignment `PENDIENTE_ENTREGA`, `ASIGNADA`, `DeliveryAttempt` pendiente, `OutboxEvent` de derivación, auditoría | Envío al Productor |
+| Resultado exitoso | `DeliveryAttempt` exitoso, Assignment `EFECTIVO`, `ASIGNADA → DERIVADA`, acceso habilitado, auditoría (transacción del módulo Assignment/Requests) | — |
 | Resultado fallido | `DeliveryAttempt` fallido; la solicitud sigue ASIGNADA | Reintento automático o incidencia |
-| Reasignación con evento en curso | Assignment anterior cerrado | El handler verifica vigencia: evento de un Assignment no vigente → `DESCARTADO`, sin envío ni transición |
-| Cancelación de ASIGNADA | `CANCELADA`, `OutboxEvent` de aviso único a Admin y Productor | Aviso; un resultado de derivación posterior se ignora |
+| Reasignación con evento en curso | Assignment anterior `CERRADO` | El handler verifica vigencia inmediatamente antes de enviar: evento de un Assignment `CERRADO` → `DESCARTADO`, sin envío ni transición |
+| Cancelación de ASIGNADA | `CANCELADA`, Assignment `CERRADO`, `OutboxEvent` de aviso a Admin y Productor | Aviso; un resultado de derivación posterior se descarta |
+
+Los estados `PENDIENTE_ENTREGA`, `EFECTIVO` y `CERRADO` de Assignment son conceptuales; los define [TDD-SW-003](../../tdd/MAPS-113-insurance-request-estados/TDD-SW-003-insurance-request-y-maquina-de-estados.md) y su representación la fija TDD-SW-005.
 
 El resultado de un efecto externo no dispara una transición por sí mismo. Al recibirlo, el módulo owner revalida estado y vigencia dentro de su transacción y descarta los resultados obsoletos.
+
+**Ventana de carrera entre verificación y envío.** La verificación de vigencia previa al envío no es atómica con el proveedor externo: el handler puede verificar un Assignment vigente, el Admin cancelar o reasignar y recién después salir el email. La garantía real es:
+
+- Si la cancelación o reasignación se confirmó **antes** de la verificación, el evento se descarta sin envío.
+- Si se confirma **dentro de la ventana**, el aviso puede enviarse, pero no produce efectos: el resultado se descarta al revalidarse, no hay transición y el email no concede acceso, porque el acceso del Productor deriva de un Assignment `EFECTIVO` ([ADR-SW-005](../MAPS-111-identidad-autorizacion/ADR-SW-005-identidad-y-autorizacion.md)) y no del enlace.
+- Mitigación proporcional: la verificación se hace lo más cerca posible del envío y en una transacción corta; un resultado que llega para un Assignment `CERRADO` se registra en el `DeliveryAttempt` como envío obsoleto y queda visible al Admin como incidencia. En la cancelación de una ASIGNADA, el aviso de cancelación al Productor ya comunica que la asignación no sigue. Un aviso compensatorio adicional al Productor en una reasignación sería una notificación nueva: queda como propuesta `PENDIENTE FUNCIONAL MAPS`.
+
+Por eso este ADR no promete que todo evento obsoleto se descarte necesariamente antes de enviarse; sí garantiza que ningún resultado obsoleto modifica estado ni acceso.
 
 ### 7. Catálogo inicial de eventos del MVP
 
 | Tipo | Origen | Destinatario | Afecta estado funcional |
 | --- | --- | --- | --- |
-| Derivación al Productor | Asignar/reasignar | Productor asignado | Sí: su éxito habilita `ASIGNADA → DERIVADA`. En la reasignación de una DERIVADA por baja de Productor (RN-19), su éxito hace vigente la nueva asignación sin cambiar el estado de la solicitud |
+| Derivación al Productor | Asignar/reasignar | Productor asignado | Sí: su éxito habilita `ASIGNADA → DERIVADA`. En la reasignación de una DERIVADA por baja de Productor (RN-19), su éxito vuelve `EFECTIVO` el nuevo Assignment sin cambiar el estado de la solicitud |
 | Aviso de cancelación ENVIADA/ASIGNADA | Cancelación del Cliente | Admin (+ Productor si ASIGNADA) | No |
 | Aviso de solicitud de cancelación DERIVADA | Cliente | Admin | No |
 | Aviso de decisión de cancelación DERIVADA | Admin | Cliente; Productor si se confirma | No |
@@ -134,12 +169,13 @@ Esta decisión **no** elige proveedor de email, cola gestionada ni runtime del p
 - Una transacción local evita tanto el cambio sin efecto como el efecto sin cambio.
 - Reintentos, incidencias y trazabilidad de entrega quedan en la base del Portal y son consultables por el Admin.
 - El proveedor de email y el runtime del procesador son reemplazables sin tocar dominio.
-- Resultados obsoletos (reasignación, cancelación) no pueden producir transiciones inválidas.
+- Resultados obsoletos (reasignación, cancelación) no pueden producir transiciones inválidas ni conceder acceso.
 
 ### Negativas y riesgos
 
 - Con *at-least-once*, un handler que no sea idempotente puede duplicar avisos.
 - Sin una clave de idempotencia soportada por el proveedor externo puede existir duplicación residual de emails; la garantía de "aviso único" no se puede afirmar desde Software solamente.
+- Un aviso puede salir dentro de la ventana de carrera con una cancelación o reasignación (punto 6); no produce efectos, pero el destinatario puede recibir un aviso ya obsoleto.
 - Latencia entre la asignación y la derivación efectiva (depende del intervalo de procesamiento).
 - La tabla de outbox crece y requiere depuración de eventos procesados; su retención técnica es independiente de la retención funcional pendiente MAPS.
 - Agrega un componente a operar y monitorear (eventos atascados, agotados).
@@ -158,7 +194,11 @@ Esta decisión **no** elige proveedor de email, cola gestionada ni runtime del p
 | Riesgo o pendiente | Responsable | Acción / condición de cierre |
 | --- | --- | --- |
 | Estado técnico que acredita "entrega requerida exitosa" (aceptado por el proveedor vs. entregado confirmado por webhook) | Software + Cloud | Definir en TDD-SW-005 según capacidades del proveedor elegido en TDD-CLD-005; la regla RN-07 no cambia |
-| Rebote informado después de DERIVADA | Software | TDD-SW-005 define cómo se registra sin revertir DERIVADA (no hay transición de salida a ASIGNADA en la baseline) |
+| Rebote informado después de DERIVADA; callbacks duplicados o tardíos | Software + Cloud | TDD-SW-005 define cómo se registra sin revertir DERIVADA (no hay transición de salida a ASIGNADA en la baseline) y cómo se descartan callbacks repetidos o de un Assignment `CERRADO`; TDD-CLD-005 aporta la semántica del proveedor |
+| Claims, leases y concurrencia del procesador | Software + Cloud | TDD-SW-005 + TDD-CLD-005: reclamo atómico, ejecución solapada al vencer un lease, identificador de claim (fencing), timeouts y rechazo de escrituras de un claim vencido |
+| Operación del Outbox | Cloud | TDD-CLD-003/005/007: carga sobre PostgreSQL, índices de pendientes y vencidos, retención y limpieza técnica, presupuesto de conexiones, métricas y alertas (pendientes, antigüedad, agotados, latencia, duplicados) |
+| Seguridad de la integración | Cloud | TDD-CLD-005/006: secretos, identidad técnica del procesador y validación de autenticidad de webhooks |
+| Aviso compensatorio ante envío obsoleto en reasignación | `PENDIENTE FUNCIONAL MAPS` | Sólo se incorpora si MAPS lo aprueba como notificación nueva (punto 6) |
 | SLA de derivación y tratamiento operativo de incidencias | `PENDIENTE FUNCIONAL MAPS` | Reintentos técnicos e incidencia visible avanzan; plazos y acciones operativas adicionales quedan condicionados |
 | Handlers no idempotentes | Software | Pruebas de doble procesamiento obligatorias por handler |
 | Revisión cruzada cloud sin conformidad registrada | Santiago Talavera | Registrar su conformidad en la tabla de revisión cruzada; los documentos cloud detallan esos impactos y, si alguno contradice esta decisión, se crea un ADR que reemplace a este |

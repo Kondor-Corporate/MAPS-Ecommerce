@@ -93,8 +93,8 @@ Requests (owner de InsuranceRequest, RequestAnswer, Consent, CancellationRequest
 | `Assign` | Admin, coordinado por Assignment | ENVIADA → ASIGNADA | Productor con cuenta activa (Identity) | Assignment crea el vínculo y solicita a Requests el cambio de estado dentro de la misma UoW; intención de entrega y auditoría |
 | `Reassign` | Admin, coordinado por Assignment | ASIGNADA → ASIGNADA | Productor distinto con cuenta activa | Assignment cierra el vínculo anterior, solicita a Requests el cambio y crea el nuevo vínculo/intención de entrega dentro de la misma UoW; auditoría |
 | `ReassignDerived` | Admin, coordinado por Assignment | DERIVADA → DERIVADA | Sólo dentro del tratamiento de la baja del Productor vigente (RN-19); no hay CancellationRequest `SOLICITADA` (el Admin la resuelve antes); Productor nuevo distinto, con cuenta activa; motivo no vacío | Requests valida estado y cancelaciones por puerto, sin cambiar `status`. Assignment cierra el vínculo anterior (fecha, Admin, motivo), crea el nuevo como pendiente de entrega y registra la intención de entrega en la misma UoW; auditoría. El Productor anterior pierde el acceso al cerrarse su vínculo ([ADR-SW-005](../../adr/MAPS-111-identidad-autorizacion/ADR-SW-005-identidad-y-autorizacion.md)) |
-| `MarkDerived` | Sistema | ASIGNADA → DERIVADA | Sigue ASIGNADA; resultado pertenece al Assignment vigente; entrega acreditada como exitosa (TDD-SW-005) | Auditoría; acceso del Productor queda derivado ([ADR-SW-005](../../adr/MAPS-111-identidad-autorizacion/ADR-SW-005-identidad-y-autorizacion.md)) |
-| `CancelByCustomer` | Cliente propietario; coordinado por Assignment si existe Assignment vigente | ENVIADA/ASIGNADA → CANCELADA | Motivo no vacío; confirmación explícita | Actor, fecha y motivo; el coordinador persiste la cancelación en Requests y, sólo si corresponde, cierra el Assignment de su propiedad en la misma UoW; un único evento/intención lógica de aviso (outbox); auditoría |
+| `MarkDerived` | Sistema | ASIGNADA → DERIVADA | Sigue ASIGNADA; resultado pertenece al Assignment `PENDIENTE_ENTREGA` de la solicitud; entrega acreditada como exitosa (TDD-SW-005) | En la misma UoW, Assignment pasa ese vínculo a `EFECTIVO`; auditoría; acceso del Productor queda derivado ([ADR-SW-005](../../adr/MAPS-111-identidad-autorizacion/ADR-SW-005-identidad-y-autorizacion.md)) |
+| `CancelByCustomer` | Cliente propietario; coordinado por Assignment si existe un Assignment no cerrado | ENVIADA/ASIGNADA → CANCELADA | Motivo no vacío; confirmación explícita | Actor, fecha y motivo; el coordinador persiste la cancelación en Requests y, sólo si corresponde, cierra el Assignment de su propiedad en la misma UoW; un único evento/intención lógica de aviso (outbox); auditoría |
 | `RequestCancellation` | Cliente propietario | DERIVADA (sin cambio) | Motivo; no hay otra CancellationRequest pendiente | CancellationRequest `SOLICITADA`; aviso a Admin; auditoría |
 | `DecideCancellation` | Admin; coordinado por Assignment si se aprueba | DERIVADA → CANCELADA (aprueba) o sin cambio (rechaza) | CancellationRequest `SOLICITADA` | Decisión, Admin y fecha; si aprueba, el coordinador persiste CANCELADA en Requests y cierra el Assignment de su propiedad en la misma UoW, con evento/intención lógica de aviso al Productor; si rechaza queda DERIVADA y se registra un evento/intención lógica de aviso al Cliente; auditoría |
 
@@ -112,9 +112,26 @@ Cualquier combinación no listada es inválida y devuelve `TRANSICION_INVALIDA` 
 
 ### Resultado de entrega (integración con ADR-SW-004)
 
-Assignment es el módulo iniciador de `Assign` y `Reassign`; Requests sólo expone `InsuranceRequestAssignmentPort` para validar y aplicar el cambio de estado de `InsuranceRequest`. Las cancelaciones que deben afectar ambos owners se coordinan también desde la aplicación de Assignment: el coordinador invoca un puerto de Requests para cancelar la solicitud y el repositorio de Assignment para cerrarlo, en una única UoW. Requests nunca crea, cierra ni comanda un Assignment directamente, por lo que no depende de Assignment ni se crea un ciclo entre módulos. Assignment recibe el resultado del procesador de outbox y, en su transacción, invoca `MarkDerived` sólo ante un resultado exitoso. `MarkDerived` es idempotente y tolera resultados obsoletos: si la solicitud ya no está ASIGNADA (cancelada, ya derivada) o el Assignment del resultado no es el vigente (reasignada), no hace nada y registra el descarte en auditoría técnica. Un resultado fallido no invoca ningún comando de Requests.
+Assignment es el módulo iniciador de `Assign` y `Reassign`; Requests sólo expone `InsuranceRequestAssignmentPort` para validar y aplicar el cambio de estado de `InsuranceRequest`. Las cancelaciones que deben afectar ambos owners se coordinan también desde la aplicación de Assignment: el coordinador invoca un puerto de Requests para cancelar la solicitud y el repositorio de Assignment para cerrarlo, en una única UoW. Requests nunca crea, cierra ni comanda un Assignment directamente, por lo que no depende de Assignment ni se crea un ciclo entre módulos. Assignment recibe el resultado del procesador de outbox y, en su transacción, invoca `MarkDerived` sólo ante un resultado exitoso. `MarkDerived` es idempotente y tolera resultados obsoletos: si la solicitud ya no está ASIGNADA (cancelada, ya derivada) o el Assignment del resultado está `CERRADO` (reasignada), no hace nada y registra el descarte en auditoría técnica. Un resultado fallido no invoca ningún comando de Requests.
 
-En una reasignación de DERIVADA (`ReassignDerived`), el resultado exitoso no invoca `MarkDerived`: Assignment marca vigente la nueva asignación en su propia transacción y, desde ese momento, el nuevo Productor obtiene acceso por la política de [ADR-SW-005](../../adr/MAPS-111-identidad-autorizacion/ADR-SW-005-identidad-y-autorizacion.md). La entrega exitosa se acredita con el mismo criterio que para `ASIGNADA → DERIVADA` (RN-07, TDD-SW-005). Un resultado fallido deja visible la reasignación pendiente para el Admin. Si mientras tanto se aprueba una cancelación de la DERIVADA, el coordinador cierra también la asignación pendiente y el resultado posterior se descarta como obsoleto.
+En una reasignación de DERIVADA (`ReassignDerived`), el resultado exitoso no invoca `MarkDerived`: Assignment pasa la nueva asignación de `PENDIENTE_ENTREGA` a `EFECTIVO` en su propia transacción y, desde ese momento, el nuevo Productor obtiene acceso por la política de [ADR-SW-005](../../adr/MAPS-111-identidad-autorizacion/ADR-SW-005-identidad-y-autorizacion.md). La entrega exitosa se acredita con el mismo criterio que para `ASIGNADA → DERIVADA` (RN-07, TDD-SW-005). Un resultado fallido deja visible la reasignación pendiente para el Admin. Si mientras tanto se aprueba una cancelación de la DERIVADA, el coordinador cierra también la asignación pendiente y el resultado posterior se descarta como obsoleto.
+
+### Estados conceptuales de Assignment y autorización
+
+Para que autorización, entrega y reasignación usen la misma semántica, este TDD fija tres estados conceptuales de Assignment. Son de Assignment, no de `InsuranceRequest`, y su representación física la define TDD-SW-005:
+
+| Estado de Assignment | Significado | ¿Autoriza al Productor? |
+| --- | --- | --- |
+| `PENDIENTE_ENTREGA` | Creado por `Assign`, `Reassign` o `ReassignDerived`; su entrega todavía no fue acreditada como exitosa | No |
+| `EFECTIVO` | Entrega exitosa acreditada para **ese** Assignment | Sí, si además la solicitud es DERIVADA y la cuenta del Productor está activa |
+| `CERRADO` | Terminal, con motivo: reasignada, cancelada o baja del Productor | No |
+
+Reglas:
+
+- Sólo `PENDIENTE_ENTREGA → EFECTIVO` (por un resultado exitoso de ese mismo Assignment) y `PENDIENTE_ENTREGA | EFECTIVO → CERRADO`. `CERRADO` no tiene salida.
+- Un resultado duplicado o tardío nunca reactiva un Assignment `CERRADO` ni aplica efectos sobre una solicitud CANCELADA: se registra como descarte.
+- En una solicitud hay a lo sumo un Assignment no cerrado (`PENDIENTE_ENTREGA` o `EFECTIVO`). Ver Concurrencia.
+- [ADR-SW-005](../../adr/MAPS-111-identidad-autorizacion/ADR-SW-005-identidad-y-autorizacion.md) usa `EFECTIVO` como condición de acceso del Productor y [ADR-SW-004](../../adr/MAPS-110-asincronia-outbox-idempotencia/ADR-SW-004-outbox-asincronia-e-idempotencia.md) usa `CERRADO` para descartar eventos y resultados obsoletos.
 
 ### Errores observables
 
@@ -129,6 +146,7 @@ En una reasignación de DERIVADA (`ReassignDerived`), el resultado exitoso no in
 | `CANCELACION_YA_SOLICITADA` | Existe una CancellationRequest pendiente |
 | `MOTIVO_REQUERIDO` | Cancelación sin motivo |
 | `CONFLICTO_CONCURRENCIA` | La solicitud cambió desde que se leyó (ver Concurrencia) |
+| `IDEMPOTENCIA_CONFLICTO` | Se reutilizó una clave de idempotencia con parámetros distintos (ver Idempotencia) |
 
 El contrato HTTP de estos errores lo fija TDD-SW-008.
 
@@ -155,9 +173,35 @@ El precio se compara por la referencia de precio vigente que provee Catalog. Com
 
 Control optimista con `version`: cada comando lee la solicitud, valida y escribe condicionado a la versión leída. Si otra operación escribió antes (p. ej. el Cliente cancela una ENVIADA mientras el Admin la asigna), la segunda falla con `CONFLICTO_CONCURRENCIA` y se reintenta con el estado nuevo, donde la guarda decidirá. No se usan bloqueos pesimistas de larga duración.
 
+**Invariantes entre agregados.** `InsuranceRequest.version` resuelve conflictos sobre la solicitud, pero por sí sola no garantiza invariantes que viven en otras entidades. Para ellas se combinan dos controles, cada uno en el owner de su tabla ([ADR-SW-003](../../adr/MAPS-108-persistencia-fronteras-transaccionales/ADR-SW-003-persistencia-y-fronteras-transaccionales.md)):
+
+| Invariante | Control transaccional | Restricción de respaldo en la base | Owner |
+| --- | --- | --- | --- |
+| A lo sumo una `CancellationRequest` `SOLICITADA` por solicitud | `RequestCancellation` y `DecideCancellation` escriben también `InsuranceRequest` condicionado a `version`, así que dos solicitudes concurrentes se serializan | Índice único parcial sobre la solicitud cuando la `CancellationRequest` está `SOLICITADA`, o condición equivalente | Requests |
+| A lo sumo un Assignment no cerrado por solicitud | Todo comando que crea o cierra un Assignment invoca a Requests por `InsuranceRequestAssignmentPort` en la misma UoW, que incrementa `version` aunque `status` no cambie (`Reassign`, `ReassignDerived`) | Índice único parcial sobre la solicitud cuando el Assignment está `PENDIENTE_ENTREGA` o `EFECTIVO`, o condición equivalente | Assignment |
+
+Si dos operaciones compiten, una gana y la otra recibe `CONFLICTO_CONCURRENCIA`; la restricción de base es la última barrera ante un error de coordinación. Los nombres físicos y las pruebas concurrentes de Assignment los fija TDD-SW-005.
+
+**Consistencia de `Submit` con Catalog y Forms.** Consultar precio, Product disponible y FormVersion utilizable no basta si Catalog o Forms cambian entre la consulta y el commit. La garantía funcional es:
+
+- Un cambio de precio, de disponibilidad o un retiro urgente **confirmado antes** del commit de `Submit` hace que `Submit` falle (`PRECIO_NO_CONFIRMADO`, `PRODUCTO_NO_DISPONIBLE` o `BORRADOR_NO_UTILIZABLE`).
+- Un cambio confirmado **después** queda ordenado después de `Submit`: la solicitud queda ENVIADA con el snapshot que el Cliente confirmó (RN-09).
+
+Como todos los módulos comparten la misma base PostgreSQL y la misma UoW ([ADR-SW-003](../../adr/MAPS-108-persistencia-fronteras-transaccionales/ADR-SW-003-persistencia-y-fronteras-transaccionales.md)), el mecanismo es un bloqueo corto dentro de la transacción: `CatalogQueryPort` y `FormsQueryPort` leen la referencia de precio, la disponibilidad y la FormVersion con un bloqueo compartido, y los comandos de Catalog/Forms que las cambian toman un bloqueo exclusivo sobre esas mismas filas. Un mecanismo equivalente (por ejemplo, revalidar versiones al commit) es válido si sostiene la misma garantía. El bloqueo dura sólo la transacción, así que es compatible con evitar bloqueos de larga duración. Cómo versiona y serializa Catalog el precio vigente y Forms la disponibilidad lo detalla TDD-SW-002. Un lock en memoria de una instancia no es una garantía válida con varias instancias (TDD-CLD-003/005).
+
 ### Idempotencia de comandos del usuario
 
-`Submit`, `CancelByCustomer` y `DecideCancellation` aceptan una clave de idempotencia de request: un doble clic o reintento de red devuelve el resultado ya registrado sin duplicar efectos ni avisos.
+`Submit`, `CancelByCustomer`, `RequestCancellation` y `DecideCancellation` aceptan una clave de idempotencia de request: un doble clic o reintento de red devuelve el resultado ya registrado sin duplicar efectos ni avisos.
+
+| Aspecto | Contrato |
+| --- | --- |
+| Alcance de la clave | `(actorId, operación, requestId, clave)`. La misma clave en otra operación, otro recurso u otro actor es independiente |
+| Huella de parámetros | Se guarda un hash de los parámetros relevantes del comando (p. ej. motivo, decisión, referencia de precio confirmada) |
+| Misma clave, misma huella | Devuelve el resultado registrado, sin nuevos efectos, avisos ni auditoría |
+| Misma clave, huella distinta | Rechazo con `IDEMPOTENCIA_CONFLICTO`, sin efectos |
+| Atomicidad | El registro de la clave se persiste en la misma UoW que el cambio de estado, la auditoría y las intenciones de Outbox: o queda todo o nada |
+| Reintento concurrente | Una restricción única sobre el alcance de la clave hace que sólo una ejecución confirme; la otra devuelve el resultado de la ganadora o, si todavía no está confirmado, `CONFLICTO_CONCURRENCIA` para reintentar |
+| Retención | Ventana técnica acotada, suficiente para cubrir reintentos de red; su valor lo fija TDD-SW-008 |
 
 ### Migraciones
 
@@ -171,8 +215,9 @@ Sin migración de datos desde el PostgreSQL histórico de MAPS. El enum de estad
 
 ## Operación y observabilidad
 
-- Métrica técnica de comandos rechazados por código de error y de `CONFLICTO_CONCURRENCIA` (señal de contención).
-- Resultados de entrega descartados por obsoletos quedan registrados para diagnóstico.
+- Métrica técnica de comandos rechazados por código de error (incluido rechazo por guarda) y de `CONFLICTO_CONCURRENCIA` (señal de contención).
+- Resultados de entrega descartados por obsoletos quedan registrados para diagnóstico y como métrica.
+- Las métricas y registros no incluyen PII ni respuestas de formularios (TDD-CLD-007).
 - Integración con telemetría: TDD-SW-007 y TDD-CLD-007.
 
 ## Pruebas y criterios de fallo
@@ -193,8 +238,15 @@ De aplicación (con dobles de puertos) e integración (con base real):
 - Carrera cancelación vs. asignación: exactamente una gana; la otra recibe `CONFLICTO_CONCURRENCIA` o `TRANSICION_INVALIDA`.
 - Cancelación de ASIGNADA y aprobación de cancelación de DERIVADA se coordinan desde Assignment: se actualiza Requests por puerto y se cierra el Assignment owner en la misma UoW, sin dependencia Requests → Assignment.
 - `Submit` repetido con la misma clave de idempotencia: un solo snapshot y una sola auditoría.
-- `ReassignDerived`: la solicitud sigue DERIVADA; el vínculo anterior queda cerrado con fecha, Admin y motivo, y el Productor anterior pierde el acceso; se rechaza con una CancellationRequest `SOLICITADA`.
-- Entrega fallida de la nueva asignación de una DERIVADA: la reasignación queda pendiente y visible para el Admin, y el nuevo Productor no tiene acceso. Con entrega exitosa, la asignación pasa a vigente sin invocar `MarkDerived`.
+- Dos `Submit` concurrentes con la misma clave: uno confirma; el otro devuelve el mismo resultado o `CONFLICTO_CONCURRENCIA`, nunca un segundo snapshot.
+- Clave reutilizada con parámetros distintos (p. ej. otro motivo de cancelación): `IDEMPOTENCIA_CONFLICTO` sin efectos.
+- Carrera `Submit` vs. cambio de precio: si el cambio confirma antes, `Submit` falla con `PRECIO_NO_CONFIRMADO`; si confirma después, la ENVIADA conserva el snapshot confirmado.
+- Carrera `Submit` vs. retiro urgente de FormVersion: si el retiro confirma antes, `Submit` falla con `BORRADOR_NO_UTILIZABLE`; nunca queda una ENVIADA sobre una versión retirada antes de su commit.
+- Dos `RequestCancellation` concurrentes: a lo sumo una `CancellationRequest` `SOLICITADA`.
+- Dos reasignaciones concurrentes de la misma solicitud: a lo sumo un Assignment no cerrado.
+- `ReassignDerived`: la solicitud sigue DERIVADA; el vínculo anterior queda `CERRADO` con fecha, Admin y motivo, y el Productor anterior pierde el acceso; se rechaza con una CancellationRequest `SOLICITADA`.
+- Entrega fallida de la nueva asignación de una DERIVADA: la reasignación queda `PENDIENTE_ENTREGA` y visible para el Admin, y el nuevo Productor no tiene acceso. Con entrega exitosa, la asignación pasa a `EFECTIVO` sin invocar `MarkDerived`.
+- Resultado exitoso duplicado o tardío para un Assignment `CERRADO`: descartado; no devuelve acceso ni cambia estado.
 - Cliente dado de baja: sus solicitudes ENVIADA, ASIGNADA y DERIVADA continúan su ciclo según RN-18; sus comandos son rechazados por el estado de cuenta local. Este TDD no infiere comportamiento adicional para BORRADOR.
 
 Las pruebas con proveedor de email simulado verifican semántica; la entrega real se valida en TDD-CLD-005.
@@ -209,6 +261,9 @@ Secuencia sugerida: dominio y `RequestStateMachine` con pruebas → `CreateDraft
 | --- | --- | --- | --- |
 | Bandeja de solicitudes afectadas por la baja de un Productor | Kondor (UX, F2/F4) | `Reassign`, `ReassignDerived` y el listado de ASIGNADAS y DERIVADAS del Productor | Definir cómo el Admin ve y trabaja esa bandeja, incluidas las reasignaciones de DERIVADA pendientes o fallidas |
 | Estado técnico que acredita entrega exitosa | Software + Cloud | Guarda de `MarkDerived` como contrato | TDD-SW-005 |
+| Representación de Assignment y sus invariantes | Software | Estados conceptuales y reglas de este TDD | TDD-SW-005: actualización atómica de Assignment y resultado, restricciones de asignación no cerrada, resultados obsoletos, reintentos y pruebas concurrentes |
+| Versionado del precio y de la disponibilidad del formulario | Software | Garantía de consistencia de `Submit` | TDD-SW-002: cómo se versiona y serializa el precio vigente y la disponibilidad de FormVersion durante `Submit` |
+| Conexiones y transacciones concurrentes | Cloud | Transacciones cortas y bloqueos acotados | TDD-CLD-003/005: transacciones acotadas en PostgreSQL con API y workers concurrentes |
 | Completitud por tipo de campo | `PENDIENTE FUNCIONAL MAPS` | Puerto `FormsQueryPort` y códigos de error | TDD-SW-002 tras validar 1–2 formularios reales |
 | Retención de BORRADORES descartados/no utilizables | `PENDIENTE FUNCIONAL MAPS` | Marcas sin borrado físico | Plazos y eliminación aprobados |
 
