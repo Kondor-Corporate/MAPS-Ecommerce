@@ -1,6 +1,6 @@
 # F3 — Software y dominio
 
-> **Estado:** en curso. ADR-SW-001, ADR-SW-002 y ADR-SW-003 (`ACEPTADO` por el owner de software; revisión cruzada cloud pendiente de Santiago Talavera). TDD-SW-001 (`APROBADO`). El resto del catálogo sigue previsto.
+> **Estado:** en curso. ADR-SW-001, ADR-SW-002 y ADR-SW-003 (`ACEPTADO` por el owner de software; revisión cruzada cloud pendiente de Santiago Talavera). TDD-SW-001 (`APROBADO`). Redactados sin aprobar: [ADR-SW-004](./adr/MAPS-110-asincronia-outbox-idempotencia/ADR-SW-004-outbox-asincronia-e-idempotencia.md) y [ADR-SW-005](./adr/MAPS-111-identidad-autorizacion/ADR-SW-005-identidad-y-autorizacion.md) (`PROPUESTO`); [TDD-SW-002](./tdd/MAPS-112-product-category-formularios/TDD-SW-002-product-category-y-formversion.md), [TDD-SW-003](./tdd/MAPS-113-insurance-request-estados/TDD-SW-003-insurance-request-y-maquina-de-estados.md) y [TDD-SW-005](./tdd/MAPS-114-assignment-delivery-outbox/TDD-SW-005-assignment-delivery-y-coordinacion-outbox.md) (`BORRADOR`). El resto del catálogo sigue previsto.
 
 **Owner principal:** Joaquin Rodriguez. Santiago realiza revisión cruzada cuando la decisión afecta cloud, runtime, datos, seguridad, operaciones o despliegue. La [baseline F0/F1/F2](../README.md) y la [trazabilidad](../traceability.md) rigen el alcance.
 
