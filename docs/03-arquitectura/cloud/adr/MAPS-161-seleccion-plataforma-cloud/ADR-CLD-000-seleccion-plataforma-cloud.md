@@ -4,10 +4,10 @@
 | --- | --- |
 | ID | `ADR-CLD-000` |
 | Título | Selección de plataforma cloud |
-| Estado | `PROPUESTO` — decisión pendiente |
+| Estado | `ACEPTADO` — GCP como plataforma del MVP |
 | Fecha | 2026-10-04 |
 | Autor | Santiago Talavera |
-| Revisores | Joaquin Rodriguez — revisión cruzada Software/Domain pendiente |
+| Revisores | Joaquin Rodriguez — revisión del 2026-10-15: `CHANGES_REQUESTED` para alinear el ADR con la decisión organizacional de GCP; conformidad final pendiente de nueva revisión |
 | Work item | Historia [MAPS-161](https://santitalavera.atlassian.net/browse/MAPS-161); subtask documental [MAPS-162](https://santitalavera.atlassian.net/browse/MAPS-162), ambas «En curso» |
 | URL del work item | [MAPS-161](https://santitalavera.atlassian.net/browse/MAPS-161); [MAPS-162](https://santitalavera.atlassian.net/browse/MAPS-162) |
 | Fase origen | [F3 — Arquitectura](../../../README.md), [F0](../../../../00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md), [F1](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md), [F2](../../../../02-diseno/Fase_2__Design_Handoff.md), [Cloud Strategy](../../STRATEGY.md) |
@@ -16,17 +16,17 @@
 | Reemplaza | No aplica |
 | Reemplazado por | No aplica |
 
-> Este ADR compara **plataformas**, no elige servicios ni topología. GCP es una dirección de trabajo de la Strategy, **no** una plataforma seleccionada. La aceptación requiere revisión cruzada y decisión explícita registrada aquí.
+> Este ADR acepta **GCP como plataforma cloud del MVP**. No acepta automáticamente servicios, SKUs, regiones, topología ni configuraciones: esas decisiones permanecen en los ADR/TDD Cloud derivados.
 
 ## Contexto y problema
 
-**Pregunta:** ¿por qué elegir una determinada plataforma cloud para MAPS frente a las demás alternativas viables?
+**Pregunta:** ¿qué plataforma cloud adopta Kondor para el MVP de MAPS, con qué fundamento organizacional y bajo qué límites, riesgos y condiciones de revisión?
 
 El Portal del MVP necesita alojar el journey de solicitudes, la autorización por identidad, la persistencia de progreso y estados, adjuntos privados, derivación con entrega verificable, auditoría y métricas con PII minimizada. F0/F1/F2 excluyen Leads, checkout, pólizas y dependencia funcional del PostgreSQL histórico de MAPS. Retención, volumen, niveles de servicio y objetivos de recuperación no están cerrados; este ADR no los inventa.
 
 El [TARGET conceptual](../../STRATEGY.md) a soportar es: Internet → entrada pública → frontend → API → base relacional, object storage y outbox/estado → worker asíncrono → proveedor de email. IAM, secrets, observabilidad, CI/CD, IaC, ambientes, backup/recuperación y controles de costo son transversales. El TARGET **no** prescribe una relación uno-a-uno entre cajas y productos cloud.
 
-Software define semántica, contratos, datos y fronteras transaccionales; Cloud seleccionará y operará su materialización. En `main`, los ADR Software incorporados mediante [PR #14](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/14) están `ACEPTADO` y `TDD-SW-001` `APROBADO`, aunque su revisión cruzada Cloud no está concluida. Como contexto no integrado, la [PR #17](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/17) está abierta con `ADR-SW-004/005` **ACEPTADO** y `TDD-SW-003` **APROBADO**, pero conserva una revisión `CHANGES_REQUESTED`; la [PR #20](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/20) está Draft con `TDD-SW-002/005` **BORRADOR**. `ADR-CLD-000` es gate para aceptar decisiones dependientes del proveedor; los análisis neutrales pueden continuar.
+Software define semántica, contratos, datos y fronteras transaccionales; Cloud seleccionará y operará su materialización. En `main`, los ADR Software incorporados mediante [PR #14](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/14) están `ACEPTADO` y `TDD-SW-001` `APROBADO`, aunque su revisión cruzada Cloud no está concluida. Como contexto no integrado, la [PR #17](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/17) está abierta con `ADR-SW-004/005` **PROPUESTO** y `TDD-SW-003` **EN REVISIÓN**; la [PR #20](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/20) está abierta —no Draft en GitHub—, depende de #17 y mantiene `TDD-SW-002/005` **BORRADOR**. La aceptación de GCP habilita decisiones dependientes del proveedor, pero no resuelve sus trade-offs de servicio o diseño.
 
 ## Drivers y criterios
 
@@ -43,7 +43,7 @@ La importancia expresa el impacto en esta elección, **no** una ponderación num
 | IaC y aislamiento/promoción de ambientes | Alta | Strategy; evaluar repetibilidad, permisos y costo operativo. |
 | Backup, restore y recuperación | Alta | Strategy; RPO/RTO y pruebas de restore pendientes de MAPS. |
 | Región, latencia y residencia de datos | Media/alta | Ubicación de usuarios en Argentina; validar disponibilidad por servicio, mediciones y requisito legal/comercial antes de decidir. |
-| Experiencia del equipo y MAPS-Landingpage | Media/alta | Experiencia en GCP informada para el mismo cliente; evidencia operativa verificable, permisos y lecciones aún por relevar. No determina el resultado. |
+| Experiencia del equipo y MAPS-Landingpage | Media/alta | Una persona del equipo tiene experiencia acotada en GCP y MAPS-LandingPage ya usa esa plataforma. La continuidad reduce dispersión organizacional, aunque la evidencia operativa, permisos y lecciones aún deben relevarse. |
 | TCO y modelo de precios | Media/alta | Estimar con workloads comparables y esfuerzo humano; no hay sizing ni tarifas contractuales validadas. |
 | CI/CD con GitHub, portabilidad, reversibilidad y lock-in consciente | Media/alta | Strategy y convenciones del repo; evaluar costo de salida de aplicación **y** de infraestructura. |
 
@@ -53,9 +53,9 @@ Las tres plataformas ofrecen familias de capacidades aptas para evaluar el TARGE
 
 | Alternativa | Ventajas para evaluar | Fricción, costo o riesgo por validar | Resultado |
 | --- | --- | --- | --- |
-| Google Cloud Platform (GCP) | Runtime de contenedores con servicios/jobs/worker pools; experiencia en GCP informada para MAPS-Landingpage podría acortar aprendizaje. | Verificar evidencia operacional, patrón del worker, conexión a DB, región, configuración de red, costos de mínimos y egreso; evitar seleccionar por familiaridad. | Pendiente; sin recomendación definitiva. |
-| Amazon Web Services (AWS) | ECS/Fargate cubre servicios y tareas; ecosistema amplio e integración modular. | Evaluar número de componentes de red/ingreso/identidad que deberá operar el equipo, su costo fijo y curva de aprendizaje; no inferir que la amplitud implique mejor ajuste. | Pendiente; viable para evaluación. |
-| Microsoft Azure | Container Apps y jobs cubren API y tareas; identidad administrada e integración con servicios Azure. | Validar disponibilidad regional del conjunto, redes/ingreso, configuración de identidad, costos y experiencia efectiva del equipo; no asumir ventaja sin evidencia de uso MAPS. | Pendiente; viable para evaluación. |
+| Google Cloud Platform (GCP) | Runtime de contenedores con servicios/jobs/worker pools; continuidad con MAPS-LandingPage y experiencia existente en una persona del equipo. | Verificar operación real, patrón del worker, conexión a DB, región, red, costos y egreso. La familiaridad no demuestra superioridad técnica o económica. | **Adoptada para el MVP por decisión organizacional.** |
+| Amazon Web Services (AWS) | ECS/Fargate cubre servicios y tareas; ecosistema amplio e integración modular. | Evaluar número de componentes de red/ingreso/identidad que debería operar el equipo, su costo fijo y curva de aprendizaje. | Antecedente comparativo; no rechazada por inviabilidad. |
+| Microsoft Azure | Container Apps y jobs cubren API y tareas; identidad administrada e integración con servicios Azure. | Validar disponibilidad regional del conjunto, redes/ingreso, configuración de identidad, costos y experiencia efectiva del equipo. | Antecedente comparativo; no rechazada por inviabilidad. |
 
 ### Comparación de ajuste y consecuencias
 
@@ -106,50 +106,61 @@ Sólo normaliza vocabulario para comparar; **ninguna celda selecciona un product
 
 ### Costo, región y portabilidad: cómo cerrar la comparación
 
-`TCO = infraestructura + operación + tiempo humano + complejidad + incidentes + riesgo + downtime`. La [baseline y comparación de plataformas](./EVIDENCE-CLD-000-comparacion-plataformas.md) congela tres escenarios de carga iguales para los tres proveedores, con patrón HTTP, frecuencia de worker/jobs, tamaño/conexiones de DB, objetos/egreso, emails, logs/retención, ambientes y backups. Allí se mantiene la taxonomía canónica: [gates](./EVIDENCE-CLD-000-comparacion-plataformas.md#41-gates-obligatorios), [criterios ponderados](./EVIDENCE-CLD-000-comparacion-plataformas.md#42-ponderación-posterior-a-gates) y [sensibilidades](./EVIDENCE-CLD-000-comparacion-plataformas.md#7-costeo-comparable). Separar costos fijos potenciales (DB, mínimos, balanceo/red), variables (CPU, solicitudes, almacenamiento, transferencia, observabilidad), aprendizaje/operación y costo de salida. Usar calculadoras oficiales y tarifa contractual vigente cuando exista; todavía no hay datos para afirmar un ganador económico ni fijar precios. El sizing y precio exactos pertenecen a TDD/estimación posterior.
+`TCO = infraestructura + operación + tiempo humano + complejidad + incidentes + riesgo + downtime`. La [baseline y comparación de plataformas](./EVIDENCE-CLD-000-comparacion-plataformas.md) conserva, como antecedente reproducible, tres escenarios de carga iguales para los tres proveedores y el marco histórico de gates, ponderación y sensibilidades. No se aplicó scoring ni se demostró un ganador económico. Desde esta decisión, el modelo se usa principalmente para verificar la viabilidad y el guardrail de costo de la arquitectura GCP que definan los ADR/TDD posteriores. El sizing y precio exactos pertenecen a esos diseños y estimaciones.
 
-La lista oficial de regiones acredita existencia de regiones potencialmente cercanas, **no** disponibilidad conjunta de todos los productos, latencia, residencia requerida ni cumplimiento. Antes de seleccionar, comprobar por servicio y región la colocalización de runtime/DB/storage, ruta del usuario argentino, egreso, backup/restore y cualquier requisito de residencia que MAPS confirme. No se asigna región aquí.
+La lista oficial de regiones acredita existencia de regiones potencialmente cercanas, **no** disponibilidad conjunta de todos los productos, latencia, residencia requerida ni cumplimiento. Antes del go-live se debe comprobar por servicio y región la colocalización de runtime/DB/storage, ruta del usuario argentino, egreso, backup/restore y cualquier requisito de residencia que MAPS confirme. No se asigna región aquí.
 
 Contenedores, PostgreSQL, object storage tras puertos y límites hexagonales **propuestos** favorecen portabilidad de **aplicación**. IaC ayuda a reproducir la infraestructura de un proveedor, pero no hace portables sus políticas IAM, servicios gestionados, redes ni observabilidad. El criterio es aceptar lock-in cuando compre valor explícito y exista plan de salida proporcional; no prometer portabilidad total.
 
 ## Decisión
 
-**Pendiente.** `ADR-CLD-000` permanece `PROPUESTO`: ninguna plataforma es elegida, recomendada como ganadora ni rechazada con la evidencia disponible. El antecedente GCP informado para MAPS-Landingpage reduce incertidumbre potencial, pero exige prueba de operación real y comparación de TCO/ajuste con AWS y Azure. La plataforma se decidirá tras revisión cruzada y cierre de las validaciones de abajo; el registro pasará explícitamente a `ACEPTADO` o `RECHAZADO` según corresponda.
+**Se adopta Google Cloud Platform (GCP) como plataforma cloud del MVP de MAPS.** La decisión fue tomada por mayoría verbal de tres de cuatro integrantes del equipo, priorizando continuidad con MAPS-LandingPage y concentración de aprendizaje en la única plataforma sobre la que existe experiencia interna, aunque sea acotada a staging.
 
-Este gate condiciona la aceptación de decisiones cuya justificación dependa materialmente de GCP/AWS/Azure. **No bloquea** investigación o diseño proveedor-neutral. Tampoco elige Cloud Run, Cloud SQL, Cloud Storage, RDS, S3, Container Apps ni equivalentes.
+La aceptación es **organizacional y de dirección tecnológica**. No afirma que GCP haya ganado un scoring, benchmark o comparación concluyente de superioridad técnica, económica u operacional. Quedó registrada una objeción técnica: la selección podía considerarse prematura mientras la comparación no produjera evidencia concluyente. Esa limitación se acepta conscientemente; la comparación AWS/Azure se conserva como antecedente histórico reproducible, no como requisito pendiente para adoptar GCP ni como prueba de inviabilidad de las alternativas.
 
-La evidencia sólo será suficiente para resolver este ADR cuando permita distinguir viabilidad y trade-offs materiales entre alternativas. Si una incertidumbre todavía puede cambiar un gate, la viabilidad o una comparación material, el ADR permanece `PROPUESTO`; el proceso no obliga a elegir una plataforma. La regla detallada de suficiencia y asimetría experimental está en [EVIDENCE-CLD-000 §8.4](./EVIDENCE-CLD-000-comparacion-plataformas.md#84-asimetría-experimental-y-suficiencia).
+Esta decisión acepta la plataforma, no la arquitectura concreta. Para orientar los siguientes diseños se adopta como **arquitectura candidata de referencia**, sujeta a justificación en ADR/TDD: Cloud Run para API; Cloud SQL for PostgreSQL; Cloud Storage privado; Secret Manager; Artifact Registry; Cloud Logging/Monitoring; Terraform; y GitHub Actions con OIDC/Workload Identity Federation. Ninguno de esos productos, regiones, SKUs, mínimos, políticas o topologías queda aceptado por esta lista.
 
-Una incertidumbre **bloquea la selección de plataforma** sólo cuando puede afectar un gate, la viabilidad o una comparación material. Si no alcanza ese umbral, condiciona decisiones posteriores de SKU, sizing, topología, política operativa o configuración en los ADR/TDD Cloud correspondientes; no se oculta, pero tampoco se convierte artificialmente en blocker de `ADR-CLD-000`.
+Para el procesamiento asíncrono, **Cloud Run Jobs + Cloud Scheduler** es la alternativa inicial preferida a evaluar, no una decisión aceptada. `ADR-CLD-003` y `TDD-CLD-005` deben contrastarla con Pub/Sub y con un worker/servicio permanente según latencia, frecuencia, solapamiento, claims/leases, retries, idempotencia, recuperación, webhooks, resultados tardíos y la semántica de Delivery definida por Software.
+
+El tope de **USD 200/mes** pasa a ser guardrail de viabilidad interna para GCP. Superarlo no reabre automáticamente la selección de proveedor: primero obliga a revisar sizing, arquitectura, estrategia de ambientes, presupuesto y alcance, sin degradar seguridad, recuperación ni requisitos obligatorios. La política experimental de USD 0 out-of-pocket permanece sin cambios.
+
+| Nivel | Alcance | Estado después de este ADR |
+| --- | --- | --- |
+| 1 — Plataforma | `ADR-CLD-000`: proveedor cloud del MVP | **GCP aceptado**. |
+| 2 — Arquitectura | `ADR-CLD-001` a `ADR-CLD-007`: entrada, ambientes, runtime, IaC, CI/CD, observabilidad y seguridad | Pendiente; debe justificar decisiones dentro del constraint GCP. |
+| 3 — Diseño | `TDD-CLD-001` a `TDD-CLD-008`: servicios, configuración, red, pooling, backups, IAM, workers, storage, pipelines y operación | Pendiente; ningún servicio o ajuste queda aprobado por este ADR. |
 
 ### Relación con Software y derivaciones posteriores
 
 `ADR-SW-003` y `TDD-SW-001` ya fijan respectivamente las fronteras PostgreSQL/Unit of Work y Document/adjuntos. La PR #17 aporta, todavía fuera de `main`, claims, leases y retries del Outbox junto con la frontera de identidad/revocación; la PR #20 mantiene en borrador detalles de `FormVersion`, documentos, Assignment y Delivery. Para este ADR sólo importan sus consecuencias Cloud: capacidades de persistencia y transacción, ejecución recuperable de workers, identidad/revocación efectiva, storage privado y soporte operacional a Assignment/Delivery. No se replica ni resuelve la semántica Software.
 
-La plataforma elegida, junto con managed-first, permitirá que `TDD-CLD-003` compare y justifique el servicio PostgreSQL administrado, conexiones, backup y migraciones; la plataforma elegida junto con object storage privado permitirá que `TDD-CLD-004` compare y justifique storage y controles. Son **derivaciones condicionadas**, no elecciones de Cloud SQL/Cloud Storage ni de sus equivalentes. Si aparece un trade-off arquitectónico de primer orden, corresponderá un ADR específico.
+GCP, junto con managed-first, permite que `TDD-CLD-003` compare y justifique el servicio PostgreSQL administrado, conexiones, backup y migraciones; GCP junto con object storage privado permite que `TDD-CLD-004` compare y justifique storage y controles. Son **derivaciones condicionadas**, no elecciones automáticas de Cloud SQL o Cloud Storage. Si aparece un trade-off arquitectónico de primer orden, corresponderá un ADR específico.
 
 ## Consecuencias y trade-offs
 
-- **Positivas del proceso propuesto:** evita sesgo de proveedor, hace visible la carga operativa y conserva coherencia con F0/F1/F2 y la Strategy antes de fijar servicios.
-- **Negativas/costo:** posterga la aceptación de ADR/TDD dependientes del proveedor y requiere recolectar datos de carga, precio y experiencia; los diseños neutros pueden avanzar en paralelo.
-- **Trade-off futuro:** una elección managed-first puede reducir operación directa pero aumentar acoplamiento, costos variables o dependencia de habilidades. Sólo se aceptará al demostrar valor frente a las otras opciones viables.
-- **Operación y seguridad:** cualquier plataforma elegida dejará al equipo responsabilidad por IAM, configuración, protección de datos, observabilidad, pruebas de recuperación y control de costos.
+- **Positivas:** reduce dispersión de aprendizaje, alinea el Portal con el antecedente MAPS-LandingPage y habilita cerrar diseños dependientes del proveedor.
+- **Negativas/costo:** acepta una dirección antes de contar con evidencia comparativa concluyente y concentra lock-in, aprendizaje y riesgos operativos en GCP.
+- **Servicios todavía abiertos:** la plataforma aceptada no evita comparar alternativas internas de GCP ni justificar cada servicio, configuración y topología.
+- **Operación y seguridad:** el proveedor no asume la responsabilidad del equipo sobre IAM, configuración, autorización funcional, protección de datos, observabilidad, recuperación y costos.
 
 ## Riesgos y pendientes
 
 | Riesgo o pendiente | Responsable | Acción / condición de cierre |
 | --- | --- | --- |
+| Decisión tomada sin comparación concluyente y posible sesgo de familiaridad | Equipo | Conservar el antecedente, declarar la limitación y exigir evidencia GCP para cada diseño y condición de go-live; no atribuir superioridad no demostrada. |
 | Volumen, simultaneidad y patrón API/worker desconocidos | MAPS + Software + Cloud | Medir/estimar escenarios comparables y verificar límites, escalado y conexiones. |
 | RPO/RTO, retención y residencia sin definición | MAPS + Cloud | Confirmar requisitos; probar backup/restore y revisar región/servicios. No asumir exigencia legal. |
 | Experiencia GCP en MAPS-Landingpage sólo informada | Cloud + equipo de MAPS-Landingpage | Relevar despliegue, recursos, incidentes, permisos, costos y esfuerzo real; no confundir configuración documentada con operación verificada. |
-| TCO no cuantificado | Cloud + MAPS | Presupuestar mismo workload en calculadoras oficiales, incluir operación y salida; registrar supuestos y fecha. |
+| TCO GCP no validado con arquitectura final | Cloud + MAPS | Reconciliar el modelo con calculators y la arquitectura resultante de ADR/TDD; controlar el guardrail de USD 200/mes. |
 | Compatibilidad regional y latencia no demostradas | Cloud | Verificar disponibilidad de cada capacidad crítica en región candidata y medir rutas desde Argentina. |
-| Revisión cruzada Cloud y contratos Software en ramas abiertas | Software + Cloud | Revisar `ADR-SW-001/002/003` y `TDD-SW-001` ya aceptados/aprobado en `main`; seguir PR #17/#20 sin presentar sus estados como integrados ni cerrar decisiones aún abiertas. |
+| Revisión cruzada y contratos Software en ramas abiertas | Software + Cloud | Revisar `ADR-SW-001/002/003` y `TDD-SW-001` ya aceptados/aprobado en `main`; seguir PR #17 (`ADR-SW-004/005` PROPUESTO, `TDD-SW-003` EN REVISIÓN) y PR #20 (`TDD-SW-002/005` BORRADOR) sin presentarlos como integrados. |
+| Runtime de Delivery todavía no resuelto | Software + Cloud | Evaluar Jobs + Scheduler, Pub/Sub y worker permanente contra los contratos de Outbox/Delivery y sus fallos antes de aceptar ADR-CLD-003/TDD-CLD-005. |
 | Seguridad/IAM y costo de salida | Cloud + Software | Prototipo acotado de identidad, secrets, acceso privado y export/reconstrucción; revisión cruzada pendiente. |
+| Límites concretos y lock-in de servicios GCP no verificados | Cloud | Validar cuotas, integración, reversibilidad y alternativas dentro de GCP en los ADR/TDD antes de aceptar la materialización. |
 
 ## Criterios de revisión futura
 
-Cuando exista una decisión `ACEPTADO`, revisar ante cambio de requisitos de residencia o recuperación, volumen/TCO observado, indisponibilidad regional, incidente de seguridad, límites del proveedor que afecten el TARGET, o una nueva capacidad que cambie materialmente carga operativa/reversibilidad. Si cambia un ADR aceptado, crear otro que indique `Reemplaza` y marcar éste `REEMPLAZADO`; no reescribir la decisión histórica.
+Revisar ante incapacidad de satisfacer un requisito obligatorio; incompatibilidad de seguridad, compliance o residencia; indisponibilidad material de capacidades requeridas; límites operativos incompatibles; costo estructuralmente inaceptable después de ajustes razonables; o un cambio organizacional explícito. Exceder USD 200/mes por sí solo no cambia de proveedor: primero se revisan arquitectura, sizing, ambientes, presupuesto y alcance. Si finalmente se abandona GCP, crear otro ADR que indique `Reemplaza` y marcar éste `REEMPLAZADO`; no reescribir esta decisión histórica.
 
 ## Referencias y trazabilidad
 
@@ -157,10 +168,10 @@ Cuando exista una decisión `ACEPTADO`, revisar ante cambio de requisitos de res
 
 - [F0 — baseline](../../../../00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md), [F1 — Discovery](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md), [F2 — Design Handoff](../../../../02-diseno/Fase_2__Design_Handoff.md): alcance, roles, solicitud, datos y pendientes funcionales.
 - [Cloud Strategy](../../STRATEGY.md): TARGET, principios, gate y derivaciones condicionadas; permanece `BORRADOR ESTRATÉGICO`.
-- [Evidencia ADR-CLD-000](./EVIDENCE-CLD-000-comparacion-plataformas.md): baseline documental `v1.3`, arquitectura mínima equivalente, gates y registro de costeo todavía en elaboración; no acepta plataforma ni servicios.
+- [Evidencia ADR-CLD-000](./EVIDENCE-CLD-000-comparacion-plataformas.md): baseline documental `v1.3`, arquitectura mínima equivalente y registro de costeo todavía en elaboración; conserva la comparación como antecedente y no acepta servicios.
 - [PR #14 de Software](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/14), incorporada a `main`: `ADR-SW-001/002/003` aceptados y `TDD-SW-001` aprobado; revisión cruzada Cloud pendiente.
-- [PR #17 de Software](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/17), abierta y no integrada: `ADR-SW-004/005` aceptados y `TDD-SW-003` aprobado en esa rama; conserva una revisión `CHANGES_REQUESTED`.
-- [PR #20 de Software](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/20), Draft y no integrada: `TDD-SW-002/005` permanecen borrador.
+- [PR #17 de Software](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/17), abierta y no integrada: `ADR-SW-004/005` están `PROPUESTO` y `TDD-SW-003` `EN REVISIÓN`.
+- [PR #20 de Software](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/20), abierta, no Draft en GitHub y no integrada: depende de #17 y `TDD-SW-002/005` permanecen `BORRADOR`.
 - MAPS-Landingpage: antecedente de uso GCP **informado** para el mismo cliente; el checkout local revisado no contiene evidencia suficiente para afirmar despliegue, operación ni costos actuales. Validación pendiente.
 - [Fila transversal en traceability.md](../../../traceability.md): «Desplegar el Portal con aislamiento, seguridad y operación verificables».
 
@@ -185,4 +196,4 @@ Documentación oficial consultada el **2026-10-04**. Los ejemplos de productos y
 
 | Estado | Resolución | Revisión cruzada | Fecha de resolución |
 | --- | --- | --- | --- |
-| `PROPUESTO` | **Pendiente** — elegir o rechazar explícitamente tras comparar escenarios y evidencia. | Joaquin Rodriguez: pendiente. | — |
+| `ACEPTADO` | GCP adoptado para el MVP por mayoría verbal 3/4, continuidad con MAPS-LandingPage y concentración del aprendizaje. No implica superioridad comparativa ni aceptación de servicios. | Joaquin Rodriguez: `CHANGES_REQUESTED` el 2026-10-15 para alinear el documento con la decisión GCP ya acordada; conformidad final pendiente de nueva revisión. | 2026-10-17 |

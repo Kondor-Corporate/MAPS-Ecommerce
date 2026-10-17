@@ -2,14 +2,20 @@
 
 | Dato | Valor |
 | --- | --- |
-| Estado | **EN ELABORACIÓN** — evidencia de apoyo; no acepta plataforma ni servicios |
+| Estado | **EN ELABORACIÓN** — evidencia de apoyo; no acepta servicios |
 | Corte de precios | 2026-10-07 |
-| Última actualización documental | 2026-10-14 |
+| Última actualización documental | 2026-10-17 |
 | Work items | Historia [MAPS-161](https://santitalavera.atlassian.net/browse/MAPS-161); subtask [MAPS-162](https://santitalavera.atlassian.net/browse/MAPS-162) |
-| Decisión relacionada | [ADR-CLD-000 — Selección de plataforma cloud](./ADR-CLD-000-seleccion-plataforma-cloud.md) (`PROPUESTO`) |
+| Decisión relacionada | [ADR-CLD-000 — Selección de plataforma cloud](./ADR-CLD-000-seleccion-plataforma-cloud.md) (`ACEPTADO`: GCP para el MVP) |
 | Fuentes de alcance | [F0](../../../../00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md), [F1](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md), [F2](../../../../02-diseno/Fase_2__Design_Handoff.md) y [Cloud Strategy](../../STRATEGY.md) |
 
-Este anexo congela una baseline comparable para reunir evidencia de `ADR-CLD-000`. **No es un ADR ni un TDD**, no reemplaza requisitos de MAPS y no convierte los supuestos de dimensionamiento en compromisos funcionales o de nivel de servicio.
+Este anexo congela una baseline comparable y reproducible asociada a `ADR-CLD-000`. **No es un ADR ni un TDD**, no reemplaza requisitos de MAPS y no convierte los supuestos de dimensionamiento en compromisos funcionales o de nivel de servicio.
+
+### Cambio de propósito de la evidencia — 2026-10-17
+
+`ADR-CLD-000` acepta GCP por una decisión organizacional de mayoría verbal 3/4, continuidad con MAPS-LandingPage y concentración del aprendizaje. Esta baseline deja de ser un prerrequisito para seleccionar proveedor y pasa a cumplir dos funciones: conservar el antecedente multiproveedor sin reescribirlo y validar la viabilidad técnica, operativa y económica de la arquitectura GCP que definan los ADR/TDD siguientes.
+
+La decisión no surge de aplicar gates o scoring ni demuestra superioridad técnica, económica u operacional. AWS y Azure no quedan en `FAIL`; sus modelos se conservan como referencia histórica. La falta de benchmark, scoring o artifacts equivalentes de los tres proveedores no bloquea la adopción de GCP. Sí permanecen pendientes la auditoría GCP, la reconciliación del costo GCP con una estimación oficial y los controles de readiness antes del go-live.
 
 ## 1. Reglas de comparación
 
@@ -121,9 +127,9 @@ La definición preparada para el gate económico usa el máximo mensual del esce
 
 Los tres ambientes existen como límites de configuración, identidad y promoción. Eso no exige tres réplicas permanentes de toda la infraestructura.
 
-## 4. Gates y criterios
+## 4. Marco histórico de selección y controles de viabilidad GCP
 
-### 4.1 Gates obligatorios
+### 4.1 Gates históricos de selección — no aplicados
 
 1. Máximo costo mensual modelado del escenario Esperado durante Año 1 menor o igual a USD 200 bajo baseline list-price.
 2. Región candidata razonable para usuarios en Argentina y conjunto crítico disponible en esa región.
@@ -144,7 +150,7 @@ economic_gate_condition = economic_gate_value <= USD 200
 
 La evaluación usa list-price bruto. Créditos, promociones y la sensibilidad optimista `net-of-allowance` no pueden utilizarse para superar el gate. El script expone `MaxMonthlyYear1USD` y `MonthOfMaxCost` para cada proveedor y escenario.
 
-Matriz preparada para aplicación futura; en esta baseline ningún resultado fue evaluado:
+Matriz conservada como antecedente reproducible; ya no es un requisito para adoptar GCP y ningún resultado fue evaluado:
 
 | Gate | Condición | Evidencia requerida | GCP | AWS | Azure | Estado/evidencia |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -158,7 +164,9 @@ Matriz preparada para aplicación futura; en esta baseline ningún resultado fue
 | 8. Observabilidad | Logs, métricas y alertas sin PII innecesaria | Cobertura documental y consulta reproducible | `NOT EVALUATED` | `NOT EVALUATED` | `NOT EVALUATED` | Pendiente |
 | 9. Ambientes/IaC | Separación y reconstrucción viables | Diseño, cobertura IaC y teardown autorizado si hace falta | `NOT EVALUATED` | `NOT EVALUATED` | `NOT EVALUATED` | Pendiente |
 
-### 4.2 Ponderación posterior a gates
+Para GCP, estas mismas capacidades se reinterpretan como controles de **VIABILITY / GO-LIVE READINESS**, todavía no aplicados: costo dentro del guardrail o escalado explícito; región y servicios confirmados; runtime y asincronía justificados; PostgreSQL y storage privados; identidad sin claves estáticas; backup/restore; observabilidad; ambientes e IaC. Un control pendiente no invalida retroactivamente la plataforma, pero puede bloquear un diseño o el go-live hasta su resolución.
+
+### 4.2 Ponderación histórica posterior a gates
 
 Problema detectado: usar `TCO` como criterio de 30% y volver a puntuar operación/aprendizaje en 25% puede contar dos veces horas humanas, complejidad y mantenimiento. La redefinición propuesta preserva los pesos, pero separa las bases de medición:
 
@@ -171,7 +179,7 @@ Problema detectado: usar `TCO` como criterio de 30% y volver a puntuar operació
 | Reversibilidad y lock-in | 10% |
 | Experiencia previa verificable | 5% |
 
-La puntuación se aplicará sólo después de reunir evidencia. No se asignan puntos en este corte.
+La puntuación no se aplicó y ya no es necesaria para adoptar GCP. Los pesos se conservan únicamente para reproducir el método comparativo previo; no se asignan puntos en este corte.
 
 - **Cloud spend / costo monetario — 30%:** únicamente gasto directo de plataforma dentro del horizonte: runtime, DB, storage, networking, logs, backups, staging y servicios necesarios. Excluye horas humanas, experiencia del equipo y costo de salida/migración.
 - **Carga operacional y aprendizaje — 25%:** complejidad estructural y operativa de la solución: componentes, automatización requerida, mantenimiento, troubleshooting, procedimientos y carga diaria. Excluye experiencia histórica del equipo y factura cloud.
@@ -438,15 +446,15 @@ Resultado descriptivo: con el modelo v1, tolerar la pérdida de una zona supera 
 | AWS | No generado | No disponible | No guardada | AWS Price List público para RDS, S3, CloudWatch, ELB/VPC y parámetros congelados. |
 | Azure | No generado | API Retail Prices no produce estimate ID | No guardada | Respuestas de Retail Prices API + parámetros congelados + script local. |
 
-La falta de exports/share links queda visible y debe cerrarse antes de congelar evidencia. El script local reconstruye fórmulas, no sustituye un estimate oficial guardado ni una factura real.
+La falta de exports/share links queda visible. Para GCP debe cerrarse antes de congelar evidencia o habilitar go-live; para AWS/Azure queda como límite del antecedente, salvo que una pregunta futura reactive la comparación. El script local reconstruye fórmulas, no sustituye un estimate oficial guardado ni una factura real.
 
-Checklist obligatoria previa a declarar `evidence frozen`:
+Checklist de evidencia externa:
 
 - [ ] **GCP:** saved estimate/share link o export/captura, inputs completos y fecha de consulta.
-- [ ] **AWS:** saved estimate/share link/export/captura, inputs completos y fecha de consulta.
-- [ ] **Azure:** calculator estimate/captura cuando sea posible, respuesta o query relevante de Retail Prices API, inputs completos y fecha de consulta.
-- [ ] Los tres artifacts usan el mismo workload, horizonte, región y criterio de inclusión.
-- [ ] Toda diferencia entre calculator, API y script queda reconciliada o registrada como incertidumbre.
+- [ ] **AWS (antecedente, no bloqueante):** saved estimate/share link/export/captura si se reactiva la comparación.
+- [ ] **Azure (antecedente, no bloqueante):** calculator estimate/captura y respuesta/query de Retail Prices API si se reactiva la comparación.
+- [ ] Si se comparan proveedores, los artifacts usan el mismo workload, horizonte, región y criterio de inclusión.
+- [ ] Toda diferencia entre el estimate GCP, fuentes oficiales y script queda reconciliada o registrada como incertidumbre.
 - [ ] Los artifacts no contienen IDs sensibles, secretos ni datos de facturación que no deban versionarse.
 
 En esta iteración la checklist permanece abierta: no se operaron calculators ni se generaron nuevos artifacts externos.
@@ -491,11 +499,11 @@ Los créditos temporales permiten obtener evidencia; **no son una ventaja estruc
 
 ### 8.2 Niveles de evidencia
 
-| Nivel | Carácter | Evidencia admisible | Uso en ADR-CLD-000 |
+| Nivel | Carácter | Evidencia admisible | Uso en diseño / readiness GCP |
 | --- | --- | --- | --- |
-| **1 — Documental y comparable** | Obligatorio | Documentación oficial, calculators, price APIs/catálogos, regiones y disponibilidad de servicios, IAM, PostgreSQL, object storage, runtime, jobs, observabilidad, CI/CD, recuperación y modelo reproducible. | Base mínima homogénea para comparar las tres plataformas. Los artifacts de calculators continúan siendo obligatorios antes de declarar `evidence frozen`. |
+| **1 — Documental y comparable** | Antecedente conservado | Documentación oficial, calculators, price APIs/catálogos, regiones y disponibilidad de servicios, IAM, PostgreSQL, object storage, runtime, jobs, observabilidad, CI/CD, recuperación y modelo reproducible. | Conserva la comparación histórica. Para GCP, la estimación oficial reconciliada con la arquitectura candidata es necesaria antes de declarar `evidence frozen` o go-live; la equivalencia AWS/Azure ya no es condición de adopción. |
 | **2 — Operacional existente** | Cuando esté disponible | Auditoría read-only del staging MAPS-Landingpage en GCP, experiencia del equipo verificada, despliegues, incidentes y costos históricos. | Reduce incertidumbre operacional, pero no equivale a un benchmark comparativo AWS/Azure ni se extrapola sin límites. |
-| **3 — Spike sintético** | Opcional y condicionado | Runtime/latencia, DB, jobs, storage, workload identity/OIDC, backup y restore bajo el protocolo común. | Produce evidencia `MEDIDO` sólo si está totalmente financiado y autorizado. La ausencia de financiación suficiente se registra como `NO MEDIDO — no sufficient free funding` y no bloquea por sí sola el ADR. |
+| **3 — Spike sintético** | Opcional y condicionado | Runtime/latencia, DB, jobs, storage, workload identity/OIDC, backup y restore bajo el protocolo común. | Produce evidencia `MEDIDO` sólo si está totalmente financiado y autorizado. La ausencia de financiación suficiente se registra como `NO MEDIDO — no sufficient free funding` y no invalida la decisión de plataforma. |
 
 ### 8.3 Matriz de financiación de spikes
 
@@ -507,20 +515,20 @@ Ningún crédito o allowance se presume disponible hasta verificar cuenta, regi�
 | AWS | PENDIENTE preestimación | PENDIENTE verificación | NO VERIFICADO | PENDIENTE | PENDIENTE | PENDIENTE | UNKNOWN | `UNKNOWN` |
 | Azure | PENDIENTE preestimación | PENDIENTE verificación | NO VERIFICADO | PENDIENTE | PENDIENTE | PENDIENTE | UNKNOWN | `UNKNOWN` |
 
-### 8.4 Asimetría experimental y suficiencia
+### 8.4 Asimetría experimental y suficiencia para diseño GCP
 
 Para cada capacidad se distinguirá `MEDIDO` de `NO MEDIDO — no sufficient free funding`. `NO MEDIDO` **no significa** `FALLA`, no asigna automáticamente cero puntos y no genera una penalización por disponibilidad desigual de créditos. Sólo se realizará una comparación directa de mediciones cuando configuración, workload, región, ventana y procedimiento sean equivalentes.
 
-En un scoring futuro se usará evidencia documental cuando resulte suficiente; donde no alcance, se registrará incertidumbre explícita. Si esa incertidumbre pudiera cambiar al ganador, se realizará análisis de sensibilidad o se expresará un rango, sin inventar una medición ni convertir créditos en criterio técnico.
+No se requiere un scoring futuro para aceptar GCP. Cuando la evidencia documental no alcance para decidir un servicio, SKU, topología o control de go-live, se registrará incertidumbre explícita y se realizará sensibilidad o una prueba opcional financiada, sin inventar mediciones ni convertir créditos en criterio técnico.
 
-`PROTOCOL EXECUTION COMPLETE` y `ADR EVIDENCE SUFFICIENT` son estados independientes. El protocolo puede quedar `NOT EXECUTED` o `PARTIAL` y el ADR aun disponer de evidencia suficiente si:
+`PROTOCOL EXECUTION COMPLETE` y `GCP DESIGN/GO-LIVE EVIDENCE SUFFICIENT` son estados independientes. El protocolo puede quedar `NOT EXECUTED` o `PARTIAL`; la suficiencia se evalúa por cada decisión derivada y condición de go-live si:
 
-- los calculators y el script quedan reconciliados;
-- los gates pueden verificarse, aunque todavía no se apliquen;
-- las capacidades relevantes están comparadas documentalmente;
+- el estimate/calculator GCP y el script quedan reconciliados;
+- los controles GCP de viabilidad/readiness relevantes pueden verificarse;
+- las capacidades GCP relevantes están sustentadas documentalmente;
 - los riesgos y límites de la evidencia operacional están documentados;
 - la incertidumbre restante está explícita; y
-- la sensibilidad demuestra que esa incertidumbre no cambia materialmente la decisión o el riesgo residual es aceptado de forma explícita.
+- la sensibilidad demuestra que la incertidumbre no cambia materialmente el diseño o el riesgo residual es aceptado de forma explícita.
 
 ## 9. Auditoría GCP staging pendiente
 
@@ -530,16 +538,16 @@ Cuando exista acceso, relevará proyecto/región, Cloud Run, Cloud SQL, Storage,
 
 Esta auditoría de MAPS-Landingpage es la prioridad de evidencia operacional existente (Nivel 2). Puede demostrar condiciones reales de GCP y experiencia del equipo, pero no constituye un benchmark equivalente contra AWS o Azure.
 
-## 10. Estado de gates, scoring y sesgo
+## 10. Estado del antecedente comparativo y controles GCP
 
-- `ADR-CLD-000` permanece `PROPUESTO` y este anexo `EN ELABORACIÓN`.
+- `ADR-CLD-000` está `ACEPTADO` para GCP y este anexo permanece `EN ELABORACIÓN`.
 - Los gates **no se aplicaron**: sólo se calculó la distancia aritmética al tope para detectar riesgos.
 - No se asignaron puntos ni se agregaron resultados ponderados.
-- Los pesos permanecen congelados en 30/25/15/15/10/5 antes de ver scoring.
-- Experiencia GCP no equivale a decisión GCP; la auditoría sólo puede reducir incertidumbre o aprendizaje demostrados.
+- Los pesos permanecen congelados en 30/25/15/15/10/5 para reproducir el método histórico, no para elegir proveedor.
+- La experiencia y continuidad GCP forman parte del fundamento organizacional; no prueban superioridad. La auditoría sólo puede reducir incertidumbre operativa y validar diseño/readiness.
 - `NO MEDIDO` no equivale a `FALLA` ni a cero puntos; la incertidumbre se conserva y se somete a sensibilidad cuando pueda cambiar el resultado.
 - La disponibilidad de créditos no es un criterio técnico ni una ventaja estructural; sólo habilita o impide una medición opcional bajo la política experimental.
-- Ninguna ventaja secundaria podrá compensar en el futuro un gate incumplido.
+- El máximo de USD 200/mes es un guardrail GCP. Si la arquitectura final lo supera, se revisan sizing, arquitectura, ambientes, presupuesto y alcance sin degradar requisitos obligatorios; no se reabre automáticamente proveedor.
 
 Riesgos visibles sin eliminar alternativas:
 
@@ -548,7 +556,7 @@ Riesgos visibles sin eliminar alternativas:
 - **Tolerancia zonal:** supera USD 200 para AWS y Azure desde Mes 1, y para GCP cerca de Mes 12; su obligatoriedad sigue pendiente de MAPS.
 - **AWS referencia:** evita NAT/endpoints usando public task IP; puede no superar una revisión de seguridad y su alternativa privada elevaría TCO.
 - **Capacity risk:** CPU burstable, latencia, conexiones y autoscaling no están probados; un precio bajo no demuestra suficiencia.
-- **Financiación del spike:** el presupuesto propio es USD 0; hoy las tres decisiones permanecen `UNKNOWN` hasta verificar costo bruto, cobertura total, margen de seguridad y riesgo de excedente. Esto puede impedir mediciones, pero no constituye una falla técnica ni bloquea por sí solo el ADR.
+- **Financiación del spike:** el presupuesto propio es USD 0; hoy las tres decisiones permanecen `UNKNOWN` hasta verificar costo bruto, cobertura total, margen de seguridad y riesgo de excedente. Esto puede impedir mediciones, pero no constituye una falla técnica ni invalida la adopción de GCP.
 
 ## 11. Incertidumbres abiertas exactas
 
@@ -586,12 +594,13 @@ Riesgos visibles sin eliminar alternativas:
 | `v1` | 2026-10-07 | Mantiene workload y presupuesto; agrega horizonte, conversión GB/GiB, headroom 30%, peaks, conexiones, topología AWS, staging reproducible, tiers corregidos, Bajo/Alto y sensibilidad zonal. | Reemplaza sólo el modelo de cálculo v0; no cambia requisitos MAPS ni acepta plataforma. |
 | `v1.1` | 2026-10-07 | Explicita sensibilidad de conexiones Azure, separa cloud spend de carga operacional, corrige cold/provisioning, calcula net-of-allowance y registra dependencia con ADR-CLD-001. | No cambia workload, totales list-price principales, gates, pesos ni estado de decisión. |
 | `v1.2` | 2026-10-07 | Agrega restore y CI/CD federado, congela el gate económico y las fronteras de scoring, explicita RPO/RTO no definidos e inputs de runtime, y cierra controles de reproducibilidad. | No aplica gates/scoring ni cambia workloads, pesos o totales principales. |
-| `v1.3` | 2026-10-13 | Evaluation funding policy: USD 0 out-of-pocket; synthetic spikes become optional and conditional on fully funded credits/free allowances. | Separa ejecución del protocolo de suficiencia del ADR; no modifica costos productivos, workloads, gates, pesos ni estado de decisión. |
+| `v1.3` | 2026-10-13 | Evaluation funding policy: USD 0 out-of-pocket; synthetic spikes become optional and conditional on fully funded credits/free allowances. | Separa ejecución del protocolo de suficiencia del ADR; no modifica costos productivos, workloads, gates ni pesos. |
+| Reorientación documental | 2026-10-17 | Registra GCP aceptado y convierte la comparación en antecedente más controles de viabilidad/readiness GCP. | No modifica la baseline numérica v1.3, costos, workloads, gates o pesos; no aplica scoring. |
 
 Una corrección de fuente debe registrar su efecto. Un cambio futuro de workload, presupuesto, continuidad o alcance crea `v2` con fecha y motivo; no se sobrescriben silenciosamente supuestos usados para una comparación anterior.
 
 ## 14. Madurez metodológica
 
-Con `v1.3`, el modelo documental se considera **suficientemente maduro para pasar a obtención de evidencia real**: artifacts de calculators obligatorios, auditoría GCP read-only prioritaria y spikes sintéticos opcionales sólo cuando estén totalmente financiados y autorizados. Nuevos refinamientos basados sólo en supuestos deberían evitarse salvo que corrijan un error demostrado; las próximas variaciones de sizing, costo o capacidad deben originarse en mediciones, configuración observada, estimates guardados o decisiones MAPS pendientes.
+Con `v1.3`, el modelo documental se considera **suficientemente maduro para pasar a obtención de evidencia real**: estimate GCP reconciliado antes del go-live, auditoría GCP read-only prioritaria y spikes sintéticos opcionales sólo cuando estén totalmente financiados y autorizados. Nuevos refinamientos basados sólo en supuestos deberían evitarse salvo que corrijan un error demostrado; las próximas variaciones de sizing, costo o capacidad deben originarse en mediciones, configuración observada, estimates guardados o decisiones MAPS pendientes.
 
-Esto no congela evidencia, no aplica gates ni convierte la comparación en una recomendación. `ADR-CLD-000` permanece `PROPUESTO` y este anexo `EN ELABORACIÓN`.
+Esto no congela evidencia ni aplica gates/scoring. La comparación no se convierte retrospectivamente en recomendación: `ADR-CLD-000` está `ACEPTADO` por fundamento organizacional y este anexo permanece `EN ELABORACIÓN`.

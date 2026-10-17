@@ -4,17 +4,17 @@
 | --- | --- |
 | Estado | **PREPARADO — NO AUTORIZADO PARA EJECUCIÓN** |
 | Fecha original del diseño | 2026-10-07 |
-| Última actualización | 2026-10-14 |
+| Última actualización | 2026-10-17 |
 | Evidencia relacionada | [EVIDENCE-CLD-000](./EVIDENCE-CLD-000-comparacion-plataformas.md) |
-| Decisión relacionada | [ADR-CLD-000](./ADR-CLD-000-seleccion-plataforma-cloud.md) (`PROPUESTO`) |
+| Decisión relacionada | [ADR-CLD-000](./ADR-CLD-000-seleccion-plataforma-cloud.md) (`ACEPTADO`: GCP para el MVP) |
 
-Este protocolo reduce incertidumbre técnica de MAPS; no intenta demostrar qué proveedor es «más rápido». No autoriza despliegues, cambios en cuentas existentes ni acceso a datos reales.
+Este protocolo reduce incertidumbre técnica y operacional de la arquitectura GCP candidata; no intenta justificar retrospectivamente la selección ni demostrar qué proveedor es «más rápido». La comparación cruzada queda disponible sólo para una pregunta futura explícitamente justificada. No autoriza despliegues, cambios en cuentas existentes ni acceso a datos reales.
 
 ## 1. Condiciones previas de ejecución
 
 Antes de ejecutar un spike deben existir:
 
-- autorización explícita para crear recursos en cada plataforma;
+- autorización explícita para crear recursos en la plataforma y unidad de ejecución correspondiente;
 - cuenta/proyecto/subscripción de prueba separados o resource group/proyecto etiquetado y aislado;
 - decisión de financiación `FUNDED` según la política USD 0 out-of-pocket de la sección 2.1 y alertas de costo configuradas como control de detección, no como hard spending cap;
 - owner, fecha de expiración y procedimiento de teardown;
@@ -55,7 +55,7 @@ tests/cloud-platform/
     └── YYYY-MM-DD/<provider>/
 ```
 
-La implementación debe usar variables equivalentes y producir un manifiesto con commit, digest, región, SKU, configuración, timestamp UTC y versión de cada herramienta.
+La implementación debe usar variables equivalentes cuando exista una comparación autorizada y producir un manifiesto con commit, digest, región, SKU, configuración, timestamp UTC y versión de cada herramienta. No es obligatorio implementar las tres variantes para validar un diseño GCP.
 
 ### 2.1 Política de financiación y autorización
 
@@ -226,10 +226,10 @@ Registrar por caso: `outbox_item_id` sintético, workers participantes, claims, 
 ## 6. Ventana y orden de ejecución
 
 1. Cerrar preestimación bruta, completar la matriz de financiación con decisión `FUNDED` y configurar OIDC/federación sin credenciales estáticas.
-2. Ejecutar smoke test y verificar teardown en cada plataforma.
-3. Ejecutar Bajo, Esperado y Alto en ventanas equivalentes, evitando incidentes globales conocidos.
+2. Ejecutar smoke test y verificar teardown en cada plataforma incluida en la unidad autorizada.
+3. Ejecutar Bajo, Esperado y Alto; sólo exigir ventanas equivalentes cuando se autorice una comparación directa entre proveedores.
 4. Ejecutar backup/restore sólo cuando exista punto recuperable y tiempo/costo restante suficiente.
-5. Alternar el orden de proveedores entre rondas para reducir sesgo horario.
+5. Si hay más de un proveedor autorizado, alternar su orden entre rondas para reducir sesgo horario.
 6. Repetir una ronda completa otro día.
 7. Conservar mediciones brutas; cualquier exclusión debe indicar motivo y no eliminar el dato original.
 8. Destruir recursos y verificar costo residual durante 48 horas.
@@ -311,8 +311,8 @@ Una capacidad queda `MEDIDO` sólo cuando produjo evidencia reproducible conform
 
 `MEDIDO`/`NO MEDIDO` describe disponibilidad de evidencia. `PASS`/`FAIL`/`INCONCLUSIVE` sólo se usa cuando existe un criterio explícito congelado antes de la prueba. Por ejemplo, una latencia observada se registra `MEDIDO`; sin SLO acordado no recibe `PASS` ni `FAIL`. La ausencia de criterio tampoco convierte una medición en inconclusa: simplemente impide un juicio normativo.
 
-### 9.2 Suficiencia de evidencia del ADR
+### 9.2 Suficiencia de evidencia para diseño y go-live GCP
 
-`PROTOCOL EXECUTION COMPLETE` no es requisito automático para `ADR EVIDENCE SUFFICIENT`. El protocolo puede quedar `NOT EXECUTED` o `PARTIAL` y el ADR resolverse con evidencia documental y operacional suficiente conforme a [EVIDENCE-CLD-000, sección 8.4](./EVIDENCE-CLD-000-comparacion-plataformas.md#84-asimetría-experimental-y-suficiencia).
+`PROTOCOL EXECUTION COMPLETE` no es requisito para sostener la aceptación organizacional de GCP. El protocolo puede quedar `NOT EXECUTED` o `PARTIAL`; cada ADR/TDD derivado y cada condición de go-live debe demostrar evidencia suficiente para su propio alcance conforme a [EVIDENCE-CLD-000, sección 8.4](./EVIDENCE-CLD-000-comparacion-plataformas.md#84-asimetría-experimental-y-suficiencia-para-diseño-gcp).
 
-La auditoría read-only del staging MAPS-Landingpage en GCP es evidencia operacional existente prioritaria, no un benchmark equivalente contra AWS o Azure. Los artifacts de calculators y su reconciliación con el modelo local continúan siendo obligatorios antes de declarar `evidence frozen`.
+La auditoría read-only del staging MAPS-Landingpage en GCP es evidencia operacional existente prioritaria, no un benchmark equivalente contra AWS o Azure. El estimate GCP guardado y su reconciliación con el modelo local continúan siendo obligatorios antes de declarar `evidence frozen` o habilitar go-live. AWS/Azure sólo se vuelven a medir si una pregunta futura lo justifica y la unidad está `FUNDED` y explícitamente autorizada.

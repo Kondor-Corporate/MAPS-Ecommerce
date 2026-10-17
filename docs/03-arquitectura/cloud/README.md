@@ -1,18 +1,18 @@
 # F3 — Cloud y plataforma
 
-> **Estado:** `ADR-CLD-000` redactado como `PROPUESTO`; los demás ADR y todos los TDD Cloud siguen previstos. No hay decisiones Cloud aceptadas ni TDD aprobados.
+> **Estado:** `ADR-CLD-000` está `ACEPTADO` en la PR #16 y adopta GCP como plataforma del MVP; todavía no está integrado a `main`. Los demás ADR y todos los TDD Cloud siguen previstos. No hay servicios, topologías ni TDD Cloud aceptados/aprobados.
 
 **Owner principal:** Santiago Talavera. El responsable software realiza revisión cruzada cuando la decisión afecta contratos, dominio, transacciones, seguridad de aplicación o entrega. La [baseline F0/F1/F2](../README.md) y la [trazabilidad](../traceability.md) rigen el alcance.
 
 La [Cloud Strategy](./STRATEGY.md) es el documento rector estratégico transversal entre F0/F1/F2 y los ADR/TDD: **Strategy → ADR → TDD → implementación/operación**. No es un ADR ni acepta servicios.
 
-El área diseña hosting, networking, runtime, ambientes, IAM, datos y storage desde plataforma, infraestructura como código, CI/CD, observabilidad, workers/jobs, migraciones operativas, despliegue y recuperación. GCP sigue siendo una **dirección propuesta** hasta la selección explícita de plataforma en `ADR-CLD-000`; Cloud Run, Cloud SQL PostgreSQL, Cloud Storage privado, Artifact Registry, Secret Manager y Terraform son candidatos, no decisiones aceptadas. El PostgreSQL histórico de MAPS no se incorpora como dependencia funcional por esa propuesta.
+El área diseña hosting, networking, runtime, ambientes, IAM, datos y storage desde plataforma, infraestructura como código, CI/CD, observabilidad, workers/jobs, migraciones operativas, despliegue y recuperación. GCP es la **plataforma aceptada para el MVP** por `ADR-CLD-000`; Cloud Run, Cloud SQL PostgreSQL, Cloud Storage privado, Artifact Registry, Secret Manager, Cloud Logging/Monitoring, Terraform y GitHub Actions con OIDC/WIF son candidatos de referencia, no decisiones aceptadas. El PostgreSQL histórico de MAPS no se incorpora como dependencia funcional.
 
 ## Catálogo de ADR Cloud
 
 | Ola | ID | Decisión por trabajar                                                                           |
 | --- | ----------- | ----------------------------------------------------------------------------------------------- |
-| Gate 0 | [ADR-CLD-000](./adr/MAPS-161-seleccion-plataforma-cloud/ADR-CLD-000-seleccion-plataforma-cloud.md) (`PROPUESTO`) | Selección de plataforma cloud: historia [MAPS-161](https://santitalavera.atlassian.net/browse/MAPS-161), subtask documental [MAPS-162](https://santitalavera.atlassian.net/browse/MAPS-162). Plataforma aún abierta. |
+| Gate 0 | [ADR-CLD-000](./adr/MAPS-161-seleccion-plataforma-cloud/ADR-CLD-000-seleccion-plataforma-cloud.md) (`ACEPTADO`) | GCP como plataforma cloud del MVP: historia [MAPS-161](https://santitalavera.atlassian.net/browse/MAPS-161), subtask documental [MAPS-162](https://santitalavera.atlassian.net/browse/MAPS-162). Servicios y topología aún abiertos. |
 | 1   | ADR-CLD-001 | Hosting frontend y entrada pública; comparar hosting estático, routing y frontend en Cloud Run. |
 | 1   | ADR-CLD-002 | Estrategia de ambientes, aislamiento y promoción.                                               |
 | 1   | ADR-CLD-003 | Runtime de API, worker, jobs y migraciones.                                                     |
