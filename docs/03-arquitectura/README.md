@@ -1,6 +1,6 @@
 # Fase 3 — Arquitectura
 
-> **Estado:** estructura documental inicial; ADR y TDD por elaborar. La creación de esta carpeta no aprueba decisiones técnicas ni cierra F1/F2.
+> **Estado:** estructura documental en uso durante F3. `ADR-SW-001/002/003` están `ACEPTADO`, `TDD-SW-001` está `APROBADO` y `ADR-CLD-000` está `ACEPTADO` en la PR #16 —todavía no integrada a `main`— para GCP como plataforma del MVP; los demás artefactos conservan el estado indicado en sus áreas. La aceptación/aprobación documental no implica que las revisiones cruzadas ni los diseños derivados estén concluidos. Esto no cierra F1/F2.
 
 F3 traduce la [baseline funcional F0](../00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md), el [discovery F1](../01-producto/Fase_1__Discovery_y_Relevamiento.md) y el [Design Handoff F2](../02-diseno/Fase_2__Design_Handoff.md) en decisiones y diseños técnicos que permitan preparar un backlog implementable en F4. Si una propuesta contradice esas fuentes, debe señalar la contradicción y tramitarla como cambio controlado; no reinterpretarla silenciosamente.
 
@@ -13,8 +13,9 @@ F3 traduce la [baseline funcional F0](../00-proyecto/Fase_0__Kickoff__Gobierno_d
 | [Plantilla TDD](./templates/TDD-template.md) | Diseñar cómo se materializa una decisión en MAPS. |
 | [Software y dominio](./software/README.md) | Alcance, ownership y catálogo previsto de ADR/TDD software. |
 | [Cloud y plataforma](./cloud/README.md) | Alcance, ownership y catálogo previsto de ADR/TDD cloud. |
+| [Cloud Strategy](./cloud/STRATEGY.md) | Principios y capacidades de plataforma; refleja GCP aceptado por ADR-CLD-000 sin aceptar servicios derivados. |
 
-La dirección de trabajo incluye como **propuestas**, todavía sujetas a ADR, un monolito modular con límites hexagonales y TypeScript; y GCP con Cloud Run, Cloud SQL PostgreSQL, Cloud Storage, Terraform, CI/CD y observabilidad. PostgreSQL histórico de MAPS sigue fuera como dependencia funcional del MVP: evaluar una base nueva para el Portal es una decisión distinta. Ni Prisma, ni hosting frontend, ni topología de ambientes quedan aceptados por figurar aquí.
+La dirección de trabajo combina decisiones aceptadas y propuestas: Software acepta un monolito modular con límites hexagonales y TypeScript; Cloud acepta GCP como plataforma del MVP. Cloud Run, Cloud SQL PostgreSQL, Cloud Storage, Terraform, CI/CD y observabilidad siguen como candidatos sujetos a ADR/TDD. PostgreSQL histórico de MAPS sigue fuera como dependencia funcional del MVP. Ni Prisma, ni hosting frontend, ni topología de ambientes quedan aceptados por figurar aquí.
 
 ## Convenciones de documentos
 
