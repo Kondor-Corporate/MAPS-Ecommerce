@@ -7,7 +7,7 @@
 | Estado | `APROBADO` |
 | Fecha | 2026-09-30 |
 | Autor | Joaquin Rodriguez |
-| Revisores | Santiago Talavera (revisión cruzada cloud); pendiente de validación final |
+| Revisores | Santiago Talavera — revisión cruzada Cloud favorable con observaciones; revisión técnica 2026-10-14 18:13 ART, constancia incorporada 2026-10-22 |
 | Work item | [MAPS-109](https://santitalavera.atlassian.net/browse/MAPS-109) · subtarea [MAPS-138](https://santitalavera.atlassian.net/browse/MAPS-138) |
 | URL del work item | https://santitalavera.atlassian.net/browse/MAPS-109 |
 | Fase origen | [F0 §0.4/0.5/0.6](../../../../00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md), [F1 §2/3/4/5/7, RN-02 a RN-20](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md), [F2 §5/6/8/9/10/12/13](../../../../02-diseno/Fase_2__Design_Handoff.md) |
@@ -170,6 +170,22 @@ Este TDD no decide servicio, tamaño, región ni configuración; al redactarse e
 
 Cada transición de estado, asignación, intento de entrega y decisión de cancelación genera un AuditEvent consultable por el Admin. Métricas e integración con telemetría quedan para TDD-SW-007 y TDD-CLD-007.
 
+## Revisión cruzada Cloud — 14/10/2026
+
+**Revisor:** Santiago Talavera. **Hora:** 18:13 ART. **Dictamen:** favorable con las observaciones documentadas. **Origen:** [PR #14](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/14); aprobación del owner registrada en [PR #23](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/23). **Incorporación de esta constancia:** 2026-10-22.
+
+La tabla reconstruye técnicamente las conclusiones de la revisión; no constituye una transcripción literal de comentarios GitHub.
+
+| Observación | Tratamiento | Estado actual / evidencia | Dependencia residual |
+| --- | --- | --- | --- |
+| Modelo de entidades y ownership adecuado | Se aceptó el modelo como base técnica del MVP | `APROBADO` por el owner en PR #23 | TDD de detalle previstos |
+| Concurrencia en InsuranceRequest, Assignment y CancellationRequest | Se exigieron versiones, unicidad y coordinación transaccional en TDD derivados | ADR-SW-003 y TDD-SW-003 | TDD-SW-005 y TDD-CLD-003 |
+| Diferenciar asignaciones pendientes, efectivas y cerradas | Se formalizó en TDD-SW-003 | Estados conceptuales de Assignment | TDD-SW-005 para representación |
+| Acceso del Productor deriva de una asignación efectiva | Se conservó como política de autorización | ADR-SW-005 y TDD-SW-003 | TDD-SW-004/005 |
+| Minimizar PII en logs y observabilidad | Se mantuvieron exclusiones explícitas | Seguridad y privacidad | TDD-CLD-007 |
+| Archivos y adjuntos deben ser privados y autorizados | Se mantuvo metadata en DB y binario fuera de ella | Dependencias Cloud y seguridad | TDD-CLD-004 |
+| Trazabilidad de revisiones y dependencias Cloud | Se incorporó esta constancia y se conservaron los enlaces derivados | Esta sección y referencias | ADR/TDD previstos, sin aceptación anticipada |
+
 ## Pruebas y criterios de fallo
 
 - Transiciones válidas e inválidas de InsuranceRequest, incluido que CANCELADA no tenga salidas y que descartar un BORRADOR no lo lleve a CANCELADA.
@@ -204,4 +220,4 @@ Secuencia sugerida: Identity y Catalog → Forms → Requests (BORRADOR/ENVIADA)
 
 ## Criterio de aprobación
 
-`APROBADO` el 2026-10-14 por el owner de software: ADR-SW-001/002/003 están `ACEPTADO` y se validaron entidades, estados, invariantes, snapshots y pendientes explícitos. Las decisiones abiertas de este documento siguen abiertas: aprobar el TDD no cierra un `PENDIENTE FUNCIONAL MAPS`. La conformidad de la revisión cruzada cloud de Santiago Talavera sigue pendiente y no se registra anticipadamente. Si una de ellas cambia el modelo, se actualiza este TDD o se crea uno que lo reemplace.
+`APROBADO` el 2026-10-14 por el owner de software: ADR-SW-001/002/003 están `ACEPTADO` y se validaron entidades, estados, invariantes, snapshots y pendientes explícitos. La revisión cruzada Cloud del mismo día fue favorable con las observaciones formalizadas el 2026-10-22. Las decisiones abiertas siguen abiertas: aprobar el TDD no cierra un `PENDIENTE FUNCIONAL MAPS` ni acepta anticipadamente los documentos derivados. Si una de ellas cambia el modelo, se actualiza este TDD o se crea uno que lo reemplace.

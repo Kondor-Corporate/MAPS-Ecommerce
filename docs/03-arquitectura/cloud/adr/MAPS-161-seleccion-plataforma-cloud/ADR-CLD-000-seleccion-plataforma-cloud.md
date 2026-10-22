@@ -11,7 +11,7 @@
 | Work item | Historia [MAPS-161](https://santitalavera.atlassian.net/browse/MAPS-161); subtask documental [MAPS-162](https://santitalavera.atlassian.net/browse/MAPS-162), ambas «En curso» |
 | URL del work item | [MAPS-161](https://santitalavera.atlassian.net/browse/MAPS-161); [MAPS-162](https://santitalavera.atlassian.net/browse/MAPS-162) |
 | Fase origen | [F3 — Arquitectura](../../../README.md), [F0](../../../../00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md), [F1](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md), [F2](../../../../02-diseno/Fase_2__Design_Handoff.md), [Cloud Strategy](../../STRATEGY.md) |
-| Decisiones relacionadas | `ADR-CLD-001` a `ADR-CLD-007` previstos, no redactados; en `main`, `ADR-SW-001/002/003` **ACEPTADO** y `TDD-SW-001` **APROBADO** mediante [PR #14](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/14), con revisión cruzada Cloud todavía pendiente |
+| Decisiones relacionadas | `ADR-CLD-001` a `ADR-CLD-007` previstos, no redactados; `ADR-SW-001/002/003/004/005` **ACEPTADO** y `TDD-SW-001/003` **APROBADO**, con revisión cruzada Cloud formalizada en cada documento |
 | Depende de | Baseline F0/F1/F2 y [Cloud Strategy](../../STRATEGY.md); no depende de un ADR Cloud aceptado previo |
 | Reemplaza | No aplica |
 | Reemplazado por | No aplica |
@@ -26,7 +26,7 @@ El Portal del MVP necesita alojar el journey de solicitudes, la autorización po
 
 El [TARGET conceptual](../../STRATEGY.md) a soportar es: Internet → entrada pública → frontend → API → base relacional, object storage y outbox/estado → worker asíncrono → proveedor de email. IAM, secrets, observabilidad, CI/CD, IaC, ambientes, backup/recuperación y controles de costo son transversales. El TARGET **no** prescribe una relación uno-a-uno entre cajas y productos cloud.
 
-Software define semántica, contratos, datos y fronteras transaccionales; Cloud seleccionará y operará su materialización. En `main`, los ADR Software incorporados mediante [PR #14](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/14) están `ACEPTADO` y `TDD-SW-001` `APROBADO`, aunque su revisión cruzada Cloud no está concluida. La [PR #17](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/17) también está integrada: `ADR-SW-004/005` permanecen **PROPUESTO** y `TDD-SW-003` **EN REVISIÓN**, según el estado formal de sus documentos. Como contexto no integrado, la [PR #20](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/20) está abierta —no Draft en GitHub— y mantiene `TDD-SW-002/005` **BORRADOR**. La aceptación de GCP habilita decisiones dependientes del proveedor, pero no resuelve sus trade-offs de servicio o diseño.
+Software define semántica, contratos, datos y fronteras transaccionales; Cloud seleccionará y operará su materialización. Los ADR Software `ADR-SW-001/002/003/004/005` están `ACEPTADO` y `TDD-SW-001/003` están `APROBADO`, con revisión cruzada Cloud formalizada en cada documento. Como contexto no integrado, la [PR #20](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/20) está abierta —no Draft en GitHub— y mantiene `TDD-SW-002/005` **BORRADOR**. La aceptación de GCP habilita decisiones dependientes del proveedor, pero no resuelve sus trade-offs de servicio o diseño.
 
 ## Drivers y criterios
 
@@ -153,7 +153,7 @@ GCP, junto con managed-first, permite que `TDD-CLD-003` compare y justifique el 
 | Experiencia GCP en MAPS-Landingpage sólo informada | Cloud + equipo de MAPS-Landingpage | Relevar despliegue, recursos, incidentes, permisos, costos y esfuerzo real; no confundir configuración documentada con operación verificada. |
 | TCO GCP no validado con arquitectura final | Cloud + MAPS | Reconciliar el modelo con calculators y la arquitectura resultante de ADR/TDD; controlar el guardrail de USD 200/mes. |
 | Compatibilidad regional y latencia no demostradas | Cloud | Verificar disponibilidad de cada capacidad crítica en región candidata y medir rutas desde Argentina. |
-| Revisión cruzada y contratos Software | Software + Cloud | Revisar `ADR-SW-001/002/003` y `TDD-SW-001` ya aceptados/aprobado en `main`; considerar los documentos integrados por PR #17 (`ADR-SW-004/005` PROPUESTO, `TDD-SW-003` EN REVISIÓN) y seguir PR #20 (`TDD-SW-002/005` BORRADOR) sin presentarla como integrada. |
+| Revisión cruzada y contratos Software | Software + Cloud | Mantener trazabilidad con `ADR-SW-001/002/003/004/005` aceptados y `TDD-SW-001/003` aprobados, cuya revisión cruzada Cloud está formalizada; seguir PR #20 (`TDD-SW-002/005` BORRADOR) sin presentarla como integrada. |
 | Runtime de Delivery todavía no resuelto | Software + Cloud | Evaluar Jobs + Scheduler, Pub/Sub y worker permanente contra los contratos de Outbox/Delivery y sus fallos antes de aceptar ADR-CLD-003/TDD-CLD-005. |
 | Seguridad/IAM y costo de salida | Cloud + Software | Prototipo acotado de identidad, secrets, acceso privado y export/reconstrucción; revisión cruzada pendiente. |
 | Límites concretos y lock-in de servicios GCP no verificados | Cloud | Validar cuotas, integración, reversibilidad y alternativas dentro de GCP en los ADR/TDD antes de aceptar la materialización. |
@@ -169,8 +169,8 @@ Revisar ante incapacidad de satisfacer un requisito obligatorio; incompatibilida
 - [F0 — baseline](../../../../00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md), [F1 — Discovery](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md), [F2 — Design Handoff](../../../../02-diseno/Fase_2__Design_Handoff.md): alcance, roles, solicitud, datos y pendientes funcionales.
 - [Cloud Strategy](../../STRATEGY.md): TARGET, principios, gate y derivaciones condicionadas; permanece `BORRADOR ESTRATÉGICO`.
 - [Evidencia ADR-CLD-000](./EVIDENCE-CLD-000-comparacion-plataformas.md): baseline documental `v1.3`, arquitectura mínima equivalente y registro de costeo todavía en elaboración; conserva la comparación como antecedente y no acepta servicios.
-- [PR #14 de Software](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/14), incorporada a `main`: `ADR-SW-001/002/003` aceptados y `TDD-SW-001` aprobado; revisión cruzada Cloud pendiente.
-- [PR #17 de Software](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/17), integrada a `main`: `ADR-SW-004/005` están `PROPUESTO` y `TDD-SW-003` `EN REVISIÓN`.
+- [PR #14 de Software](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/14), incorporada a `main`: `ADR-SW-001/002/003` aceptados y `TDD-SW-001` aprobado; revisión cruzada Cloud formalizada posteriormente en cada documento.
+- [PR #17 de Software](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/17), integrada a `main`: `ADR-SW-004/005` aceptados y `TDD-SW-003` aprobado mediante formalización documental posterior; revisión cruzada Cloud registrada en cada documento.
 - [PR #20 de Software](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/20), abierta, no Draft en GitHub y no integrada: `TDD-SW-002/005` permanecen `BORRADOR`.
 - MAPS-Landingpage: antecedente de uso GCP **informado** para el mismo cliente; el checkout local revisado no contiene evidencia suficiente para afirmar despliegue, operación ni costos actuales. Validación pendiente.
 - [Fila transversal en traceability.md](../../../traceability.md): «Desplegar el Portal con aislamiento, seguridad y operación verificables».

@@ -4,10 +4,10 @@
 | --- | --- |
 | ID | `ADR-SW-005` |
 | Título | Identidad, autenticación y autorización funcional (RBAC + ownership) |
-| Estado | `PROPUESTO` |
+| Estado | `ACEPTADO` |
 | Fecha | 2026-10-01 |
 | Autor | Joaquin Rodriguez |
-| Revisores | Santiago Talavera (revisión cruzada cloud/seguridad; conformidad pendiente) |
+| Revisores | Santiago Talavera — revisión cruzada Cloud/seguridad favorable con cambios; conformidad final `APPROVED` en PR #17 el 2026-10-17, constancia incorporada 2026-10-22 |
 | Work item | [MAPS-111](https://santitalavera.atlassian.net/browse/MAPS-111) · subtarea [MAPS-136](https://santitalavera.atlassian.net/browse/MAPS-136) |
 | URL del work item | https://santitalavera.atlassian.net/browse/MAPS-111 |
 | Fase origen | [F1 §3/5, RN-02/04/05/14/15/16/17/18/19/20, RF-CLI-01, RF-PRODUCER-01/02/03, RNF-SEC-01](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md), [F2 §6/11/12/13](../../../../02-diseno/Fase_2__Design_Handoff.md) |
@@ -171,12 +171,16 @@ Esta decisión **no** elige proveedor de identidad, formato de token ni duració
 
 ## Revisión cruzada cloud
 
-| Impacto | Documento cloud afectado | Estado de revisión |
-| --- | --- | --- |
-| Elección y configuración del proveedor de identidad gestionado; revocación de sesiones | ADR-CLD-007, TDD-CLD-006 (previstos) | Pendiente de conformidad — Santiago Talavera |
-| Secretos de integración con el proveedor y validación de tokens en la API | TDD-CLD-006 (previsto) | Pendiente de conformidad — Santiago Talavera |
-| Separación entre IAM de infraestructura y RBAC de aplicación | ADR-CLD-007 (previsto) | Pendiente de conformidad — Santiago Talavera |
-| Registro de auditoría de acceso sin PII en telemetría | TDD-CLD-007 (previsto) | Pendiente de conformidad — Santiago Talavera |
+**Revisor:** Santiago Talavera. **Revisión consolidada:** 2026-10-14. **Dictamen:** favorable con cambios solicitados. **Origen y evidencia:** [PR #17](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/17), comentarios inline del 7–8/10 y revisión final `APPROVED` del 17/10. **Incorporación de esta constancia:** 2026-10-22.
+
+| Observación | Tratamiento | Estado actual / evidencia | Dependencia residual |
+| --- | --- | --- | --- |
+| No usar relevamiento no incorporado como baseline normativa | RN-18/RN-19 se incorporaron mediante cambio controlado antes del merge de #17 | [Comentario](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/17#discussion_r4212501804) resuelto; baseline funcional del ADR | RN-20 continúa `PENDIENTE FUNCIONAL MAPS` |
+| Un único rol por cuenta no estaba confirmado | Se mantuvo como simplificación explícita y reversible del MVP, condicionada a factibilidad | [Comentarios](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/17#discussion_r4212501816) y [seguimiento](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/17#discussion_r4224911028) resueltos | TDD-SW-004 y ADR-CLD-007 validan cuentas/identidades OIDC |
+| La revocación del IdP no es garantía universal | El Portal verifica el estado local en cada request; la revocación externa queda condicionada | [Comentario](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/17#discussion_r4212501825) resuelto; sesión y verificación §2 | ADR-CLD-007 y TDD-CLD-006 |
+| Auditoría de aplicación y auditoría del IdP deben separarse | La aplicación audita lo observable; Cloud verifica logs del proveedor | [Comentario](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/17#discussion_r4224911052) resuelto; auditoría §6 | TDD-CLD-006/007 |
+| IAM de infraestructura no reemplaza RBAC + ownership | Se preservó la frontera entre Cloud y Software | Decisión §3 y revisión final de PR #17 | ADR-CLD-007 |
+| Proveedor, MFA, secretos y revocación efectiva siguen pendientes | No se seleccionó proveedor ni configuración desde Software | Riesgos y pendientes | ADR-CLD-007 y TDD-CLD-006 |
 
 ## Riesgos y pendientes
 
@@ -190,7 +194,6 @@ Esta decisión **no** elige proveedor de identidad, formato de token ni duració
 | Validación de tokens | Software + Cloud | TDD-SW-004 / TDD-CLD-006: firma, emisor, audiencia, expiración, rotación de claves y rechazo por cuenta inactiva |
 | Operación de identidad | Cloud + Software | ADR-CLD-007 / TDD-CLD-006: disponibilidad del IdP, invitaciones y altas de Productores, creación controlada de Admin, gestión y revocación de sesiones, recuperación de acceso y manejo de fallos |
 | Autorización de consultas y auditoría | Software + Cloud | TDD-SW-004: ninguna lectura optimizada saltea el filtro de ownership. TDD-CLD-007: minimizar PII en AuditEvent, logs y trazas |
-| Revisión cruzada cloud sin conformidad registrada | Santiago Talavera | Registrar su conformidad en la tabla de revisión cruzada; los documentos cloud detallan esos impactos y, si alguno contradice esta decisión, se crea un ADR que reemplace a este |
 
 ## Criterios de revisión futura
 
@@ -201,6 +204,7 @@ Revisar si aparecen roles adicionales o sub-roles de Admin, cuentas con más de 
 | Fecha | Decisión | Participantes | Observaciones |
 | --- | --- | --- | --- |
 | 2026-10-14 | `PROPUESTO` | Joaquin Rodriguez (owner de software) | Propuesto en el PR #17 (modelo de identidad, políticas de acceso y efectos de baja de RN-18/RN-19). La revisión cruzada cloud de Santiago Talavera (2026-10-14) dictaminó favorable al enfoque con cambios solicitados; su conformidad y la aceptación se registran cuando se cierren |
+| 2026-10-22 | `ACEPTADO` | Joaquin Rodriguez (owner de software) | Se formaliza la aceptación posterior a las correcciones y al merge de PR #17. La conformidad Cloud quedó `APPROVED` el 2026-10-17 y no se presenta como autoría de la decisión Software. |
 
 ## Referencias y trazabilidad
 

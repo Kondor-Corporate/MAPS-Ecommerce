@@ -7,7 +7,7 @@
 | Estado | `ACEPTADO` |
 | Fecha | 2026-09-30 |
 | Autor | Joaquin Rodriguez |
-| Revisores | Santiago Talavera (revisión cruzada cloud); pendiente de validación final |
+| Revisores | Santiago Talavera — revisión cruzada Cloud favorable con observaciones; revisión técnica 2026-10-14 15:30 ART, constancia incorporada 2026-10-22 |
 | Work item | [MAPS-108](https://santitalavera.atlassian.net/browse/MAPS-108) · subtarea [MAPS-134](https://santitalavera.atlassian.net/browse/MAPS-134) |
 | URL del work item | https://santitalavera.atlassian.net/browse/MAPS-108 |
 | Fase origen | [F0 §0.1/0.8, decisión 2026-09-11](../../../../00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md), [F1 §1/4, RN-03/07/08/09/10](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md), [F2 §9/10/12](../../../../02-diseno/Fase_2__Design_Handoff.md) |
@@ -97,11 +97,20 @@ Se **decide**:
 
 ## Revisión cruzada cloud
 
-| Impacto | Documento cloud afectado | Estado de revisión |
-| --- | --- | --- |
-| Instancia PostgreSQL nueva y gestionada, conexiones y pool | TDD-CLD-003 (previsto) | Pendiente de conformidad — Santiago Talavera |
-| Ejecución de migraciones separada del despliegue de la aplicación | ADR-CLD-003, TDD-CLD-003 (previstos) | Pendiente de conformidad — Santiago Talavera |
-| Procesamiento asíncrono de efectos externos | TDD-CLD-005 (previsto) | Pendiente de conformidad — Santiago Talavera |
+**Revisor:** Santiago Talavera. **Fecha de revisión:** 2026-10-14 15:30 ART. **Dictamen:** favorable con las observaciones documentadas. **Origen:** [PR #14](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/14); decisión del owner registrada en [PR #23](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/23). **Incorporación de esta constancia:** 2026-10-22.
+
+La tabla reconstruye técnicamente las conclusiones de la revisión; no constituye una transcripción literal de comentarios GitHub.
+
+| Observación | Tratamiento | Estado actual / evidencia | Dependencia residual |
+| --- | --- | --- | --- |
+| PostgreSQL compartido con ownership modular | Se aceptó la base única con owner explícito por tabla, funcional o técnico | Decisión y ADR-SW-004 | TDD-CLD-003 |
+| UoW para operaciones transaccionales intermodulares | Se preservó la atomicidad local | Operaciones atómicas y asíncronas | TDD-CLD-003 para materialización |
+| Consistencia y concurrencia deben ser reales | Se exigieron guards, locks o controles equivalentes en TDD derivados | ADR-SW-004 y TDD-SW-003 | TDD-SW-002/005 y TDD-CLD-003 |
+| Pooling y límites de conexiones | Se reconoció como responsabilidad operativa Cloud | Revisión cruzada y riesgos | TDD-CLD-003 |
+| Migraciones compatibles mediante expand/contract | Se mantuvo el patrón y la separación de ejecución | Decisión y riesgo de migración | ADR-CLD-003 y TDD-CLD-003 |
+| PostgreSQL y object storage no comparten atomicidad directa | Se aceptó la recuperación por estados, metadata y procesos compensatorios | Fronteras transaccionales y TDD-SW-001 | TDD-CLD-004 |
+| Fallos parciales requieren recuperación explícita | Se derivó a outbox, reintentos y operación observable | ADR-SW-004 | TDD-CLD-005/007 |
+| Invariantes Software y operación Cloud deben permanecer separadas | Se conservaron los owners y dependencias sin fijar servicios | Decisión y documentos relacionados | TDD-CLD-003/004/005 |
 
 ## Riesgos y pendientes
 
@@ -112,7 +121,6 @@ Se **decide**:
 | Contrato definitivo de formularios | `PENDIENTE FUNCIONAL MAPS` | Versionado y snapshots avanzan; esquema de respuestas se cierra en TDD-SW-002 tras 1–2 casos reales |
 | Retención y eliminación de solicitudes y documentos | `PENDIENTE FUNCIONAL MAPS` | Se modela sin borrado físico; plazos y eliminación quedan condicionados |
 | Semántica de outbox y reintentos | Software | Definida en [ADR-SW-004](../MAPS-110-asincronia-outbox-idempotencia/ADR-SW-004-outbox-asincronia-e-idempotencia.md) |
-| Revisión cruzada cloud sin conformidad registrada | Santiago Talavera | Registrar su conformidad en la tabla de revisión cruzada; los documentos cloud detallan esos impactos y, si alguno contradice esta decisión, se crea un ADR que reemplace a este |
 
 ## Criterios de revisión futura
 
@@ -122,7 +130,8 @@ Revisar si aparecen necesidades de bases por módulo, persistencia especializada
 
 | Fecha | Decisión | Participantes | Observaciones |
 | --- | --- | --- | --- |
-| 2026-10-14 | `ACEPTADO` | Joaquin Rodriguez (owner de software) | Aceptado por decisión del owner. La revisión cruzada cloud con Santiago Talavera (tabla superior) sigue pendiente; esta entrada no registra su conformidad. |
+| 2026-10-14 | `ACEPTADO` | Joaquin Rodriguez (owner de software) | Aceptado por decisión del owner en PR #23; la autoría de esta decisión no se atribuye al revisor Cloud. |
+| 2026-10-22 | Constancia de revisión cruzada | Santiago Talavera (revisor Cloud) | Se formaliza el dictamen favorable con observaciones de la revisión técnica del 2026-10-14; no modifica ni duplica la decisión del owner. |
 
 ## Referencias y trazabilidad
 
