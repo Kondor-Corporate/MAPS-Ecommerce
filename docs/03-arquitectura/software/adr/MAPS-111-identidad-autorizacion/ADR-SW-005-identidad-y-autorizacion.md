@@ -171,16 +171,9 @@ Esta decisión **no** elige proveedor de identidad, formato de token ni duració
 
 ## Revisión cruzada cloud
 
-**Revisor:** Santiago Talavera. **Revisión consolidada:** 2026-10-14. **Dictamen:** favorable con cambios solicitados. **Origen y evidencia:** [PR #17](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/17), comentarios inline del 7–8/10 y revisión final `APPROVED` del 17/10. **Incorporación de esta constancia:** 2026-10-22.
+**Revisor:** Santiago Talavera. **Revisión original:** 2026-10-14. **Resultado:** favorable con cambios solicitados, incorporados antes de la conformidad final `APPROVED` del 2026-10-17 en la [PR #17](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/17). **Constancia formal:** [PR #24](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/24), incorporada el 2026-10-22.
 
-| Observación | Tratamiento | Estado actual / evidencia | Dependencia residual |
-| --- | --- | --- | --- |
-| No usar relevamiento no incorporado como baseline normativa | RN-18/RN-19 se incorporaron mediante cambio controlado antes del merge de #17 | [Comentario](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/17#discussion_r4212501804) resuelto; baseline funcional del ADR | RN-20 continúa `PENDIENTE FUNCIONAL MAPS` |
-| Un único rol por cuenta no estaba confirmado | Se mantuvo como simplificación explícita y reversible del MVP, condicionada a factibilidad | [Comentarios](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/17#discussion_r4212501816) y [seguimiento](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/17#discussion_r4224911028) resueltos | TDD-SW-004 y ADR-CLD-007 validan cuentas/identidades OIDC |
-| La revocación del IdP no es garantía universal | El Portal verifica el estado local en cada request; la revocación externa queda condicionada | [Comentario](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/17#discussion_r4212501825) resuelto; sesión y verificación §2 | ADR-CLD-007 y TDD-CLD-006 |
-| Auditoría de aplicación y auditoría del IdP deben separarse | La aplicación audita lo observable; Cloud verifica logs del proveedor | [Comentario](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/17#discussion_r4224911052) resuelto; auditoría §6 | TDD-CLD-006/007 |
-| IAM de infraestructura no reemplaza RBAC + ownership | Se preservó la frontera entre Cloud y Software | Decisión §3 y revisión final de PR #17 | ADR-CLD-007 |
-| Proveedor, MFA, secretos y revocación efectiva siguen pendientes | No se seleccionó proveedor ni configuración desde Software | Riesgos y pendientes | ADR-CLD-007 y TDD-CLD-006 |
+El análisis detallado y la distinción entre observaciones originales y correcciones ya incorporadas se publican como comentario individual en la PR #24. IdP, MFA, cuentas/roles, secretos, revocación efectiva y auditoría permanecen bajo ADR-CLD-007 y TDD-CLD-006/007; RN-20 y demás condiciones funcionales identificadas continúan pendientes de MAPS.
 
 ## Riesgos y pendientes
 
@@ -204,7 +197,7 @@ Revisar si aparecen roles adicionales o sub-roles de Admin, cuentas con más de 
 | Fecha | Decisión | Participantes | Observaciones |
 | --- | --- | --- | --- |
 | 2026-10-14 | `PROPUESTO` | Joaquin Rodriguez (owner de software) | Propuesto en el PR #17 (modelo de identidad, políticas de acceso y efectos de baja de RN-18/RN-19). La revisión cruzada cloud de Santiago Talavera (2026-10-14) dictaminó favorable al enfoque con cambios solicitados; su conformidad y la aceptación se registran cuando se cierren |
-| 2026-10-22 | `ACEPTADO` | Joaquin Rodriguez (owner de software) | Se formaliza la aceptación posterior a las correcciones y al merge de PR #17. La conformidad Cloud quedó `APPROVED` el 2026-10-17 y no se presenta como autoría de la decisión Software. |
+| 2026-10-22 | `ACEPTADO` | Formalización documental basada en PR #17 | Se registra el estado resultante de la aceptación explícita y de las correcciones incorporadas en PR #17. No se atribuye al owner una nueva intervención ni al reviewer Cloud la autoría de la decisión Software. |
 
 ## Referencias y trazabilidad
 

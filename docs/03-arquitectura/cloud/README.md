@@ -1,6 +1,6 @@
 # F3 — Cloud y plataforma
 
-> **Estado:** `ADR-CLD-000` está `ACEPTADO` en `main` mediante la PR #16, con revisión cruzada conforme desde el 2026-10-19, y adopta GCP como plataforma del MVP. Los demás ADR y todos los TDD Cloud siguen previstos. No hay servicios, topologías ni TDD Cloud aceptados/aprobados.
+> **Estado:** `ADR-CLD-000` está `ACEPTADO` en la PR #16, con revisión cruzada conforme desde el 2026-10-19, y adopta GCP como plataforma del MVP; todavía no está integrado a `main`. Los demás ADR y todos los TDD Cloud siguen previstos. No hay servicios, topologías ni TDD Cloud aceptados/aprobados.
 
 **Owner principal:** Santiago Talavera. El responsable software realiza revisión cruzada cuando la decisión afecta contratos, dominio, transacciones, seguridad de aplicación o entrega. La [baseline F0/F1/F2](../README.md) y la [trazabilidad](../traceability.md) rigen el alcance.
 

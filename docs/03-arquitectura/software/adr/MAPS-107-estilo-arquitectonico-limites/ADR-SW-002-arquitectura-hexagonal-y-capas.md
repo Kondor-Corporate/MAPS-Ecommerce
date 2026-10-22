@@ -88,19 +88,9 @@ Esta decisión **no** elige ORM, framework HTTP ni proveedores; sólo fija que q
 
 ## Revisión cruzada cloud
 
-**Revisor:** Santiago Talavera. **Fecha de revisión:** 2026-10-14 15:28 ART. **Dictamen:** favorable con las observaciones documentadas. **Origen:** [PR #14](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/14); decisión del owner registrada en [PR #23](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/23). **Incorporación de esta constancia:** 2026-10-22.
+**Revisor:** Santiago Talavera. **Fecha de revisión:** 2026-10-14 15:28 ART. **Resultado:** conformidad favorable con observaciones y pendientes derivados. **Antecedentes:** [PR #14](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/14) y decisión del owner registrada en [PR #23](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/23). **Constancia formal:** [PR #24](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/24), incorporada el 2026-10-22.
 
-La tabla reconstruye técnicamente las conclusiones de la revisión; no constituye una transcripción literal de comentarios GitHub.
-
-| Observación | Tratamiento | Estado actual / evidencia | Dependencia residual |
-| --- | --- | --- | --- |
-| Arquitectura hexagonal y límites de dominio adecuados | Se aceptó el enfoque para el MVP | `ACEPTADO` por el owner en PR #23 | Ninguna para esta decisión |
-| Composition roots por entrypoint con wiring reutilizable | Se mantuvo la composición fuera del dominio y proporcional a cada entrada | Reglas de dependencia y criterio de proporcionalidad | TDD-CLD-002 y ADR-CLD-003 |
-| Adaptadores independientes del proveedor | Se conservó el aislamiento mediante puertos | Decisión y reglas de dependencia | ADR/TDD Cloud de cada integración |
-| Secretos y configuración deben gestionarse externamente | Se asignó la materialización a Cloud | Revisión cruzada y dependencias | TDD-CLD-006 |
-| Workloads requieren identidad técnica y autorización efectiva | Se separó IAM Cloud de RBAC de aplicación | ADR-SW-005 y revisión cruzada | ADR-CLD-007 y TDD-CLD-006 |
-| Operaciones intermodulares requieren coordinación transaccional | Se preservó la UoW y los puertos sin invertir dependencias | ADR-SW-003 y reglas de dependencia | TDD-CLD-003 para operación |
-| Evitar sobreabstracción innecesaria | Se incorporó criterio explícito de proporcionalidad | Sección homónima y riesgo vigente | Revisión de implementación en F4 |
+El análisis detallado se publica como comentario individual en la PR #24. La materialización de entrypoints, identidades de workload, secretos, configuración y operación continúa en ADR-CLD-003 y TDD-CLD-003/006; los controles de imports y proporcionalidad se verifican durante la implementación.
 
 ## Riesgos y pendientes
 

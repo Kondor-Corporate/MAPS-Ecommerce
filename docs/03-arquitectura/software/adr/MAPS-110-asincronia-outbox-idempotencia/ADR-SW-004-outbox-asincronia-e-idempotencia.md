@@ -182,16 +182,9 @@ Esta decisión **no** elige proveedor de email, cola gestionada ni runtime del p
 
 ## Revisión cruzada cloud
 
-**Revisor:** Santiago Talavera. **Revisión consolidada:** 2026-10-14. **Dictamen:** favorable con cambios solicitados. **Origen y evidencia:** [PR #17](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/17), comentarios inline del 7–8/10 y revisión final `APPROVED` del 17/10. **Incorporación de esta constancia:** 2026-10-22.
+**Revisor:** Santiago Talavera. **Revisión original:** 2026-10-14. **Resultado:** favorable con cambios solicitados, incorporados antes de la conformidad final `APPROVED` del 2026-10-17 en la [PR #17](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/17). **Constancia formal:** [PR #24](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/24), incorporada el 2026-10-22.
 
-| Observación | Tratamiento | Estado actual / evidencia | Dependencia residual |
-| --- | --- | --- | --- |
-| El Outbox necesita owner técnico exclusivo | Se definió el componente Outbox como único owner de tabla/repositorio y acceso por `OutboxPort` | [Comentario](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/17#discussion_r4212501830) resuelto; decisión §1 | Ninguna para el ownership |
-| Un claim abandonado debe volver a ser procesable | Se incorporaron lease, vencimiento y recuperación de `EN_PROCESO` | [Comentario](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/17#discussion_r4212501845) resuelto; contrato y procesamiento §§2–3 | TDD-SW-005/TDD-CLD-005 fijan fencing y timeouts |
-| No prometer exactly-once del efecto externo | Se reconoce duplicación física residual y se limita la garantía al evento/intención lógica | [Comentario](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/17#discussion_r4212501852) resuelto; idempotencia §4 | TDD-CLD-005 evalúa idempotencia del proveedor |
-| No convertir avisos no confirmados en catálogo obligatorio | Los avisos de retiro/reactivación quedan como propuestas pendientes cuando corresponde | [Comentario](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/17#discussion_r4212501855) resuelto; catálogo §7 | `PENDIENTE FUNCIONAL MAPS` |
-| Compatibilizar owner técnico con ADR-SW-003 | ADR-SW-003 generalizó la regla a owner único funcional o técnico | [Comentario](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/17#discussion_r4224911022) resuelto y revisión final de PR #17 | Ninguna; preservar la regla en implementación |
-| Runtime, email, reintentos, DB y alertas son materialización Cloud | Se mantuvieron fuera de este ADR, sin seleccionar servicios | Riesgos, pendientes y referencias | ADR-CLD-003; TDD-CLD-002/003/005/006/007 |
+El análisis detallado y la distinción entre observaciones originales y correcciones ya incorporadas se publican como comentario individual en la PR #24. Runtime, proveedor, reintentos, webhooks, claims/leases, seguridad y observabilidad continúan en TDD-SW-005 y ADR-CLD-003 / TDD-CLD-003/005/006/007; esta aceptación no los resuelve.
 
 ## Riesgos y pendientes
 
@@ -215,7 +208,7 @@ Revisar si el volumen de eventos o la latencia requerida justifican un broker ge
 | Fecha | Decisión | Participantes | Observaciones |
 | --- | --- | --- | --- |
 | 2026-10-14 | `PROPUESTO` | Joaquin Rodriguez (owner de software) | Propuesto en el PR #17 (contrato de outbox, idempotencia, reintentos y descarte de eventos obsoletos). La revisión cruzada cloud de Santiago Talavera (2026-10-14) dictaminó favorable al enfoque con cambios solicitados; su conformidad y la aceptación se registran cuando se cierren |
-| 2026-10-22 | `ACEPTADO` | Joaquin Rodriguez (owner de software) | Se formaliza la aceptación posterior a las correcciones y al merge de PR #17. La conformidad Cloud quedó `APPROVED` el 2026-10-17 y no se presenta como autoría de la decisión Software. |
+| 2026-10-22 | `ACEPTADO` | Formalización documental basada en PR #17 | Se registra el estado resultante de la aceptación explícita y de las correcciones incorporadas en PR #17. No se atribuye al owner una nueva intervención ni al reviewer Cloud la autoría de la decisión Software. |
 
 ## Referencias y trazabilidad
 

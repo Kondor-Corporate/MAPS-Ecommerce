@@ -91,19 +91,9 @@ Esta decisión **no** resuelve la estructura interna de cada módulo (ADR-SW-002
 
 ## Revisión cruzada cloud
 
-**Revisor:** Santiago Talavera. **Fecha de revisión:** 2026-10-14 14:06 ART. **Dictamen:** favorable con las observaciones documentadas. **Origen:** [PR #14](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/14); decisión del owner registrada en [PR #23](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/23). **Incorporación de esta constancia:** 2026-10-22.
+**Revisor:** Santiago Talavera. **Fecha de revisión:** 2026-10-14 14:06 ART. **Resultado:** conformidad favorable con observaciones y pendientes derivados. **Antecedentes:** [PR #14](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/14) y decisión del owner registrada en [PR #23](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/23). **Constancia formal:** [PR #24](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/24), incorporada el 2026-10-22.
 
-La tabla reconstruye técnicamente las conclusiones de la revisión; no constituye una transcripción literal de comentarios GitHub.
-
-| Observación | Tratamiento | Estado actual / evidencia | Dependencia residual |
-| --- | --- | --- | --- |
-| Monolito modular adecuado para el MVP | Se aceptó el enfoque y se preservó el criterio de revisión futura | `ACEPTADO` por el owner en PR #23 | Ninguna para esta decisión |
-| Aplicación lógica y topología física son decisiones separadas | Se evitó fijar una topología desde Software | Decisión y consecuencias de este ADR | ADR-CLD-003 y TDD-CLD-002 |
-| API, workers y jobs pueden requerir entrypoints o workloads separados | Se mantuvo abierta su materialización | Riesgos y criterio de revisión futura | ADR-CLD-003 y TDD-CLD-002 |
-| PostgreSQL compartido implica concurrencia y conexiones compartidas | Se aceptó como impacto operativo, no como objeción al límite modular | ADR-SW-003 y dependencias Cloud | TDD-CLD-003 |
-| Documentos privados deben accederse mediante Documents | Se conservó el ownership del módulo y el acceso privado | Mapa y reglas de límites | TDD-CLD-004 |
-| Aislamiento lógico no equivale a aislamiento físico | Se registró como trade-off aceptado | Consecuencias negativas y criterios de revisión | ADR/TDD Cloud derivados |
-| La topología definitiva pertenece a Cloud | Se difirió expresamente, sin seleccionar servicios | Referencias a documentos previstos | ADR-CLD-003 y TDD-CLD-002 |
+El análisis detallado se publica como comentario individual en la PR #24. La topología física, los entrypoints/workloads, las conexiones compartidas y el almacenamiento privado continúan bajo responsabilidad de ADR-CLD-003 y TDD-CLD-002/003/004; esta conformidad no los acepta anticipadamente.
 
 ## Riesgos y pendientes
 

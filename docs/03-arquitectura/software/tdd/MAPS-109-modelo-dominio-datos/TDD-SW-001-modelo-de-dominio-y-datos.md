@@ -172,19 +172,9 @@ Cada transición de estado, asignación, intento de entrega y decisión de cance
 
 ## Revisión cruzada Cloud — 14/10/2026
 
-**Revisor:** Santiago Talavera. **Hora:** 18:13 ART. **Dictamen:** favorable con las observaciones documentadas. **Origen:** [PR #14](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/14); aprobación del owner registrada en [PR #23](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/23). **Incorporación de esta constancia:** 2026-10-22.
+**Revisor:** Santiago Talavera. **Hora:** 18:13 ART. **Resultado:** conformidad favorable con observaciones y pendientes derivados. **Antecedentes:** [PR #14](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/14) y aprobación del owner registrada en [PR #23](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/23). **Constancia formal:** [PR #24](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/24), incorporada el 2026-10-22.
 
-La tabla reconstruye técnicamente las conclusiones de la revisión; no constituye una transcripción literal de comentarios GitHub.
-
-| Observación | Tratamiento | Estado actual / evidencia | Dependencia residual |
-| --- | --- | --- | --- |
-| Modelo de entidades y ownership adecuado | Se aceptó el modelo como base técnica del MVP | `APROBADO` por el owner en PR #23 | TDD de detalle previstos |
-| Concurrencia en InsuranceRequest, Assignment y CancellationRequest | Se exigieron versiones, unicidad y coordinación transaccional en TDD derivados | ADR-SW-003 y TDD-SW-003 | TDD-SW-005 y TDD-CLD-003 |
-| Diferenciar asignaciones pendientes, efectivas y cerradas | Se formalizó en TDD-SW-003 | Estados conceptuales de Assignment | TDD-SW-005 para representación |
-| Acceso del Productor deriva de una asignación efectiva | Se conservó como política de autorización | ADR-SW-005 y TDD-SW-003 | TDD-SW-004/005 |
-| Minimizar PII en logs y observabilidad | Se mantuvieron exclusiones explícitas | Seguridad y privacidad | TDD-CLD-007 |
-| Archivos y adjuntos deben ser privados y autorizados | Se mantuvo metadata en DB y binario fuera de ella | Dependencias Cloud y seguridad | TDD-CLD-004 |
-| Trazabilidad de revisiones y dependencias Cloud | Se incorporó esta constancia y se conservaron los enlaces derivados | Esta sección y referencias | ADR/TDD previstos, sin aceptación anticipada |
+El análisis detallado se publica como comentario individual en la PR #24. Los contratos de formularios, concurrencia de Assignment/Delivery, almacenamiento privado, conexiones y observabilidad continúan en TDD-SW-002/003/005 y TDD-CLD-003/004/007; la conformidad no cierra esos diseños.
 
 ## Pruebas y criterios de fallo
 

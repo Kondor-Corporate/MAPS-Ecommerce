@@ -97,20 +97,9 @@ Se **decide**:
 
 ## Revisión cruzada cloud
 
-**Revisor:** Santiago Talavera. **Fecha de revisión:** 2026-10-14 15:30 ART. **Dictamen:** favorable con las observaciones documentadas. **Origen:** [PR #14](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/14); decisión del owner registrada en [PR #23](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/23). **Incorporación de esta constancia:** 2026-10-22.
+**Revisor:** Santiago Talavera. **Fecha de revisión:** 2026-10-14 15:30 ART. **Resultado:** conformidad favorable con observaciones y pendientes derivados. **Antecedentes:** [PR #14](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/14) y decisión del owner registrada en [PR #23](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/23). **Constancia formal:** [PR #24](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/24), incorporada el 2026-10-22.
 
-La tabla reconstruye técnicamente las conclusiones de la revisión; no constituye una transcripción literal de comentarios GitHub.
-
-| Observación | Tratamiento | Estado actual / evidencia | Dependencia residual |
-| --- | --- | --- | --- |
-| PostgreSQL compartido con ownership modular | Se aceptó la base única con owner explícito por tabla, funcional o técnico | Decisión y ADR-SW-004 | TDD-CLD-003 |
-| UoW para operaciones transaccionales intermodulares | Se preservó la atomicidad local | Operaciones atómicas y asíncronas | TDD-CLD-003 para materialización |
-| Consistencia y concurrencia deben ser reales | Se exigieron guards, locks o controles equivalentes en TDD derivados | ADR-SW-004 y TDD-SW-003 | TDD-SW-002/005 y TDD-CLD-003 |
-| Pooling y límites de conexiones | Se reconoció como responsabilidad operativa Cloud | Revisión cruzada y riesgos | TDD-CLD-003 |
-| Migraciones compatibles mediante expand/contract | Se mantuvo el patrón y la separación de ejecución | Decisión y riesgo de migración | ADR-CLD-003 y TDD-CLD-003 |
-| PostgreSQL y object storage no comparten atomicidad directa | Se aceptó la recuperación por estados, metadata y procesos compensatorios | Fronteras transaccionales y TDD-SW-001 | TDD-CLD-004 |
-| Fallos parciales requieren recuperación explícita | Se derivó a outbox, reintentos y operación observable | ADR-SW-004 | TDD-CLD-005/007 |
-| Invariantes Software y operación Cloud deben permanecer separadas | Se conservaron los owners y dependencias sin fijar servicios | Decisión y documentos relacionados | TDD-CLD-003/004/005 |
+El análisis detallado se publica como comentario individual en la PR #24. Pooling, conexiones, migraciones, recuperación, consistencia con object storage y operación del outbox continúan en TDD-CLD-003/004/005; Software conserva la responsabilidad sobre invariantes y fronteras transaccionales.
 
 ## Riesgos y pendientes
 

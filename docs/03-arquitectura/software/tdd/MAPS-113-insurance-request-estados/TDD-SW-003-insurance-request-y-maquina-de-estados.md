@@ -222,17 +222,9 @@ Sin migración de datos desde el PostgreSQL histórico de MAPS. El enum de estad
 
 ## Revisión cruzada Cloud — 14/10/2026
 
-**Revisor:** Santiago Talavera. **Dictamen:** favorable con cambios solicitados. **Origen y evidencia:** [PR #17](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/17), comentarios inline del 7–8/10 y revisión final `APPROVED` del 17/10. **Incorporación de esta constancia:** 2026-10-22.
+**Revisor:** Santiago Talavera. **Resultado:** favorable con cambios solicitados, incorporados antes de la conformidad final `APPROVED` del 2026-10-17 en la [PR #17](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/17). **Constancia formal:** [PR #24](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/24), incorporada el 2026-10-22.
 
-| Observación | Tratamiento | Estado actual / evidencia | Dependencia residual |
-| --- | --- | --- | --- |
-| Evitar dependencia circular Requests ↔ Assignment | Assignment inicia y coordina; Requests expone un puerto dentro de la UoW | [Comentario](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/17#discussion_r4212501861) resuelto; Resultado de entrega | TDD-SW-005 detalla representación |
-| Evitar write-on-read para detectar cambio de precio | `draftPriceRef` queda histórico y la guarda usa `confirmedPriceRef` | [Comentario](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/17#discussion_r4212501868) resuelto; Condiciones derivadas | TDD-SW-002 versiona precio |
-| Cancelaciones no deben reintroducir Requests → Assignment | Assignment coordina cuando deben cambiar ambos owners | [Comentario](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/17#discussion_r4224911006) resuelto; comandos y pruebas | TDD-SW-005 |
-| Reconfirmar precio debe apagar correctamente la alerta | Se compara la última referencia confirmada con la vigente | [Comentario](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/17#discussion_r4224911015) resuelto | TDD-SW-002 |
-| Separar baseline confirmada de input condicionado | RN-18/RN-19 quedaron incorporadas como cambio controlado | [Comentario](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/17#discussion_r4224911033) resuelto y revisión final | RN-20 continúa pendiente |
-| “Aviso único” no equivale a un único email físico | Se limita la garantía a evento/intención lógica; se admite duplicación residual | [Comentario](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/17#discussion_r4224911047) resuelto | TDD-CLD-005 evalúa proveedor |
-| Alinear reasignación DERIVADA, trazabilidad y RN-18/RN-19 | Se mantuvo DERIVADA, se cerró Assignment anterior y la nueva queda efectiva tras entrega exitosa | Revisión final y head mergeado de [PR #17](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/17) | UX de bandeja y TDD-SW-005 |
+El análisis detallado y la distinción entre observaciones originales y correcciones ya incorporadas se publican como comentario individual en la PR #24. Los contratos de Catalog/Forms, Assignment/Delivery, concurrencia de PostgreSQL, resultados externos e idempotencia operativa continúan en TDD-SW-002/005 y TDD-CLD-003/005; la aprobación no los cierra.
 
 ## Pruebas y criterios de fallo
 
@@ -289,4 +281,4 @@ Secuencia sugerida: dominio y `RequestStateMachine` con pruebas → `CreateDraft
 
 ## Criterio de aprobación
 
-`APROBADO` el 2026-10-22 al formalizar ADR-SW-004/005 como `ACEPTADO` y la conformidad final de la revisión cruzada Cloud, registrada como `APPROVED` en PR #17 el 2026-10-17. La aprobación no cierra las decisiones abiertas ni acepta anticipadamente TDD-SW-002/005 o los ADR/TDD Cloud derivados. Si una decisión posterior cambia la máquina de estados, se actualiza este TDD o se crea uno que lo reemplace.
+`APROBADO` mediante formalización documental del 2026-10-22 basada en la aceptación explícita de PR #17 y en la conformidad final de la revisión cruzada Cloud, registrada como `APPROVED` el 2026-10-17. No se atribuye al owner una nueva intervención. La aprobación no cierra las decisiones abiertas ni acepta anticipadamente TDD-SW-002/005 o los ADR/TDD Cloud derivados. Si una decisión posterior cambia la máquina de estados, se actualiza este TDD o se crea uno que lo reemplace.
