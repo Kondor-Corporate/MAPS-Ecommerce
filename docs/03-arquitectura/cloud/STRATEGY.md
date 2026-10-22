@@ -10,7 +10,7 @@
 
 Esta estrategia ordena preguntas y dependencias para los [ADR/TDD Cloud](./README.md). `ADR-CLD-000` adopta GCP como plataforma del MVP; los servicios y el diseño concreto pertenecen a los artefactos derivados. No cierra F1/F2, no modifica la baseline funcional y no sustituye la [trazabilidad por artefacto](../traceability.md). En `main`, `ADR-SW-001/002/003` están **ACEPTADO** y `TDD-SW-001` **APROBADO** desde la [PR #14](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/14); esos estados no significan que la revisión cruzada Cloud esté concluida.
 
-Como contexto todavía no integrado a `main`, la [PR #17](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/17) permanece abierta: allí `ADR-SW-004/005` figuran **PROPUESTO** y `TDD-SW-003` **EN REVISIÓN**. La [PR #20](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/20) está abierta —no Draft en GitHub—, depende de #17 y contiene `TDD-SW-002/005` en **BORRADOR**. Estos estados de rama sirven para coordinar fronteras; no se presentan como baseline de `main` ni cierran sus decisiones abiertas.
+La [PR #17](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/17) ya está integrada a `main`: `ADR-SW-004/005` permanecen **PROPUESTO** y `TDD-SW-003` **EN REVISIÓN**, según el estado formal de sus documentos. Como contexto todavía no integrado, la [PR #20](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/20) está abierta —no Draft en GitHub— y contiene `TDD-SW-002/005` en **BORRADOR**. Estos estados coordinan fronteras sin cerrar decisiones abiertas.
 
 ```text
 F0 / F1 / F2                  qué producto construimos
@@ -87,7 +87,7 @@ Estado/outbox ──→ Async Worker ──→ Email provider
 Transversal: Identity / IAM · Secrets · Observability · Audit · CI/CD · IaC
              Environments · Backup / Recovery · Cost controls
 
-* Forma relacional aceptada en ADR-SW-003; outbox definido en ADR-SW-004 dentro de la PR #17 todavía no integrada a `main`. Ningún servicio cloud está aceptado aquí.
+* Forma relacional aceptada en ADR-SW-003; outbox definido en ADR-SW-004 **PROPUESTO**, integrado a `main` mediante la PR #17. Ningún servicio cloud está aceptado aquí.
 ```
 
 ## 5. Flujo mínimo de una request
@@ -162,7 +162,7 @@ ASIGNADA → Delivery requerido
           └── éxito requerido: puede pasar a DERIVADA
 ```
 
-Software define la semántica de `Delivery`, `DeliveryAttempt`, outbox, claims/leases, idempotencia y transición funcional. `ADR-SW-004` figura **PROPUESTO** en la PR #17 aún no integrada; `TDD-SW-005` permanece **BORRADOR** en la PR #20 y mantiene abierta la decisión entre aceptación del proveedor con `providerMessageId` y entrega confirmada por webhook como evidencia requerida. Cloud evalúa runtime, triggers, retries/backoff, mensajes fallidos, recuperación operativa, observabilidad, capacidades del proveedor, autenticidad de webhooks, bounces y garantías reales (`ADR-CLD-003` / `TDD-CLD-005`, previstos). No se elige aquí ninguna semántica: la resolución corresponde a Software/MAPS/Kondor y su materialización posterior a `TDD-CLD-005`.
+Software define la semántica de `Delivery`, `DeliveryAttempt`, outbox, claims/leases, idempotencia y transición funcional. `ADR-SW-004` figura **PROPUESTO** en `main` tras la PR #17; `TDD-SW-005` permanece **BORRADOR** en la PR #20 y mantiene abierta la decisión entre aceptación del proveedor con `providerMessageId` y entrega confirmada por webhook como evidencia requerida. Cloud evalúa runtime, triggers, retries/backoff, mensajes fallidos, recuperación operativa, observabilidad, capacidades del proveedor, autenticidad de webhooks, bounces y garantías reales (`ADR-CLD-003` / `TDD-CLD-005`, previstos). No se elige aquí ninguna semántica: la resolución corresponde a Software/MAPS/Kondor y su materialización posterior a `TDD-CLD-005`.
 
 ## 14. Observabilidad
 
@@ -174,7 +174,7 @@ Software define la semántica de `Delivery`, `DeliveryAttempt`, outbox, claims/l
 Usuario final → auth/RBAC de aplicación → workload → IAM cloud → recursos
 ```
 
-Networking controla rutas y exposición; IAM controla identidades de workloads y permisos sobre recursos; autorización de DB limita operaciones sobre datos; autorización de aplicación verifica actor, ownership y estado funcional. `ADR-SW-005`, **PROPUESTO** en la PR #17 todavía no integrada a `main`, define la frontera de identidad/autorización de negocio; `TDD-SW-005` mantiene abiertas dependencias para revocación efectiva, Productor autorizado, Assignment efectiva y acceso posterior a Delivery. Cloud debe comprobar que entrada, identidades de workload, recursos y revocación soportan esos contratos sin copiarlos ni resolverlos, mediante `ADR-CLD-007` y los TDD aplicables.
+Networking controla rutas y exposición; IAM controla identidades de workloads y permisos sobre recursos; autorización de DB limita operaciones sobre datos; autorización de aplicación verifica actor, ownership y estado funcional. `ADR-SW-005`, **PROPUESTO** en `main` tras la PR #17, define la frontera de identidad/autorización de negocio; `TDD-SW-005` mantiene abiertas dependencias para revocación efectiva, Productor autorizado, Assignment efectiva y acceso posterior a Delivery. Cloud debe comprobar que entrada, identidades de workload, recursos y revocación soportan esos contratos sin copiarlos ni resolverlos, mediante `ADR-CLD-007` y los TDD aplicables.
 
 ## 16. Modelo económico y TCO
 
@@ -247,13 +247,13 @@ Salvo `ADR-CLD-000`, los IDs son reservas de catálogo, no ADR redactados ni ace
 | `ADR-SW-001` **ACEPTADO** | `ADR-CLD-003` / `TDD-CLD-002` previstos | Software define unidad/límites; Cloud diseña despliegue/runtime. Revisión cruzada Cloud pendiente. |
 | `ADR-SW-002` **ACEPTADO** | Configuración de adapters, identidades y secrets | Software define puertos/adaptadores; Cloud provee configuración e identidades de workload. Revisión cruzada Cloud pendiente. |
 | `ADR-SW-003` **ACEPTADO** | `TDD-CLD-003` previsto | Software define transacciones y persistencia lógica; Cloud diseña servicio, conexiones y recuperación. Revisión cruzada Cloud pendiente. |
-| `ADR-SW-004` **PROPUESTO en PR #17 abierta** | `ADR-CLD-003` / `TDD-CLD-005` previstos | Software define outbox/Delivery; Cloud ejecuta worker y reintentos. No integrado a `main`. |
-| `ADR-SW-005` **PROPUESTO en PR #17 abierta** | `ADR-CLD-001` / `ADR-CLD-007` previstos | Software define auth/RBAC; Cloud protege entrada, workloads y recursos. No integrado a `main`. |
+| `ADR-SW-004` **PROPUESTO en main** | `ADR-CLD-003` / `TDD-CLD-005` previstos | Software define outbox/Delivery; Cloud ejecuta worker y reintentos. Integrado mediante PR #17. |
+| `ADR-SW-005` **PROPUESTO en main** | `ADR-CLD-001` / `ADR-CLD-007` previstos | Software define auth/RBAC; Cloud protege entrada, workloads y recursos. Integrado mediante PR #17. |
 | `ADR-SW-006` previsto | `TDD-CLD-004` previsto | Software define contrato Document/acceso; Cloud materializa storage privado. |
 | `TDD-SW-007` previsto | `ADR-CLD-006` / `TDD-CLD-007` previstos | Software define eventos de negocio; Cloud opera telemetría. |
 | `TDD-SW-008` previsto | Entrada pública/API | Software define contrato API; Cloud define exposición/routing. |
 
-`TDD-SW-001` está **APROBADO** en `main`; `TDD-SW-003` está **EN REVISIÓN** en la PR #17 abierta y `TDD-SW-002/005` permanecen **BORRADOR** en la PR #20 abierta, dependiente de #17. **Software define semántica; Cloud define materialización y operación.** Los documentos deberán enlazarse entre sí sin duplicar decisiones ni presentar ramas abiertas como baseline integrada.
+`TDD-SW-001` está **APROBADO** en `main`; `TDD-SW-003` está **EN REVISIÓN** en `main` tras la PR #17 y `TDD-SW-002/005` permanecen **BORRADOR** en la PR #20 abierta. **Software define semántica; Cloud define materialización y operación.** Los documentos deberán enlazarse entre sí sin duplicar decisiones ni presentar ramas abiertas como baseline integrada.
 
 ## 22. Pendientes funcionales MAPS
 
