@@ -11,7 +11,7 @@
 | Work item | [MAPS-108](https://santitalavera.atlassian.net/browse/MAPS-108) · subtarea [MAPS-134](https://santitalavera.atlassian.net/browse/MAPS-134) |
 | URL del work item | https://santitalavera.atlassian.net/browse/MAPS-108 |
 | Fase origen | [F0 §0.1/0.8, decisión 2026-09-11](../../../../00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md), [F1 §1/4, RN-03/07/08/09/10](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md), [F2 §9/10/12](../../../../02-diseno/Fase_2__Design_Handoff.md) |
-| Decisiones relacionadas | [ADR-SW-001](../MAPS-107-estilo-arquitectonico-limites/ADR-SW-001-monolito-modular-y-limites.md); [ADR-SW-002](../MAPS-107-estilo-arquitectonico-limites/ADR-SW-002-arquitectura-hexagonal-y-capas.md); [TDD-SW-001](../../tdd/MAPS-109-modelo-dominio-datos/TDD-SW-001-modelo-de-dominio-y-datos.md); ADR-SW-004 y TDD-CLD-003 (previstos, sin redactar) |
+| Decisiones relacionadas | [ADR-SW-001](../MAPS-107-estilo-arquitectonico-limites/ADR-SW-001-monolito-modular-y-limites.md); [ADR-SW-002](../MAPS-107-estilo-arquitectonico-limites/ADR-SW-002-arquitectura-hexagonal-y-capas.md); [TDD-SW-001](../../tdd/MAPS-109-modelo-dominio-datos/TDD-SW-001-modelo-de-dominio-y-datos.md); [ADR-SW-004](../MAPS-110-asincronia-outbox-idempotencia/ADR-SW-004-outbox-asincronia-e-idempotencia.md); [TDD-SW-003](../../tdd/MAPS-113-insurance-request-estados/TDD-SW-003-insurance-request-y-maquina-de-estados.md); TDD-CLD-003 (previsto, sin redactar) |
 | Depende de | [ADR-SW-001](../MAPS-107-estilo-arquitectonico-limites/ADR-SW-001-monolito-modular-y-limites.md), [ADR-SW-002](../MAPS-107-estilo-arquitectonico-limites/ADR-SW-002-arquitectura-hexagonal-y-capas.md) |
 | Reemplaza | No aplica |
 | Reemplazado por | No aplica |
@@ -24,7 +24,7 @@ El Portal necesita persistir catálogo, formularios versionados, solicitudes, re
 
 **Frontera con el PostgreSQL histórico de MAPS.** Esa base fue relevada read-only y descartada como dependencia funcional del MVP ([F0 decisión 2026-09-11](../../../../00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md), [F1 §1](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md)). Este ADR trata sobre una **base nueva y propia del Portal**; no lee, escribe, sincroniza ni migra datos desde la base histórica, y ningún caso de uso depende de ella.
 
-Límite software/cloud: este ADR decide el modelo de persistencia desde la aplicación (ownership, repositorios, unidad de trabajo, atomicidad, snapshots, principios de migración). La instancia gestionada, conexiones, backups, restore y ejecución de migraciones corresponden a TDD-CLD-003 (previsto). La semántica de outbox, asincronía e idempotencia corresponde a ADR-SW-004 (previsto).
+Límite software/cloud: este ADR decide el modelo de persistencia desde la aplicación (ownership, repositorios, unidad de trabajo, atomicidad, snapshots, principios de migración). La instancia gestionada, conexiones, backups, restore y ejecución de migraciones corresponden a TDD-CLD-003 (previsto). La semántica de outbox, asincronía e idempotencia corresponde a [ADR-SW-004](../MAPS-110-asincronia-outbox-idempotencia/ADR-SW-004-outbox-asincronia-e-idempotencia.md).
 
 ## Drivers y criterios
 
@@ -41,7 +41,7 @@ Límite software/cloud: este ADR decide el modelo de persistencia desde la aplic
 
 | Alternativa | Ventajas | Costos / riesgos | Resultado |
 | --- | --- | --- | --- |
-| Base relacional PostgreSQL nueva, única para el Portal, con ownership lógico por módulo | Transacciones ACID locales, integridad referencial, operación simple | La base compartida puede acoplar módulos si no se controla | Propuesta elegida |
+| Base relacional PostgreSQL nueva, única para el Portal, con ownership lógico por módulo | Transacciones ACID locales, integridad referencial, operación simple | La base compartida puede acoplar módulos si no se controla | Elegida |
 | Base de datos por módulo | Aislamiento fuerte | Consistencia distribuida para operaciones que hoy son locales | Descartada para el MVP; reservada para extracción futura |
 | Reutilizar o integrar el PostgreSQL histórico de MAPS | Datos existentes | Descartado funcionalmente en F0/F1; semántica insuficiente | Descartada — fuera de alcance |
 | Documental/NoSQL | Flexibilidad para respuestas dinámicas | Pierde integridad relacional en Product, versión, solicitud y asignación | Descartada |
@@ -49,13 +49,13 @@ Límite software/cloud: este ADR decide el modelo de persistencia desde la aplic
 
 ## Decisión
 
-Se **propone**:
+Se **decide**:
 
 1. **Base relacional PostgreSQL nueva** para el Portal, inicialmente única, sin dependencia funcional del PostgreSQL histórico de MAPS. La instancia gestionada la define cloud (TDD-CLD-003).
 2. **Ownership explícito.** Cada tabla pertenece a un único owner, funcional (un módulo) o técnico (un componente transversal); sólo ese owner escribe. La lectura de datos de otro owner se hace por `ports/in` o por un puerto técnico estrecho del owner correspondiente. El componente técnico Outbox es el owner exclusivo de su tabla y repositorio, según ADR-SW-004. Se permiten claves foráneas entre tablas de distintos owners para integridad, pero una FK no habilita repositorios ni joins cruzados como atajo entre owners, y no se permiten cascadas destructivas entre owners sin una decisión explícita de retención/baja.
 3. **Repositorios como puertos de salida.** Cada módulo define sus repositorios en `ports/out`; el ORM es un detalle del adaptador. Prisma es el adaptador candidato ([estructura.md](../../../../estructura.md)) pero no queda aceptado por este ADR.
 4. **Unidad de trabajo por caso de uso.** Un caso de uso abre una única transacción que abarca todas las escrituras que deben confirmarse juntas, incluso entre módulos coordinados desde el módulo iniciador. Los repositorios participan de esa transacción; ningún caso de uso abre transacciones anidadas o paralelas.
-5. **Efectos externos fuera de la transacción.** Email y operaciones sobre storage no se ejecutan dentro de la transacción. Se registra su intención en la misma transacción que el cambio de negocio y se procesan después; el mecanismo exacto (outbox, reintentos, idempotencia) lo decide ADR-SW-004.
+5. **Efectos externos fuera de la transacción.** Email y operaciones sobre storage no se ejecutan dentro de la transacción. Se registra su intención en la misma transacción que el cambio de negocio y se procesan después; el mecanismo exacto (outbox, reintentos, idempotencia) lo decide [ADR-SW-004](../MAPS-110-asincronia-outbox-idempotencia/ADR-SW-004-outbox-asincronia-e-idempotencia.md).
 6. **Snapshots** de lo que puede cambiar después del envío: precio confirmado y referencia inmutable a la `FormVersion` usada. Cambios posteriores de catálogo o formularios no alteran una solicitud enviada.
 7. **Migraciones** versionadas en el repositorio, revisadas y compatibles hacia atrás con la versión en ejecución (expand/contract). Un rollback de la aplicación no implica rollback de la base.
 
@@ -99,9 +99,9 @@ Se **propone**:
 
 | Impacto | Documento cloud afectado | Estado de revisión |
 | --- | --- | --- |
-| Instancia PostgreSQL nueva y gestionada, conexiones y pool | TDD-CLD-003 (previsto) | Pendiente — Santiago Talavera |
-| Ejecución de migraciones separada del despliegue de la aplicación | ADR-CLD-003, TDD-CLD-003 (previstos) | Pendiente — Santiago Talavera |
-| Procesamiento asíncrono de efectos externos | TDD-CLD-005 (previsto) | Pendiente — Santiago Talavera |
+| Instancia PostgreSQL nueva y gestionada, conexiones y pool | TDD-CLD-003 (previsto) | Pendiente de conformidad — Santiago Talavera |
+| Ejecución de migraciones separada del despliegue de la aplicación | ADR-CLD-003, TDD-CLD-003 (previstos) | Pendiente de conformidad — Santiago Talavera |
+| Procesamiento asíncrono de efectos externos | TDD-CLD-005 (previsto) | Pendiente de conformidad — Santiago Talavera |
 
 ## Riesgos y pendientes
 
@@ -111,8 +111,8 @@ Se **propone**:
 | Migración destructiva incompatible | Software + Cloud | Aplicar expand/contract y plan de recuperación en TDD-CLD-003 |
 | Contrato definitivo de formularios | `PENDIENTE FUNCIONAL MAPS` | Versionado y snapshots avanzan; esquema de respuestas se cierra en TDD-SW-002 tras 1–2 casos reales |
 | Retención y eliminación de solicitudes y documentos | `PENDIENTE FUNCIONAL MAPS` | Se modela sin borrado físico; plazos y eliminación quedan condicionados |
-| Semántica de outbox y reintentos | Software | Definir en ADR-SW-004 |
-| Revisión cruzada cloud sin completar | Santiago Talavera | Completar la tabla antes de pasar a `ACEPTADO` |
+| Semántica de outbox y reintentos | Software | Definida en [ADR-SW-004](../MAPS-110-asincronia-outbox-idempotencia/ADR-SW-004-outbox-asincronia-e-idempotencia.md) |
+| Revisión cruzada cloud sin conformidad registrada | Santiago Talavera | Registrar su conformidad en la tabla de revisión cruzada; los documentos cloud detallan esos impactos y, si alguno contradice esta decisión, se crea un ADR que reemplace a este |
 
 ## Criterios de revisión futura
 
@@ -127,5 +127,5 @@ Revisar si aparecen necesidades de bases por módulo, persistencia especializada
 ## Referencias y trazabilidad
 
 - Fuentes F0/F1/F2: [F0 §0.1 y decisión 2026-09-11](../../../../00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md); [F1 RN-03/06/07/08/09/10](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md); [F2 §10/12](../../../../02-diseno/Fase_2__Design_Handoff.md).
-- ADR/TDD relacionados: [ADR-SW-001](../MAPS-107-estilo-arquitectonico-limites/ADR-SW-001-monolito-modular-y-limites.md), [ADR-SW-002](../MAPS-107-estilo-arquitectonico-limites/ADR-SW-002-arquitectura-hexagonal-y-capas.md), [TDD-SW-001](../../tdd/MAPS-109-modelo-dominio-datos/TDD-SW-001-modelo-de-dominio-y-datos.md); previstos ADR-SW-004, TDD-SW-002/003/005, TDD-CLD-003.
+- ADR/TDD relacionados: [ADR-SW-001](../MAPS-107-estilo-arquitectonico-limites/ADR-SW-001-monolito-modular-y-limites.md), [ADR-SW-002](../MAPS-107-estilo-arquitectonico-limites/ADR-SW-002-arquitectura-hexagonal-y-capas.md), [TDD-SW-001](../../tdd/MAPS-109-modelo-dominio-datos/TDD-SW-001-modelo-de-dominio-y-datos.md), [ADR-SW-004](../MAPS-110-asincronia-outbox-idempotencia/ADR-SW-004-outbox-asincronia-e-idempotencia.md), [TDD-SW-003](../../tdd/MAPS-113-insurance-request-estados/TDD-SW-003-insurance-request-y-maquina-de-estados.md); previstos TDD-SW-002/005, TDD-CLD-003.
 - Filas de [traceability.md](../../../traceability.md): Product/FormVersion; precio y cancelación; contrato de formularios.

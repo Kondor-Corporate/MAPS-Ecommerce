@@ -42,13 +42,13 @@ La organización interna de cada módulo (hexagonal, capas y dirección de depen
 | --- | --- | --- | --- |
 | Microservicios desde el inicio | Escalado y despliegue independientes | Consistencia distribuida, más infraestructura, coordinación y observabilidad desproporcionadas para el MVP | Descartada |
 | Monolito por capas horizontales (scaffold actual) | Estructura conocida, arranque rápido | Dependencias implícitas entre funcionalidades, acceso cruzado a datos, módulos fuera de alcance | Descartada |
-| Monolito modular por capacidad de negocio | Una aplicación lógica/codebase modular, límites explícitos, transacciones locales | Requiere disciplina y controles para que los límites no se erosionen | Propuesta elegida |
+| Monolito modular por capacidad de negocio | Una aplicación lógica/codebase modular, límites explícitos, transacciones locales | Requiere disciplina y controles para que los límites no se erosionen | Elegida |
 
 ## Decisión
 
-Se **propone** construir la API del Portal como una **única aplicación lógica/codebase modular**: una base de código dividida en módulos por capacidad de negocio, con ownership explícito de sus datos y reglas. La cantidad de workloads, entrypoints y unidades de despliegue queda abierta para ADR-CLD-003.
+Se **decide** construir la API del Portal como una **única aplicación lógica/codebase modular**: una base de código dividida en módulos por capacidad de negocio, con ownership explícito de sus datos y reglas. La cantidad de workloads, entrypoints y unidades de despliegue queda abierta para ADR-CLD-003.
 
-### Mapa de módulos propuesto
+### Mapa de módulos
 
 | Módulo | Responsabilidad | Entidades F1 de las que es owner |
 | --- | --- | --- |
@@ -60,7 +60,7 @@ Se **propone** construir la API del Portal como una **única aplicación lógica
 | Documents | Metadatos de documentos adjuntos y autorización de acceso | Document |
 | Audit | Auditoría de negocio y eventos de funnel sin PII innecesaria | AuditEvent, eventos de analytics |
 
-El ABM administrativo (RN-13/14/15) no es un módulo aparte: cada operación la resuelve el módulo owner y la exposición para el rol Admin es un adaptador de entrada. Notificaciones y outbox son un mecanismo transversal cuya semántica se decide en ADR-SW-004 (previsto).
+El ABM administrativo (RN-13/14/15) no es un módulo aparte: cada operación la resuelve el módulo owner y la exposición para el rol Admin es un adaptador de entrada. Notificaciones y outbox son un mecanismo transversal cuya semántica decide [ADR-SW-004](../MAPS-110-asincronia-outbox-idempotencia/ADR-SW-004-outbox-asincronia-e-idempotencia.md).
 
 Quedan **fuera** del mapa y no deben crearse en el MVP: `checkout`, `payments`, `policies`, `contracts`, `leads` y `metrics` como módulo de negocio (el funnel vive en Audit sin entidad Lead, [RN-11](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md)).
 
@@ -93,9 +93,9 @@ Esta decisión **no** resuelve la estructura interna de cada módulo (ADR-SW-002
 
 | Impacto | Documento cloud afectado | Estado de revisión |
 | --- | --- | --- |
-| Una única aplicación lógica/codebase modular; la separación de API, worker y jobs en workloads o entrypoints queda abierta | ADR-CLD-003, TDD-CLD-002 (previstos) | Pendiente — Santiago Talavera |
-| Una base relacional compartida por los módulos: conexiones y concurrencia de los workloads/entrypoints que accedan a ella | TDD-CLD-003 (previsto) | Pendiente — Santiago Talavera |
-| Documentos privados accedidos sólo mediante el módulo Documents | TDD-CLD-004 (previsto) | Pendiente — Santiago Talavera |
+| Una única aplicación lógica/codebase modular; la separación de API, worker y jobs en workloads o entrypoints queda abierta | ADR-CLD-003, TDD-CLD-002 (previstos) | Pendiente de conformidad — Santiago Talavera |
+| Una base relacional compartida por los módulos: conexiones y concurrencia de los workloads/entrypoints que accedan a ella | TDD-CLD-003 (previsto) | Pendiente de conformidad — Santiago Talavera |
+| Documentos privados accedidos sólo mediante el módulo Documents | TDD-CLD-004 (previsto) | Pendiente de conformidad — Santiago Talavera |
 
 ## Riesgos y pendientes
 
@@ -104,8 +104,8 @@ Esta decisión **no** resuelve la estructura interna de cada módulo (ADR-SW-002
 | Ownership ambiguo entre Identity y Assignment sobre disponibilidad del Productor | Software | Confirmar en TDD-SW-001 que Identity es owner y Assignment la consulta |
 | Alcance de la inhabilitación | `PENDIENTE FUNCIONAL MAPS` | Los límites pueden definirse; RN-18/RN-19 fija baja lógica y, por decisión de alcance Kondor MVP, reasignación de solicitudes activas sin estados nuevos; el resto queda condicionado |
 | Campos de Mi perfil | `PENDIENTE FUNCIONAL MAPS` | Identity queda definido como owner; los campos esperan aprobación MAPS |
-| Scaffold con módulos fuera de alcance | Software | Reorganizar `apps/api/src/modules` según este mapa al aceptarse el ADR |
-| Revisión cruzada cloud sin completar | Santiago Talavera | Completar la tabla de revisión antes de pasar a `ACEPTADO` |
+| Scaffold con módulos fuera de alcance | Software | Reorganizar `apps/api/src/modules` según este mapa antes de iniciar F4 |
+| Revisión cruzada cloud sin conformidad registrada | Santiago Talavera | Registrar su conformidad en la tabla de revisión cruzada; los documentos cloud detallan esos impactos y, si alguno contradice esta decisión, se crea un ADR que reemplace a este |
 
 ## Criterios de revisión futura
 
