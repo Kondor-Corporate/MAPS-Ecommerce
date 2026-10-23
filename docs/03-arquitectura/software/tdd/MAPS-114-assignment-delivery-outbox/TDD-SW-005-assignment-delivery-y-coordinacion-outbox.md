@@ -64,6 +64,7 @@ Assignment (owner de Assignment y DeliveryAttempt)
 └── ports/out/
     ├── InsuranceRequestAssignmentPort   puerto de Requests (ports/in de Requests, TDD-SW-003)
     ├── ProducerAccountPort              consulta de elegibilidad de la cuenta de Productor (Identity, sólo lectura)
+    ├── ProducerDeliveryContactPort      resuelve transitoriamente la dirección vigente y la referencia de contacto (Identity, sólo lectura)
     ├── EmailProviderPort                envío con clave de idempotencia (adaptador cloud)
     ├── OutboxPort                       escritura de OutboxEvent en la misma unidad de trabajo (ADR-SW-004)
     ├── AuditPort
@@ -116,7 +117,7 @@ Assignment (owner de Assignment y DeliveryAttempt)
 | `numero` | Intento n-ésimo del Assignment; único por `(assignmentId, numero)` |
 | `tipo` | `DERIVACION` |
 | `destinatarioProducerId` | Productor destinatario |
-| `emailEnmascarado` | Dirección enmascarada (p. ej. `j***@dominio`). La dirección completa sólo vive en Identity y en el proveedor |
+| `emailEnmascarado` | Última dirección usada, enmascarada (p. ej. `j***@dominio`). La dirección completa sólo vive transitoriamente en Identity y en el proveedor |
 | `estadoTecnico` | `PENDIENTE`, `ACEPTADO`, `ENTREGADO`, `REBOTADO` o `FALLIDO` |
 | `providerMessageId` | Identificador del mensaje en el proveedor. Es **nulo al crear el intento** y puede llegar después del resultado síncrono; no es garantizado por todos los proveedores. Único junto con el proveedor cuando no es nulo |
 | `codigoError` | Código controlado, sin texto libre del proveedor |
@@ -130,10 +131,12 @@ Assignment (owner de Assignment y DeliveryAttempt)
 | `PENDIENTE` | `ACEPTADO` | Resultado síncrono del proveedor: aceptó el envío | Puede acreditar la entrega según la decisión 1 |
 | `PENDIENTE` | `FALLIDO` | Fallo permanente o agotamiento de reintentos automáticos | Incidencia para Admin |
 | `ACEPTADO` | `ENTREGADO` / `REBOTADO` | Sólo por webhook del proveedor | Si la decisión 1 es (B), `ENTREGADO` acredita la entrega |
-| `PENDIENTE` | `ENTREGADO` / `REBOTADO` | Webhook que llega antes que el resultado síncrono | Se acepta sólo si correlaciona por `providerMessageId` y el intento no es terminal |
+| `PENDIENTE` | `ENTREGADO` / `REBOTADO` | Webhook que llega antes que el resultado síncrono | Sólo se acepta si el proveedor expone un correlador temprano, autenticado y persistible (por ejemplo, `providerEventId` más metadata/custom args o la clave de idempotencia propagada) que permita asociarlo de forma unívoca al `DeliveryAttempt`; el contrato se confirma en TDD-CLD-005 |
 | `ENTREGADO`, `REBOTADO`, `FALLIDO` | — | Estados terminales del intento | Un webhook posterior se registra en `delivery_provider_event` sin cambiar el intento |
 
 Un webhook tardío o duplicado se guarda para auditoría. Si contradice un estado terminal (p. ej. `ENTREGADO` después de `REBOTADO`), se marca como **contradictorio** y genera una incidencia visible para Admin; no se corrige en silencio. Los reintentos crean un `DeliveryAttempt` nuevo, nunca reabren el anterior.
+
+**Correlación temprana.** Si el webhook llega antes de que se persista `providerMessageId`, no se supone que pueda correlacionarse por ese dato. Sólo se procesa cuando TDD-CLD-005 haya confirmado el correlador temprano del proveedor y su autenticidad. Si el proveedor no lo ofrece, el webhook se registra como evento pendiente de correlación, sin mutar `DeliveryAttempt`, `Assignment` ni `InsuranceRequest`; una vez persistido `providerMessageId`, un proceso de correlación lo asocia si la evidencia es unívoca. Si no puede asociarse, queda como incidencia auditada y no acredita entrega.
 
 Los reintentos automáticos de transporte **no** crean nuevos `DeliveryAttempt`: quedan en el `OutboxEvent` (`attempts`, `nextAttemptAt`). Cada `DeliveryAttempt` representa una decisión del Admin o de la asignación, no un reintento de red.
 
@@ -160,9 +163,10 @@ El handler `DerivationEventHandler` procesa el evento:
 1. **Revalidar que el Assignment sigue abierto** con `AssignmentQueryPort` y `InsuranceRequestAssignmentPort`. Si el Assignment ya no está en `PENDIENTE_ENTREGA`, si el `DeliveryAttempt` ya tiene resultado, o si el Productor no está `ACTIVA`, el evento pasa a `DESCARTADO` **sin enviar nada**. Así una reasignación, una cancelación, una baja o un reprocesamiento reducen los emails obsoletos o duplicados.
 
    **Limitación.** Entre esta revalidación y la llamada al proveedor puede ocurrir una cancelación o reasignación; el aviso puede salir igual. La garantía que este diseño ofrece es **no duplicar el resultado funcional** (la transición de estado ocurre una vez), no que el envío sea único. El envío duplicado residual se mitiga con la clave de idempotencia si el proveedor la respeta (TDD-CLD-005). La limitación debe reflejarse en ADR-SW-004 al revisarlo; esta enmienda no modifica ADR-SW-004.
-2. Armar el contenido mínimo (identificador de la solicitud, producto, fecha, nombre autorizado y enlace de acceso) con datos leídos en el momento, no del payload.
-3. Llamar a `EmailProviderPort.enviar(..., idempotencyKey)`.
-4. Llamar a `DeliveryResultPort.registrarResultado(attemptId, resultado)` con el resultado obtenido.
+2. Resolver mediante `ProducerDeliveryContactPort` la dirección **vigente** del Productor en ese instante. Cada envío —incluidos los reintentos automáticos de transporte— usa la dirección actual de Identity, no una dirección almacenada en Outbox o reutilizada desde un envío anterior. Se registra una resolución append-only con la dirección enmascarada, la referencia/version de contacto de Identity y la fecha; nunca la dirección completa.
+3. Armar el contenido mínimo (identificador de la solicitud, producto, fecha, nombre autorizado y enlace de acceso) con datos leídos en el momento, no del payload.
+4. Llamar a `EmailProviderPort.enviar(..., idempotencyKey)`.
+5. Llamar a `DeliveryResultPort.registrarResultado(attemptId, resultado)` con el resultado obtenido.
 
 El procesador **no** decide transiciones: sólo reporta. Ver [Aplicar el resultado](#aplicar-el-resultado).
 
@@ -207,7 +211,7 @@ Una unidad de trabajo:
 
 1. Cerrar el Assignment abierto de la solicitud (`EFECTIVO` o `PENDIENTE_ENTREGA`, por ejemplo si el Productor anterior todavía no había recibido la entrega) como `CERRADO` con `motivoCierre = BAJA_PRODUCTOR`, fecha, Admin y motivo.
 2. Insertar el nuevo Assignment en `PENDIENTE_ENTREGA`.
-3. **No** llamar a Requests: la solicitud permanece DERIVADA.
+3. Llamar a `InsuranceRequestAssignmentPort.reasignarDerivada(requestId, versionLeida)`: Requests valida que la solicitud siga `DERIVADA` y que no exista una `CancellationRequest` `SOLICITADA`, e incrementa `InsuranceRequest.version` sin cambiar `status`. Así serializa esta reasignación con cancelaciones y otras operaciones concurrentes, dentro de la misma UoW.
 4. Insertar `DeliveryAttempt` y `OutboxEvent`.
 5. Auditoría.
 
@@ -230,7 +234,7 @@ Un resultado de entrega posterior se descarta por la revalidación previa y la g
 
 ### Decidir cancelación de DERIVADA
 
-- **Aprobada:** misma coordinación; Assignment `EFECTIVO` → `CERRADO` con `motivoCierre = CANCELACION`; aviso al Productor; el acceso se revoca en el commit.
+- **Aprobada:** misma coordinación; el Assignment no cerrado (`EFECTIVO` o `PENDIENTE_ENTREGA`, por ejemplo durante una reasignación de DERIVADA) → `CERRADO` con `motivoCierre = CANCELACION`. El aviso al Productor y la revocación de acceso ocurren en el commit. Un resultado de Delivery posterior se registra como obsoleto y nunca vuelve a otorgar acceso.
 - **Rechazada:** no hay cambios en Assignment. La solicitud permanece DERIVADA; el aviso va al Cliente desde Requests (TDD-SW-003).
 
 ### Baja de Productor
@@ -259,7 +263,7 @@ El prototipo de PR #19 bloquea la baja mientras haya ASIGNADAS, lo que contradic
 
 ### Tablas lógicas
 
-`assignment`, `delivery_attempt`, `delivery_provider_event` (webhooks); `outbox_event` pertenece al componente Outbox ([ADR-SW-004](../../adr/MAPS-110-asincronia-outbox-idempotencia/ADR-SW-004-outbox-asincronia-e-idempotencia.md) §2).
+`assignment`, `delivery_attempt`, `delivery_recipient_resolution` (auditoría append-only de la dirección enmascarada y referencia/version de contacto usada en cada envío), `delivery_provider_event` (webhooks); `outbox_event` pertenece al componente Outbox ([ADR-SW-004](../../adr/MAPS-110-asincronia-outbox-idempotencia/ADR-SW-004-outbox-asincronia-e-idempotencia.md) §2).
 
 ### Restricciones
 
@@ -293,7 +297,7 @@ Los `DeliveryAttempt` y los Assignment cerrados se conservan junto con la solici
 
 - **Email minimizado.** Sólo identificador de la solicitud, producto, fecha, nombre autorizado y enlace de acceso (F1 §5). Nunca respuestas, documentos ni datos sensibles.
 - **El enlace no da acceso.** El Productor debe autenticarse y el acceso se decide por Assignment `EFECTIVO` (ADR-SW-005).
-- **Sin dirección completa en la base del Portal.** `emailEnmascarado` en `DeliveryAttempt`. La dirección completa vive en Identity y en el proveedor.
+- **Sin dirección completa en la base del Portal.** `emailEnmascarado` y `delivery_recipient_resolution` conservan sólo la dirección enmascarada y la referencia/version de contacto. La dirección completa vive transitoriamente en Identity y en el proveedor.
 - **Payload del outbox sin PII.** Sólo identificadores; los datos se leen al procesar (ADR-SW-004 §2).
 - **Webhooks autenticados.** La verificación de firma del proveedor la define TDD-CLD-005.
 - **Auditoría** de asignación, reasignación, cierre, intento, resultado, descarte por obsolescencia, reintento manual y baja. Con actor, acción, entidad y fecha, sin contenido del email.
@@ -326,7 +330,9 @@ De aplicación (con dobles de puertos):
 - Resultado duplicado: segunda aplicación sin efecto.
 - Evento de Assignment cerrado o de Productor en `BAJA`: `DESCARTADO` sin llamar al proveedor.
 - Reasignar DERIVADA: el Productor anterior pierde acceso en el mismo commit; el nuevo no lo tiene hasta el éxito.
+- Cancelación aprobada de DERIVADA durante una reasignación pendiente: cierra el Assignment `PENDIENTE_ENTREGA`; un resultado posterior queda obsoleto y no restaura acceso.
 - Reintento manual crea intento y clave nuevos; no reactiva el evento agotado.
+- Reintento automático o manual luego de un cambio de email: resuelve la dirección vigente, conserva sólo su máscara y referencia/version en la auditoría, y no replica la dirección completa en Outbox ni DeliveryAttempt.
 - Cancelar ASIGNADA produce un único aviso.
 - Rechazo de cancelación DERIVADA no cambia el Assignment.
 
@@ -335,7 +341,7 @@ De integración, con base real y proveedor simulado:
 - Carrera asignar vs. cancelar: sólo una gana; la otra recibe error de concurrencia o transición inválida.
 - Índice único parcial impide dos Assignment no cerrados para la misma solicitud.
 - Webhook duplicado: un solo registro y un solo cambio.
-- Webhook que llega antes que el resultado síncrono: correlaciona por `providerMessageId` y no duplica el cambio.
+- Webhook que llega antes que el resultado síncrono: sólo aplica resultado cuando existe el correlador temprano validado por TDD-CLD-005; sin él queda pendiente de correlación y no duplica ni adelanta el cambio funcional.
 - Webhook contradictorio sobre un intento terminal: queda registrado como contradictorio y genera incidencia, sin cambiar el intento.
 - Procesamiento doble de un mismo evento: el resultado funcional se aplica una sola vez. El envío duplicado residual se valida con el proveedor simulado y la clave de idempotencia, no se afirma como imposible.
 - Dos workers con el lease vencido sobre el mismo evento: sólo uno registra resultado; el otro queda descartado por el token de lease.
@@ -382,6 +388,16 @@ Revisión de Santiago Talavera en la PR #20 (Software–Cloud, TDD-SW-005). Cada
 | 5 | Máquina de resultados y webhooks | Tabla de transiciones y estados terminales; `providerMessageId` nulo al inicio; clave de `delivery_provider_event` corregida |
 | 6 | Concurrencia de reintentos, resultados y vigencia | [Concurrencia de reintentos, resultados y vigencia](#concurrencia-de-reintentos-resultados-y-vigencia) y pruebas de integración correspondientes |
 | — | Dependencias Cloud y funcionales | Decisiones 1, 2, 5 y 6 explícitas; ADR-SW-004 se revisa aparte para reflejar la limitación de envío |
+
+### Seguimiento de revisión 2026-10-22
+
+| Punto | Respuesta en este documento |
+| --- | --- |
+| Reconciliación con `main` | La rama se reconcilia preservando ADR-SW-004 y el contrato integrado de TDD-SW-003; este TDD usa sus estados `PENDIENTE_ENTREGA` / `EFECTIVO` / `CERRADO` |
+| `ReassignDerived` y Requests | [Reasignar DERIVADA](#reasignar-derivada-rn-19-decisión-de-alcance-kondor) invoca `InsuranceRequestAssignmentPort.reasignarDerivada` en la misma UoW; Requests valida y avanza `InsuranceRequest.version` sin cambiar `DERIVADA` |
+| Cancelación durante reasignación pendiente | [Decidir cancelación de DERIVADA](#decidir-cancelación-de-derivada) cierra el Assignment no cerrado, incluido `PENDIENTE_ENTREGA`; el resultado posterior queda obsoleto |
+| Webhook previo al resultado síncrono | [Estados técnicos](#deliveryattempt) y [Correlación temprana](#deliveryattempt) lo condicionan a un correlador auténtico que TDD-CLD-005 debe confirmar; sin él no hay transición funcional |
+| Dirección en reintentos | [Procesar la derivación](#procesar-la-derivación-fuera-de-la-unidad-de-trabajo) resuelve la dirección vigente por envío y registra sólo máscara + referencia/version de contacto |
 
 Pendiente, fuera de este documento: la revisión de ADR-SW-004 (limitación de envío y semántica de resultado) y la decisión 1, que depende de las capacidades del proveedor en TDD-CLD-005.
 

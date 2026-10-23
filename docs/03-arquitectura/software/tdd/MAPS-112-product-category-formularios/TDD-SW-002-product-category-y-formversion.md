@@ -39,7 +39,7 @@ No fija:
 | Retiro urgente deja el Product no disponible hasta publicar reemplazo | F2 §10 — CONFIRMADO | Disponibilidad derivada sin escritura cruzada entre módulos |
 | Precio cambiado con BORRADOR se informa y reconfirma; ENVIADA conserva el precio confirmado | RN-09, RF-SOL-04 — CONFIRMADO | Revisión de precio con referencia estable (ver [Precio](#precio)) |
 | Tipos y propiedades de campos | F1 §4 — preliminar/candidato; `PENDIENTE FUNCIONAL MAPS` | Se modelan tipos del contrato candidato y estructura de versionado; las propiedades finales quedan condicionadas |
-| Enlatados del prototipo (PR #19, pendiente de merge): Combinado Familiar, Incendio, Mascotas y Retiro | PR #19 — en revisión | Hay productos sin formulario propio en el prototipo; ver [Decisiones abiertas](#decisiones-abiertas) |
+| Enlatados del prototipo integrado mediante PR #19: Combinado Familiar, Incendio, Mascotas y Retiro | PR #19 — integrado en `main` | El conflicto de productos publicados sin formulario propio sigue abierto; ver [Decisiones abiertas](#decisiones-abiertas) |
 | Listado público sólo de productos activos, sin autenticación, ordenado por nombre | Antecedente TDD-0001 (MAPS-55, rama `docs/MAPS-55-tdd-catalogo-productos-enlatados`, sin merge) | Sólo antecedente. La baseline vigente es F2 §7 (PUB-01): catálogo público de Products publicados con categoría, precio y disponibilidad. Paginación, búsqueda y filtro se detallan en TDD-SW-008 |
 | PostgreSQL histórico de MAPS descartado como dependencia | [ADR-SW-003](../../adr/MAPS-108-persistencia-fronteras-transaccionales/ADR-SW-003-persistencia-y-fronteras-transaccionales.md) | Catálogo y formularios viven en la base nueva del Portal |
 
@@ -355,7 +355,7 @@ Dependencias: TDD-SW-006 para campos `file`; TDD-SW-004 para RBAC; TDD-SW-008 pa
 | Products publicados y no disponibles en el catálogo público | Kondor (F2) | Indicador `disponible` en la consulta | Decidir si se listan con la marca "no disponible" o se ocultan |
 | Aviso de retiro urgente a los BORRADOR afectados | MAPS | Outbox y plantilla técnica | Validación funcional del aviso (ADR-SW-004 lo marca como propuesta) |
 | Precio en la ficha: el prototipo muestra texto de ficha; el dominio modela monto ARS | MAPS | Modelo numérico con 2 decimales | Confirmar formato, impuestos incluidos o no, y moneda |
-| Bandera `publicado` del prototipo (`active:false`) frente a `publicado` del dominio | Kondor | Mismo significado de ocultar y publicar | Confirmar equivalencia al mergear el prototipo |
+| Bandera `publicado` del prototipo integrado (`active:false`) frente a `publicado` del dominio | Kondor | Mismo significado de ocultar y publicar | Validar equivalencia contra el prototipo integrado y registrar el ajuste, si corresponde |
 | Retención de versiones, precios y productos despublicados | MAPS | Marcas sin borrado físico | Plazos y eliminación aprobados |
 
 ## Referencias y trazabilidad
