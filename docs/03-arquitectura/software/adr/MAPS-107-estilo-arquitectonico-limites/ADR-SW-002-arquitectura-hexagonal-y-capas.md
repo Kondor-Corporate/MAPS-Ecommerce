@@ -7,7 +7,7 @@
 | Estado | `ACEPTADO` |
 | Fecha | 2026-09-30 |
 | Autor | Joaquin Rodriguez |
-| Revisores | Santiago Talavera — revisión cruzada Cloud favorable con observaciones; revisión técnica 2026-10-14 15:28 ART, constancia incorporada 2026-10-22 |
+| Revisores | Santiago Talavera (revisión cruzada cloud); pendiente de validación final |
 | Work item | [MAPS-107](https://santitalavera.atlassian.net/browse/MAPS-107) · subtarea [MAPS-133](https://santitalavera.atlassian.net/browse/MAPS-133) |
 | URL del work item | https://santitalavera.atlassian.net/browse/MAPS-107 |
 | Fase origen | [F1 §4/5/7, RN-03/07/08/09/10](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md), [F2 §9/10/12](../../../../02-diseno/Fase_2__Design_Handoff.md) |
@@ -88,9 +88,10 @@ Esta decisión **no** elige ORM, framework HTTP ni proveedores; sólo fija que q
 
 ## Revisión cruzada cloud
 
-**Revisor:** Santiago Talavera. **Fecha de revisión:** 2026-10-14 15:28 ART. **Resultado:** conformidad favorable con observaciones y pendientes derivados. **Antecedentes:** [PR #14](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/14) y decisión del owner registrada en [PR #23](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/23). **Constancia formal:** [PR #24](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/24), incorporada el 2026-10-22.
-
-El análisis detallado se publica como comentario individual en la PR #24. La materialización de entrypoints, identidades de workload, secretos, configuración y operación continúa en ADR-CLD-003 y TDD-CLD-003/006; los controles de imports y proporcionalidad se verifican durante la implementación.
+| Impacto | Documento cloud afectado | Estado de revisión |
+| --- | --- | --- |
+| Adaptadores de salida hacia email, storage y base implican credenciales y configuración inyectadas en el arranque | TDD-CLD-006 (previsto) | Pendiente de conformidad — Santiago Talavera |
+| Adaptadores de entrada para jobs/worker además de HTTP | ADR-CLD-003 (previsto) | Pendiente de conformidad — Santiago Talavera |
 
 ## Riesgos y pendientes
 
@@ -98,6 +99,7 @@ El análisis detallado se publica como comentario individual en la PR #24. La ma
 | --- | --- | --- |
 | Sobre-abstracción | Software | Revisar en code review contra el criterio de proporcionalidad |
 | Falta de control automático de dependencias | Software | Configurar reglas de imports antes de iniciar F4 |
+| Revisión cruzada cloud sin conformidad registrada | Santiago Talavera | Registrar su conformidad en la tabla de revisión cruzada; los documentos cloud detallan esos impactos y, si alguno contradice esta decisión, se crea un ADR que reemplace a este |
 
 ## Criterios de revisión futura
 
@@ -107,8 +109,7 @@ Revisar si el costo de mapeos supera el beneficio en módulos de puro ABM o si s
 
 | Fecha | Decisión | Participantes | Observaciones |
 | --- | --- | --- | --- |
-| 2026-10-14 | `ACEPTADO` | Joaquin Rodriguez (owner de software) | Aceptado por decisión del owner en PR #23; la autoría de esta decisión no se atribuye al revisor Cloud. |
-| 2026-10-22 | Constancia de revisión cruzada | Santiago Talavera (revisor Cloud) | Se formaliza el dictamen favorable con observaciones de la revisión técnica del 2026-10-14; no modifica ni duplica la decisión del owner. |
+| 2026-10-14 | `ACEPTADO` | Joaquin Rodriguez (owner de software) | Aceptado por decisión del owner. La revisión cruzada cloud con Santiago Talavera (tabla superior) sigue pendiente; esta entrada no registra su conformidad. |
 
 ## Referencias y trazabilidad
 

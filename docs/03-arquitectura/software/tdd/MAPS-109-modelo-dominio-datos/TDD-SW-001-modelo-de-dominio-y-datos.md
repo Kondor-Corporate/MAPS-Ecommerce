@@ -7,7 +7,7 @@
 | Estado | `APROBADO` |
 | Fecha | 2026-09-30 |
 | Autor | Joaquin Rodriguez |
-| Revisores | Santiago Talavera — revisión cruzada Cloud favorable con observaciones; revisión técnica 2026-10-14 18:13 ART, constancia incorporada 2026-10-22 |
+| Revisores | Santiago Talavera (revisión cruzada cloud); pendiente de validación final |
 | Work item | [MAPS-109](https://santitalavera.atlassian.net/browse/MAPS-109) · subtarea [MAPS-138](https://santitalavera.atlassian.net/browse/MAPS-138) |
 | URL del work item | https://santitalavera.atlassian.net/browse/MAPS-109 |
 | Fase origen | [F0 §0.4/0.5/0.6](../../../../00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md), [F1 §2/3/4/5/7, RN-02 a RN-20](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md), [F2 §5/6/8/9/10/12/13](../../../../02-diseno/Fase_2__Design_Handoff.md) |
@@ -170,12 +170,6 @@ Este TDD no decide servicio, tamaño, región ni configuración; al redactarse e
 
 Cada transición de estado, asignación, intento de entrega y decisión de cancelación genera un AuditEvent consultable por el Admin. Métricas e integración con telemetría quedan para TDD-SW-007 y TDD-CLD-007.
 
-## Revisión cruzada Cloud — 14/10/2026
-
-**Revisor:** Santiago Talavera. **Hora:** 18:13 ART. **Resultado:** conformidad favorable con observaciones y pendientes derivados. **Antecedentes:** [PR #14](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/14) y aprobación del owner registrada en [PR #23](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/23). **Constancia formal:** [PR #24](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/24), incorporada el 2026-10-22.
-
-El análisis detallado se publica como comentario individual en la PR #24. Los contratos de formularios, concurrencia de Assignment/Delivery, almacenamiento privado, conexiones y observabilidad continúan en TDD-SW-002/003/005 y TDD-CLD-003/004/007; la conformidad no cierra esos diseños.
-
 ## Pruebas y criterios de fallo
 
 - Transiciones válidas e inválidas de InsuranceRequest, incluido que CANCELADA no tenga salidas y que descartar un BORRADOR no lo lleve a CANCELADA.
@@ -210,4 +204,4 @@ Secuencia sugerida: Identity y Catalog → Forms → Requests (BORRADOR/ENVIADA)
 
 ## Criterio de aprobación
 
-`APROBADO` el 2026-10-14 por el owner de software: ADR-SW-001/002/003 están `ACEPTADO` y se validaron entidades, estados, invariantes, snapshots y pendientes explícitos. La revisión cruzada Cloud del mismo día fue favorable con las observaciones formalizadas el 2026-10-22. Las decisiones abiertas siguen abiertas: aprobar el TDD no cierra un `PENDIENTE FUNCIONAL MAPS` ni acepta anticipadamente los documentos derivados. Si una de ellas cambia el modelo, se actualiza este TDD o se crea uno que lo reemplace.
+`APROBADO` el 2026-10-14 por el owner de software: ADR-SW-001/002/003 están `ACEPTADO` y se validaron entidades, estados, invariantes, snapshots y pendientes explícitos. Las decisiones abiertas de este documento siguen abiertas: aprobar el TDD no cierra un `PENDIENTE FUNCIONAL MAPS`. La conformidad de la revisión cruzada cloud de Santiago Talavera sigue pendiente y no se registra anticipadamente. Si una de ellas cambia el modelo, se actualiza este TDD o se crea uno que lo reemplace.
