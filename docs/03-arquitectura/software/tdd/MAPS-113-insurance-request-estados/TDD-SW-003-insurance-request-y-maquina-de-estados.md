@@ -4,15 +4,15 @@
 | --- | --- |
 | ID | `TDD-SW-003` |
 | Título | InsuranceRequest, snapshots y máquina de estados |
-| Estado | `EN REVISIÓN` |
+| Estado | `APROBADO` |
 | Fecha | 2026-10-01 |
 | Autor | Joaquin Rodriguez |
-| Revisores | Santiago Talavera (revisión cruzada cloud; conformidad pendiente) |
+| Revisores | Santiago Talavera — revisión cruzada Cloud favorable con cambios; conformidad final `APPROVED` en PR #17 el 2026-10-17, constancia incorporada 2026-10-22 |
 | Work item | [MAPS-113](https://santitalavera.atlassian.net/browse/MAPS-113) · subtarea [MAPS-140](https://santitalavera.atlassian.net/browse/MAPS-140) |
 | URL del work item | https://santitalavera.atlassian.net/browse/MAPS-113 |
 | Fase origen | [F1 §2/3/4, RN-02/03/06/07/08/09/10/18/19, RF-SOL-01 a 05](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md), [F2 §5/6/8/10/12](../../../../02-diseno/Fase_2__Design_Handoff.md) |
 | Decisiones relacionadas | [ADR-SW-001](../../adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-001-monolito-modular-y-limites.md); [ADR-SW-002](../../adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-002-arquitectura-hexagonal-y-capas.md); [ADR-SW-003](../../adr/MAPS-108-persistencia-fronteras-transaccionales/ADR-SW-003-persistencia-y-fronteras-transaccionales.md); [ADR-SW-004](../../adr/MAPS-110-asincronia-outbox-idempotencia/ADR-SW-004-outbox-asincronia-e-idempotencia.md); [ADR-SW-005](../../adr/MAPS-111-identidad-autorizacion/ADR-SW-005-identidad-y-autorizacion.md); [TDD-SW-001](../MAPS-109-modelo-dominio-datos/TDD-SW-001-modelo-de-dominio-y-datos.md); TDD-SW-002 y TDD-SW-005 (previstos, sin redactar) |
-| Depende de | ADR-SW-001/002/003 (`ACEPTADO`), ADR-SW-004/005 (`PROPUESTO`) y TDD-SW-001 (`APROBADO`) |
+| Depende de | ADR-SW-001/002/003/004/005 (`ACEPTADO`) y TDD-SW-001 (`APROBADO`) |
 | Reemplaza | No aplica |
 | Reemplazado por | No aplica |
 
@@ -220,6 +220,12 @@ Sin migración de datos desde el PostgreSQL histórico de MAPS. El enum de estad
 - Las métricas y registros no incluyen PII ni respuestas de formularios (TDD-CLD-007).
 - Integración con telemetría: TDD-SW-007 y TDD-CLD-007.
 
+## Revisión cruzada Cloud — 14/10/2026
+
+**Revisor:** Santiago Talavera. **Resultado:** favorable con cambios solicitados, incorporados antes de la conformidad final `APPROVED` del 2026-10-17 en la [PR #17](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/17). **Constancia formal:** [PR #24](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/24), incorporada el 2026-10-22.
+
+El análisis detallado y la distinción entre observaciones originales y correcciones ya incorporadas se publican como comentario individual en la PR #24. Los contratos de Catalog/Forms, Assignment/Delivery, concurrencia de PostgreSQL, resultados externos e idempotencia operativa continúan en TDD-SW-002/005 y TDD-CLD-003/005; la aprobación no los cierra.
+
 ## Pruebas y criterios de fallo
 
 Unitarias sobre `RequestStateMachine` (sin infraestructura):
@@ -275,4 +281,4 @@ Secuencia sugerida: dominio y `RequestStateMachine` con pruebas → `CreateDraft
 
 ## Criterio de aprobación
 
-`EN REVISIÓN` desde el 2026-10-14: la revisión cruzada cloud de Santiago Talavera dictaminó favorable al modelo y a la máquina de estados, con cambios solicitados. Puede pasar a `APROBADO` cuando esos cambios queden conformes, ADR-SW-004/005 estén `ACEPTADO` y el revisor registre su conformidad. Las decisiones abiertas de este documento siguen abiertas; si una de ellas cambia la máquina de estados, se actualiza este TDD o se crea uno que lo reemplace.
+`APROBADO` mediante formalización documental del 2026-10-22 basada en la aceptación explícita de PR #17 y en la conformidad final de la revisión cruzada Cloud, registrada como `APPROVED` el 2026-10-17. No se atribuye al owner una nueva intervención. La aprobación no cierra las decisiones abiertas ni acepta anticipadamente TDD-SW-002/005 o los ADR/TDD Cloud derivados. Si una decisión posterior cambia la máquina de estados, se actualiza este TDD o se crea uno que lo reemplace.
