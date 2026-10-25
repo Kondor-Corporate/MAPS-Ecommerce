@@ -9,6 +9,7 @@ F3 traduce la [baseline funcional F0](../00-proyecto/Fase_0__Kickoff__Gobierno_d
 | Recurso | Uso |
 | --- | --- |
 | [Trazabilidad F0/F1/F2 → F3 → F4](./traceability.md) | Relacionar reglas, artefactos técnicos y trabajo posterior sin anticipar IDs de tickets. |
+| [Matriz de dependencias Software ↔ Cloud](./dependency-matrix.md) | Coordinar contratos Software, decisiones Cloud, pendientes funcionales y bloqueos reales durante F3. |
 | [Plantilla ADR](./templates/ADR-template.md) | Registrar qué decisión se propone o acepta, alternativas y consecuencias. |
 | [Plantilla TDD](./templates/TDD-template.md) | Diseñar cómo se materializa una decisión en MAPS. |
 | [Software y dominio](./software/README.md) | Alcance, ownership y catálogo previsto de ADR/TDD software. |
