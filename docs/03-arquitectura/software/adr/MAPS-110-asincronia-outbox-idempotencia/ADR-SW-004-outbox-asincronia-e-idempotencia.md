@@ -4,10 +4,10 @@
 | --- | --- |
 | ID | `ADR-SW-004` |
 | Título | Outbox transaccional, asincronía e idempotencia de efectos externos |
-| Estado | `PROPUESTO` |
+| Estado | `ACEPTADO` |
 | Fecha | 2026-10-01 |
 | Autor | Joaquin Rodriguez |
-| Revisores | Santiago Talavera (revisión cruzada cloud; conformidad pendiente) |
+| Revisores | Santiago Talavera — revisión cruzada Cloud favorable con cambios; conformidad final `APPROVED` en PR #17 el 2026-10-17, constancia incorporada 2026-10-22 |
 | Work item | [MAPS-110](https://santitalavera.atlassian.net/browse/MAPS-110) · subtarea [MAPS-135](https://santitalavera.atlassian.net/browse/MAPS-135) |
 | URL del work item | https://santitalavera.atlassian.net/browse/MAPS-110 |
 | Fase origen | [F0 §0.4/0.5](../../../../00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md), [F1 §3/5, RN-06/07/10/18/19, RF-DELIVERY-01, RNF-COM-01](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md), [F2 §5/12](../../../../02-diseno/Fase_2__Design_Handoff.md) |
@@ -182,12 +182,9 @@ Esta decisión **no** elige proveedor de email, cola gestionada ni runtime del p
 
 ## Revisión cruzada cloud
 
-| Impacto | Documento cloud afectado | Estado de revisión |
-| --- | --- | --- |
-| Runtime del procesador (worker dedicado, job programado o mismo artefacto con otro entrypoint) y su escalado | ADR-CLD-003, TDD-CLD-002 (previstos) | Pendiente de conformidad — Santiago Talavera |
-| Proveedor de email, credenciales, webhooks de resultado, valores de reintento y espera | TDD-CLD-005, TDD-CLD-006 (previstos) | Pendiente de conformidad — Santiago Talavera |
-| Carga adicional sobre la base (lectura periódica del outbox, bloqueo de filas) y depuración | TDD-CLD-003 (previsto) | Pendiente de conformidad — Santiago Talavera |
-| Alertas sobre eventos atascados o agotados | TDD-CLD-007 (previsto) | Pendiente de conformidad — Santiago Talavera |
+**Revisor:** Santiago Talavera. **Revisión original:** 2026-10-14. **Resultado:** favorable con cambios solicitados, incorporados antes de la conformidad final `APPROVED` del 2026-10-17 en la [PR #17](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/17). **Constancia formal:** [PR #24](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/24), incorporada el 2026-10-22.
+
+El análisis detallado y la distinción entre observaciones originales y correcciones ya incorporadas se publican como comentario individual en la PR #24. Runtime, proveedor, reintentos, webhooks, claims/leases, seguridad y observabilidad continúan en TDD-SW-005 y ADR-CLD-003 / TDD-CLD-003/005/006/007; esta aceptación no los resuelve.
 
 ## Riesgos y pendientes
 
@@ -201,7 +198,6 @@ Esta decisión **no** elige proveedor de email, cola gestionada ni runtime del p
 | Aviso compensatorio ante envío obsoleto en reasignación | `PENDIENTE FUNCIONAL MAPS` | Sólo se incorpora si MAPS lo aprueba como notificación nueva (punto 6) |
 | SLA de derivación y tratamiento operativo de incidencias | `PENDIENTE FUNCIONAL MAPS` | Reintentos técnicos e incidencia visible avanzan; plazos y acciones operativas adicionales quedan condicionados |
 | Handlers no idempotentes | Software | Pruebas de doble procesamiento obligatorias por handler |
-| Revisión cruzada cloud sin conformidad registrada | Santiago Talavera | Registrar su conformidad en la tabla de revisión cruzada; los documentos cloud detallan esos impactos y, si alguno contradice esta decisión, se crea un ADR que reemplace a este |
 
 ## Criterios de revisión futura
 
@@ -212,6 +208,7 @@ Revisar si el volumen de eventos o la latencia requerida justifican un broker ge
 | Fecha | Decisión | Participantes | Observaciones |
 | --- | --- | --- | --- |
 | 2026-10-14 | `PROPUESTO` | Joaquin Rodriguez (owner de software) | Propuesto en el PR #17 (contrato de outbox, idempotencia, reintentos y descarte de eventos obsoletos). La revisión cruzada cloud de Santiago Talavera (2026-10-14) dictaminó favorable al enfoque con cambios solicitados; su conformidad y la aceptación se registran cuando se cierren |
+| 2026-10-22 | `ACEPTADO` | Formalización documental basada en PR #17 | Se registra el estado resultante de la aceptación explícita y de las correcciones incorporadas en PR #17. No se atribuye al owner una nueva intervención ni al reviewer Cloud la autoría de la decisión Software. |
 
 ## Referencias y trazabilidad
 
