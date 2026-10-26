@@ -68,7 +68,7 @@ Quedan **fuera** del mapa y no deben crearse en el MVP: `checkout`, `payments`, 
 
 - Un módulo escribe sólo sus propios datos y no importa repositorios, modelos de persistencia ni tablas de otro módulo.
 - La comunicación entre módulos se hace por contratos públicos de aplicación (consultas y comandos) o eventos de dominio definidos; nunca por acceso directo a su almacenamiento.
-- No se permiten dependencias circulares entre módulos. Dirección esperada: Requests depende de Catalog, Forms e Identity; Assignment depende de Requests e Identity; Audit recibe eventos de todos y no es dependido por ninguno.
+- No se permiten dependencias circulares entre módulos. Dirección esperada: Requests depende de Catalog, Forms e Identity; Catalog depende de Forms sólo en lectura, para la regla de disponibilidad (ver [Enmienda 2026-10-15](#enmienda-2026-10-15-dependencia-catalog--forms)); Assignment depende de Requests e Identity; Audit recibe eventos de todos y no es dependido por ninguno.
 - Los módulos comparten proceso y, inicialmente, base de datos como infraestructura; el ownership lógico de cada tabla es de un solo módulo ([ADR-SW-003](../MAPS-108-persistencia-fronteras-transaccionales/ADR-SW-003-persistencia-y-fronteras-transaccionales.md)).
 - Un caso de uso que necesita atomicidad entre módulos se coordina desde el módulo que inicia la operación, usando los contratos de los demás dentro de la misma unidad de trabajo.
 
@@ -108,11 +108,21 @@ El análisis detallado se publica como comentario individual en la PR #24. La to
 
 Revisar si un módulo necesita escalar, desplegarse, protegerse u operarse de forma independiente, o si aparecen límites de datos y transacciones autónomos. Si cambia un ADR aceptado, crear uno nuevo que reemplace a `ADR-SW-001`.
 
+## Enmienda 2026-10-15: dependencia Catalog → Forms
+
+Durante la revisión cruzada de [TDD-SW-002](../../tdd/MAPS-112-product-category-formularios/TDD-SW-002-product-category-y-formversion.md) se detectó que la disponibilidad derivada de Product necesita saber si existe una `FormVersion` utilizable, lo que añade una dependencia de **Catalog hacia Forms** que la lista de direcciones esperadas no incluía. Esta enmienda la registra; no cambia la decisión de monolito modular ni el mapa de módulos.
+
+- **Qué se añade:** Catalog puede depender de Forms **sólo en lectura**, mediante el puerto de consulta `FormsQueryPort.esUtilizable(formVersionId)`. Forms no depende de Catalog ni escribe datos de Catalog.
+- **Qué no cambia:** Catalog sigue siendo owner de `publicado`, de la disponibilidad y de sus datos; Forms sigue siendo owner de `FormVersion` y su estado. Catalog no lee tablas de Forms.
+- **Alternativa descartada:** que Requests o la capa de consulta compongan `publicado` (Catalog) con `versión utilizable` (Forms). Se descarta porque ADR-SW-001 asigna la disponibilidad a Catalog.
+- **Trazabilidad:** la dirección de dependencias de la sección [Reglas de límites](#reglas-de-límites) y el contrato en TDD-SW-002 se actualizan con esta enmienda. Un cambio posterior de esta dependencia requiere un ADR nuevo que reemplace a este.
+
 ## Registro de decisión
 
 | Fecha | Decisión | Participantes | Observaciones |
 | --- | --- | --- | --- |
 | 2026-10-14 | `ACEPTADO` | Joaquin Rodriguez (owner de software) | Aceptado por decisión del owner en PR #23; la autoría de esta decisión no se atribuye al revisor Cloud. |
+| 2026-10-15 | Enmienda: dependencia Catalog → Forms en lectura | Joaquin Rodriguez (owner de software) | Ver [Enmienda 2026-10-15](#enmienda-2026-10-15-dependencia-catalog--forms). Sin cambio de estado; registrada en PR #20 a partir de la revisión cruzada de TDD-SW-002. |
 | 2026-10-22 | Constancia de revisión cruzada | Santiago Talavera (revisor Cloud) | Se formaliza el dictamen favorable con observaciones de la revisión técnica del 2026-10-14; no modifica ni duplica la decisión del owner. |
 
 ## Referencias y trazabilidad
