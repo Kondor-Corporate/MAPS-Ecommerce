@@ -167,7 +167,7 @@ Consecuencias:
 
 - El Productor pierde el acceso desde la siguiente request. El nuevo Productor lo obtiene recién cuando su entrega se acredita como exitosa; entre ambos momentos nadie del lado Productor ve el caso, como ya establece TDD-SW-003.
 - Si no existe otro Productor habilitado, la baja se bloquea con `SIN_PRODUCTOR_DISPONIBLE` y la lista de casos afectados. Es una validación defensiva: con la cantidad de Productores esperada es un caso improbable.
-- Si otra operación modifica un caso afectado mientras tanto (por ejemplo, el Cliente cancela una ENVIADA o ASIGNADA), la operación falla completa con `CONFLICTO_CONCURRENCIA` y el Admin reintenta sobre el estado nuevo.
+- Si otra operación modifica un caso afectado mientras tanto (por ejemplo, el Cliente cancela una ENVIADA o ASIGNADA), la operación falla completa con `CONFLICTO_CONCURRENCIA` y el Admin reintenta sobre el estado nuevo. Decisión de diseño: no se reintentan parcialmente los casos que cambiaron; es lo más simple y seguro para el MVP.
 - Si la entrega al nuevo Productor falla, la incidencia queda visible para el Admin, que reintenta o vuelve a reasignar (TDD-SW-003).
 
 ### Baja y reactivación de Cliente
@@ -282,12 +282,12 @@ Dependencias entre equipos: ADR-CLD-007 y TDD-CLD-006 antes de integrar un prove
 | Alcance de la inhabilitación de Productor (RN-20) | MAPS | Indicador `disponible` sin estado nuevo | MAPS cierra RN-20 |
 | Campos de Mi perfil (MAPS-97) | MAPS; Kondor propone | Frontera de autorización y propuesta de perfil básico (nombre y datos de contacto, sin datos sensibles) | Aprobación de MAPS |
 | Alta de Cliente por Admin (F2 ADM-10) | Kondor + MAPS | Fuera del MVP; la invitación puede generalizarse a otros roles | Confirmar con MAPS si se requiere |
-| Carga inicial de unos 200 Productores | Kondor + MAPS | ABM e invitación individual | Decidir en F4 si hace falta importación e invitación masiva |
+| Carga inicial de unos 200 Productores | Kondor + MAPS | Decidido: alta e invitación individual en el MVP | Importación e invitación masivas se evalúan en F4 |
 | Textos y versión de consentimientos del registro | MAPS | Paso de registro con punto de extensión | Textos aprobados |
 | Factibilidad en el proveedor: cuenta única por rol, MFA de Admin, bloqueo del cambio de email por el usuario, revocación de sesiones, eventos de login | Software + Cloud | Diseño detrás de `IdentityProviderPort` | ADR-CLD-007 |
 | Validación de tokens y TTL de una eventual caché | Software + Cloud | Contrato del puerto | TDD-CLD-006 |
 | Módulo coordinador y tamaño de la baja guiada ante un Productor con muchos casos | Software | Contrato propuesto | TDD-SW-005 |
-| Vencimiento de la invitación (7 días iniciales) | Kondor | Parámetro configurable | Confirmar con la operación |
+| Vencimiento de la invitación | Kondor | Decidido: 7 días iniciales, configurable | Ajustar con la operación si hace falta |
 | Almacenamiento y consulta de la auditoría | Software + Cloud | Catálogo de eventos de este TDD | TDD-SW-007 y TDD-CLD-007 |
 
 ## Referencias y trazabilidad
