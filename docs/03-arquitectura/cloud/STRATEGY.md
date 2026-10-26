@@ -10,7 +10,7 @@
 
 Esta estrategia ordena preguntas y dependencias para los [ADR/TDD Cloud](./README.md). `ADR-CLD-000` adopta GCP como plataforma del MVP; los servicios y el diseño concreto pertenecen a los artefactos derivados. No cierra F1/F2, no modifica la baseline funcional y no sustituye la [trazabilidad por artefacto](../traceability.md). En `main`, `ADR-SW-001/002/003/004/005` están **ACEPTADOS** y `TDD-SW-001/003` están **APROBADOS**. Los documentos vinculados a la PR #17 ya estaban integrados en `main`; la PR #24 formalizó los estados de `ADR-SW-004/005` y `TDD-SW-003`, y registró la revisión cruzada Cloud de los siete documentos Software.
 
-La [PR #17](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/17) y la [PR #24](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/24) están integradas en `main`. Como contexto todavía no integrado, la [PR #20](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/20) sigue abierta —no Draft en GitHub— y contiene `TDD-SW-002/005` en **BORRADOR**. Esos estados coordinan fronteras sin cerrar decisiones abiertas.
+La [PR #17](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/17), la [PR #24](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/24) y la [PR #20](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/20) están integradas en `main`. `TDD-SW-002/005` permanecen **BORRADOR** en la baseline; su integración no implica aprobación y sus bloqueantes funcionales siguen abiertos.
 
 ```text
 F0 / F1 / F2                  qué producto construimos
@@ -162,7 +162,7 @@ ASIGNADA → Delivery requerido
           └── éxito requerido: puede pasar a DERIVADA
 ```
 
-Software define la semántica de `Delivery`, `DeliveryAttempt`, outbox, claims/leases, idempotencia y transición funcional. `ADR-SW-004` está **ACEPTADO** en `main` (integrado mediante PR #17 y formalizado en PR #24); `TDD-SW-005` permanece **BORRADOR** en la PR #20 y mantiene abierta la decisión entre aceptación del proveedor con `providerMessageId` y entrega confirmada por webhook como evidencia requerida. Cloud evalúa runtime, triggers, retries/backoff, mensajes fallidos, recuperación operativa, observabilidad, capacidades del proveedor, autenticidad de webhooks, bounces y garantías reales (`ADR-CLD-003` / `TDD-CLD-005`, previstos). No se elige aquí ninguna semántica: la resolución corresponde a Software/MAPS/Kondor y su materialización posterior a `TDD-CLD-005`.
+Software define la semántica de `Delivery`, `DeliveryAttempt`, outbox, claims/leases, idempotencia y transición funcional. `ADR-SW-004` está **ACEPTADO** en `main` (integrado mediante PR #17 y formalizado en PR #24); `TDD-SW-005` permanece **BORRADOR** en `main` y mantiene abierta la decisión entre aceptación del proveedor con `providerMessageId` y entrega confirmada por webhook como evidencia requerida. Cloud evalúa runtime, triggers, retries/backoff, mensajes fallidos, recuperación operativa, observabilidad, capacidades del proveedor, autenticidad de webhooks, bounces y garantías reales (`ADR-CLD-003` / `TDD-CLD-005`, previstos). No se elige aquí ninguna semántica: la resolución corresponde a Software/MAPS/Kondor y su materialización posterior a `TDD-CLD-005`.
 
 ## 14. Observabilidad
 
@@ -253,7 +253,7 @@ Salvo `ADR-CLD-000`, los IDs son reservas de catálogo, no ADR redactados ni ace
 | `TDD-SW-007` previsto | `ADR-CLD-006` / `TDD-CLD-007` previstos | Software define eventos de negocio; Cloud opera telemetría. |
 | `TDD-SW-008` previsto | Entrada pública/API | Software define contrato API; Cloud define exposición/routing. |
 
-`TDD-SW-001/003` están **APROBADOS** en `main`; `TDD-SW-003` fue integrado mediante PR #17 y formalizado junto con su revisión cruzada en PR #24. `TDD-SW-002/005` permanecen **BORRADOR** en la PR #20 abierta. **Software define semántica; Cloud define materialización y operación.** Los documentos deberán enlazarse entre sí sin duplicar decisiones ni presentar ramas abiertas como baseline integrada.
+`TDD-SW-001/003` están **APROBADOS** en `main`; `TDD-SW-003` fue integrado mediante PR #17 y formalizado junto con su revisión cruzada en PR #24. `TDD-SW-002/005` permanecen **BORRADOR** en `main`; la integración de la PR #20 no implica aprobación. **Software define semántica; Cloud define materialización y operación.** Los documentos deberán enlazarse entre sí sin duplicar decisiones ni confundir estado borrador con aprobación.
 
 ## 22. Pendientes funcionales MAPS
 
