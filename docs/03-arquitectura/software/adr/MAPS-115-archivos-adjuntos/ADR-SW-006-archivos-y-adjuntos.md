@@ -10,7 +10,7 @@
 | Revisores | Santiago Talavera — revisión cruzada Cloud/seguridad pendiente |
 | Work item | [MAPS-115](https://santitalavera.atlassian.net/browse/MAPS-115) · subtarea [MAPS-137](https://santitalavera.atlassian.net/browse/MAPS-137) |
 | URL del work item | https://santitalavera.atlassian.net/browse/MAPS-115 |
-| Fase origen | [F0 §0.6/0.9](../../../../00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md), [F1 RNF-SEC-01](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md), [F2 §7/14/16](../../../../02-diseno/Fase_2__Design_Handoff.md) |
+| Fase origen | [F0 §0.6/0.7/0.9](../../../../00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md), [F1 §6, RN-18/RN-19, RNF-SEC-01](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md), [F2 §7/14/16](../../../../02-diseno/Fase_2__Design_Handoff.md) |
 | Decisiones relacionadas | [ADR-SW-001](../MAPS-107-estilo-arquitectonico-limites/ADR-SW-001-monolito-modular-y-limites.md); [ADR-SW-002](../MAPS-107-estilo-arquitectonico-limites/ADR-SW-002-arquitectura-hexagonal-y-capas.md); [ADR-SW-005](../MAPS-111-identidad-autorizacion/ADR-SW-005-identidad-y-autorizacion.md); [TDD-SW-001](../../tdd/MAPS-109-modelo-dominio-datos/TDD-SW-001-modelo-de-dominio-y-datos.md); TDD-SW-006 y TDD-CLD-004 (previstos, sin redactar) |
 | Depende de | ADR-SW-001, ADR-SW-002 y ADR-SW-005, todos `ACEPTADO`; retención y eliminación funcional `PENDIENTE FUNCIONAL MAPS`; diseño de storage en TDD-CLD-004 |
 | Reemplaza | No aplica |
@@ -33,7 +33,7 @@ El módulo `Documents` guarda los metadatos del archivo y la referencia al objet
 | Archivos privados; nunca públicos ni accesibles por un enlace permanente | Alta | F1 RNF-SEC-01 |
 | Misma autorización que la solicitud (RBAC + ownership, deny by default) | Alta | [ADR-SW-005](../MAPS-111-identidad-autorizacion/ADR-SW-005-identidad-y-autorizacion.md) |
 | Mantener la API liviana en un runtime serverless con límites por request | Alta | Supuesto de Cloud Run, a confirmar en ADR-CLD-003 |
-| Minimizar datos personales en logs, auditoría y analytics | Alta | F0 §0.9 |
+| Minimizar datos personales en logs, auditoría y analytics | Alta | F0 §0.7; F1 §6 |
 | El BORRADOR admite adjuntos faltantes; el envío exige completitud | Alta | F2 §7 |
 | Lo que ven Admin y Productor no cambia después de enviar | Alta | F2 §7; coherencia con ENVIADA |
 | Simplicidad para el MVP y reversibilidad | Media | — |
@@ -116,6 +116,6 @@ Si cambia un ADR aceptado, se crea un ADR nuevo con `Reemplaza` y se marca el an
 
 ## Referencias y trazabilidad
 
-- Fuentes F0/F1/F2: [F0 §0.6/0.9](../../../../00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md); [F1 RNF-SEC-01, RN-18/RN-19](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md); [F2 §7/14/16](../../../../02-diseno/Fase_2__Design_Handoff.md).
+- Fuentes F0/F1/F2: [F0 §0.6/0.7/0.9](../../../../00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md); [F1 §6, RNF-SEC-01, RN-18/RN-19](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md); [F2 §7/14/16](../../../../02-diseno/Fase_2__Design_Handoff.md).
 - ADR/TDD relacionados: [ADR-SW-001](../MAPS-107-estilo-arquitectonico-limites/ADR-SW-001-monolito-modular-y-limites.md), [ADR-SW-002](../MAPS-107-estilo-arquitectonico-limites/ADR-SW-002-arquitectura-hexagonal-y-capas.md), [ADR-SW-005](../MAPS-111-identidad-autorizacion/ADR-SW-005-identidad-y-autorizacion.md), [TDD-SW-001](../../tdd/MAPS-109-modelo-dominio-datos/TDD-SW-001-modelo-de-dominio-y-datos.md); previstos TDD-SW-006 y TDD-CLD-004.
 - Fila de [traceability.md](../../../traceability.md): adjuntos privados, acceso autorizado y retención pendiente.
