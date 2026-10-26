@@ -8,11 +8,11 @@
 | Fecha | 2026-10-15 |
 | Autor | Joaquin Rodriguez |
 | Revisores | Santiago Talavera (revisión cruzada cloud sobre publicación, almacenamiento y consistencia); pendiente de validación final |
-| Work item | [MAPS-112](https://santitalavera.atlassian.net/browse/MAPS-112) · subtarea pendiente de identificar |
+| Work item | [MAPS-112](https://santitalavera.atlassian.net/browse/MAPS-112) · subtarea [MAPS-139](https://santitalavera.atlassian.net/browse/MAPS-139) |
 | URL del work item | https://santitalavera.atlassian.net/browse/MAPS-112 |
 | Fase origen | [F0 §0.2/0.3](../../../../00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md), [F1 §4/7, RN-08/09/13, RF-PROD-01, RF-CAT-01, RF-FORM-01, RF-SOL-04](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md), [F2 §9/10](../../../../02-diseno/Fase_2__Design_Handoff.md) |
 | Decisiones relacionadas | [ADR-SW-001](../../adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-001-monolito-modular-y-limites.md); [ADR-SW-002](../../adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-002-arquitectura-hexagonal-y-capas.md); [ADR-SW-003](../../adr/MAPS-108-persistencia-fronteras-transaccionales/ADR-SW-003-persistencia-y-fronteras-transaccionales.md); [ADR-SW-004](../../adr/MAPS-110-asincronia-outbox-idempotencia/ADR-SW-004-outbox-asincronia-e-idempotencia.md); [TDD-SW-001](../MAPS-109-modelo-dominio-datos/TDD-SW-001-modelo-de-dominio-y-datos.md); [TDD-SW-003](../MAPS-113-insurance-request-estados/TDD-SW-003-insurance-request-y-maquina-de-estados.md); TDD-SW-004, TDD-SW-006 y TDD-SW-008 (previstos, sin redactar) |
-| Depende de | ADR-SW-001 (`ACEPTADO`, con [enmienda 2026-10-15](../../adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-001-monolito-modular-y-limites.md#enmienda-2026-10-15-dependencia-catalog--forms)), ADR-SW-002 y ADR-SW-003 (`ACEPTADO`); ADR-SW-004 (`PROPUESTO`); TDD-SW-001 (`APROBADO`). Contrato definitivo de formularios: `PENDIENTE FUNCIONAL MAPS` |
+| Depende de | ADR-SW-001 (`ACEPTADO`, con [enmienda 2026-10-15](../../adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-001-monolito-modular-y-limites.md#enmienda-2026-10-15-dependencia-catalog--forms)), ADR-SW-002 y ADR-SW-003 (`ACEPTADO`); ADR-SW-004 (`ACEPTADO`); TDD-SW-001 (`APROBADO`); TDD-SW-003 (`APROBADO`). Contrato definitivo de formularios: `PENDIENTE FUNCIONAL MAPS` |
 | Reemplaza | No aplica |
 | Reemplazado por | No aplica |
 
@@ -312,7 +312,7 @@ Sin borrado físico de Product, FormVersion ni ProductPriceRevision en el MVP. R
 - Auditoría de publicar, editar esquema, retirar (normal y urgente), cambiar precio y publicar/despublicar Product.
 - Métrica: Products `publicado` y no disponibles por falta de versión utilizable. No debe ser cero, porque el retiro urgente de la última versión es una operación admitida; sirve para alertar sobre productos que requieren atención (reemplazo de versión o revisión de publicación).
 - Métrica: retiros urgentes ejecutados (evento de baja frecuencia que requiere atención).
-- Cache del listado público y encabezados HTTP: TDD-SW-008 y TDD-CLD-007.
+- Cache del listado público y encabezados HTTP: el contrato HTTP y los headers de aplicación pertenecen a TDD-SW-008; hosting frontend, entrada pública, routing y cache/CDN a ADR-CLD-001, materializados en TDD-CLD-001. Si luego una configuración del runtime/API interviene en la política de caché, se enlaza al TDD Cloud correspondiente. TDD-CLD-007 cubre sólo métricas, logs y alertas, no la política de caché.
 
 ## Pruebas y criterios de fallo
 
@@ -377,7 +377,8 @@ Revisión de Santiago Talavera en la PR #20 (Software–Cloud, TDD-SW-002). Cada
 | 4 | Concurrencia Submit vs cambios | [Garantías de consistencia entre módulos](#garantías-de-consistencia-entre-módulos): bloqueos, orden de bloqueo y pruebas de carrera |
 | 5 | Numeración concurrente | [Numeración concurrente de versiones](#numeración-concurrente-de-versiones): nueva transacción y reevaluación |
 | 6 | Responsabilidad DB/Cloud | Software define invariantes y DDL; TDD-CLD-003 verifica operación y migraciones ([Restricciones](#restricciones)) |
-| — | Metadatos | Dependencias actualizadas a ADR-SW-001/002/003 (`ACEPTADO`) y TDD-SW-001 (`APROBADO`) según `main` |
+| — | Metadatos | Dependencias actualizadas a ADR-SW-001/002/003/004 (`ACEPTADO`), TDD-SW-001 y TDD-SW-003 (`APROBADO`) según `main` tras PR #24; subtarea Jira MAPS-139 registrada |
+| — | Ownership de caché (revisión 2026-10-23) | La caché pública se vincula a TDD-SW-008 y ADR-CLD-001/TDD-CLD-001, no a TDD-CLD-007 ([Operación y observabilidad](#operación-y-observabilidad)) |
 
 Las condiciones trazables de la revisión (validar formularios reales con MAPS, estado de Category, precio e impuestos, caché pública, almacenamiento de imágenes y adjuntos) siguen en [Decisiones abiertas](#decisiones-abiertas) y en los TDD enlazados.
 

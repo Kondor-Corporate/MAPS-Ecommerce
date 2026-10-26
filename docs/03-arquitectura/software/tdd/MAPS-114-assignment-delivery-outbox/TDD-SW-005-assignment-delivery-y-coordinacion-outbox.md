@@ -8,11 +8,11 @@
 | Fecha | 2026-10-15 |
 | Autor | Joaquin Rodriguez |
 | Revisores | Santiago Talavera (revisión cruzada cloud sobre proveedor de email, webhooks y procesador); pendiente de validación final |
-| Work item | [MAPS-114](https://santitalavera.atlassian.net/browse/MAPS-114) · subtarea pendiente de identificar. Relacionado con [MAPS-110](https://santitalavera.atlassian.net/browse/MAPS-110) |
+| Work item | [MAPS-114](https://santitalavera.atlassian.net/browse/MAPS-114) · subtarea [MAPS-142](https://santitalavera.atlassian.net/browse/MAPS-142). Relacionado con [MAPS-110](https://santitalavera.atlassian.net/browse/MAPS-110) |
 | URL del work item | https://santitalavera.atlassian.net/browse/MAPS-114 |
 | Fase origen | [F0 §0.4/0.5](../../../../00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md), [F1 §3/5, RN-04/05/06/07/10/16/19, RF-DELIVERY-01, RF-ADM-01, RF-PRODUCER-02](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md), [F2 §5/6/12](../../../../02-diseno/Fase_2__Design_Handoff.md) |
 | Decisiones relacionadas | [ADR-SW-003](../../adr/MAPS-108-persistencia-fronteras-transaccionales/ADR-SW-003-persistencia-y-fronteras-transaccionales.md); [ADR-SW-004](../../adr/MAPS-110-asincronia-outbox-idempotencia/ADR-SW-004-outbox-asincronia-e-idempotencia.md); [ADR-SW-005](../../adr/MAPS-111-identidad-autorizacion/ADR-SW-005-identidad-y-autorizacion.md); [TDD-SW-001](../MAPS-109-modelo-dominio-datos/TDD-SW-001-modelo-de-dominio-y-datos.md); [TDD-SW-003](../MAPS-113-insurance-request-estados/TDD-SW-003-insurance-request-y-maquina-de-estados.md); ADR-CLD-003, TDD-CLD-003, TDD-CLD-005 (previstos, sin redactar) |
-| Depende de | ADR-SW-003 (`ACEPTADO`); ADR-SW-004 y ADR-SW-005 (`PROPUESTO`); TDD-SW-003 (`EN REVISIÓN`). Estado técnico que acredita la entrega: decisión abierta 1 |
+| Depende de | ADR-SW-003 (`ACEPTADO`); ADR-SW-004 y ADR-SW-005 (`ACEPTADO`); TDD-SW-003 (`APROBADO`). Estado técnico que acredita la entrega: decisión abierta 1 |
 | Reemplaza | No aplica |
 | Reemplazado por | No aplica |
 
@@ -355,7 +355,7 @@ La entrega real de email se valida en TDD-CLD-005, no aquí.
 
 Secuencia sugerida: `AssignmentPolicy` y máquinas de estado con pruebas → `AssignProducer` y `DerivationEventHandler` (con proveedor simulado) → `RecordDeliveryResult` → `RetryDelivery` → reasignación de ASIGNADA → cancelaciones → reasignación de DERIVADA por baja y consulta de asignaciones abiertas → webhooks.
 
-Dependencias: TDD-SW-003 (ya en PR #17), ADR-SW-004 (PR #17) para el componente Outbox, TDD-CLD-005 para proveedor y reintentos, TDD-SW-004 para ports de Identity. No se definen Epic ni Issues F4 en este documento.
+Dependencias: TDD-SW-003 (`APROBADO`, en `main`), ADR-SW-004 (`ACEPTADO`, en `main`) para el componente Outbox, TDD-CLD-005 para proveedor y reintentos, TDD-SW-004 para ports de Identity. No se definen Epic ni Issues F4 en este documento.
 
 ## Decisiones abiertas
 
@@ -399,8 +399,8 @@ Revisión de Santiago Talavera en la PR #20 (Software–Cloud, TDD-SW-005). Cada
 | Webhook previo al resultado síncrono | [Estados técnicos](#deliveryattempt) y [Correlación temprana](#deliveryattempt) lo condicionan a un correlador auténtico que TDD-CLD-005 debe confirmar; sin él no hay transición funcional |
 | Dirección en reintentos | [Procesar la derivación](#procesar-la-derivación-fuera-de-la-unidad-de-trabajo) resuelve la dirección vigente por envío y registra sólo máscara + referencia/version de contacto |
 
-Pendiente, fuera de este documento: la revisión de ADR-SW-004 (limitación de envío y semántica de resultado) y la decisión 1, que depende de las capacidades del proveedor en TDD-CLD-005.
+La limitación de envío (ventana de carrera y duplicación residual) ya quedó incorporada en ADR-SW-004 `ACEPTADO` mediante PR #17. Pendiente, fuera de este documento: la decisión 1, que depende de las capacidades del proveedor en TDD-CLD-005.
 
 ## Criterio de aprobación
 
-Puede pasar a `EN REVISIÓN` cuando Santiago complete la revisión cruzada del proveedor, los webhooks y el procesador (TDD-CLD-005 y ADR-CLD-003), y las decisiones 1 y 2 estén registradas. Pasa a `APROBADO` cuando ADR-SW-004/005 estén `ACEPTADO`, TDD-SW-003 esté `APROBADO` y las decisiones 1 y 2 estén cerradas.
+Puede pasar a `EN REVISIÓN` cuando Santiago complete la revisión cruzada del proveedor, los webhooks y el procesador (TDD-CLD-005 y ADR-CLD-003), y las decisiones 1 y 2 estén registradas. Pasa a `APROBADO` cuando ADR-SW-004/005 estén `ACEPTADO` y TDD-SW-003 esté `APROBADO` (ya cumplido tras PR #24) y las decisiones 1 y 2 estén cerradas.
