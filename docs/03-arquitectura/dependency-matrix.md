@@ -42,10 +42,10 @@ Seleccioná una dependencia para consultar sus contratos, decisiones, límites y
 | [DEP-01](#dep-01) | Persistencia ↔ base de datos | COORDINACIÓN | ABIERTA — NO BLOQUEA AVANCE | Cloud + Software | Avanzar sizing; RPO/RTO siguen abiertos. |
 | [DEP-02](#dep-02) | Monolito modular / hexagonal ↔ topología y runtime materializado | COORDINACIÓN | ABIERTA — NO BLOQUEA AVANCE | Cloud + Software | C1 produce constraints; C4 materializa topología. |
 | [DEP-03](#dep-03) | Outbox ↔ ejecución asíncrona | COORDINACIÓN | ABIERTA — NO BLOQUEA AVANCE | Software + Cloud | Diseñar runtime Outbox; mantener Delivery abierta. |
-| [DEP-04](#dep-04) | Delivery exitosa ↔ infraestructura de email | COORDINACIÓN | ABIERTA — NO BLOQUEA AVANCE | Software/Cloud; MAPS compensación | Software y Cloud resuelven evidencia y callbacks. |
+| [DEP-04](#dep-04) | Delivery exitosa ↔ infraestructura de email | DURA | ABIERTA — BLOQUEA CIERRE | Software + Cloud; MAPS + Kondor (regla funcional) | Resolver decisión 1 con capacidades del proveedor; decisión 6 si se adopta A. |
 | [DEP-05](#dep-05) | Auth/RBAC ↔ seguridad e IAM Cloud | COORDINACIÓN | ABIERTA — NO BLOQUEA AVANCE | Software permisos; Cloud IAM | Avanzar C2 y coordinar ambientes con C3. |
 | [DEP-06](#dep-06) | Mi perfil | PENDIENTE MAPS | PENDIENTE MAPS | MAPS + Software | Resolver con MAPS los campos de Mi perfil. |
-| [DEP-07](#dep-07) | Baja e inhabilitación de Productor | PENDIENTE MAPS | PENDIENTE MAPS | MAPS alcance; Software/Cloud técnico | Confirmar RN-20 y secuencia funcional RN-19. |
+| [DEP-07](#dep-07) | Baja e inhabilitación de Productor | PENDIENTE MAPS | PENDIENTE MAPS | MAPS + Kondor (alcance RN-19); MAPS (RN-20); Software/Cloud técnico | Confirmar RN-20 con MAPS y RN-19 conjuntamente con Kondor. |
 | [DEP-08](#dep-08) | Public entry / environments ↔ frontend, API y exposición | COORDINACIÓN | ABIERTA — NO BLOQUEA AVANCE | Cloud; coord. Software/C2/C4 | Avanzar C3; preparar constraints para C4. |
 | [DEP-09](#dep-09) | Formularios reales ↔ Product/FormVersion | PENDIENTE MAPS | PENDIENTE MAPS | MAPS; Software | Validar Products sin formulario y casos reales. |
 | [DEP-10](#dep-10) | Adjuntos ↔ almacenamiento privado | COORDINACIÓN | ABIERTA — NO BLOQUEA AVANCE | Software + Cloud | Evaluar almacenamiento y coordinar staging. |
@@ -110,16 +110,16 @@ Seleccioná una dependencia para consultar sus contratos, decisiones, límites y
 
 | Aspecto | Detalle |
 | --- | --- |
-| Contrato / input Software | `TDD-SW-005` debe resolver qué evidencia (`ACEPTADO` vs `ENTREGADO`) habilita `DERIVADA`. ADR-SW-004 ya establece que un bounce informado después de `DERIVADA` se registra y NO revierte el estado; no existe transición funcional `DERIVADA → ASIGNADA`. |
-| Decisión / diseño Cloud | Evaluar capacidades de proveedor, webhook/callbacks, reintentos/backoff, registro de callbacks tardíos/duplicados y tratamiento operativo. |
-| Input funcional MAPS | MAPS puede definir si quiere una acción o notificación compensatoria ante un bounce posterior a `DERIVADA`; MAPS no decide evidencia técnica ni tratamiento de callbacks. |
-| Owner actual | Software define evidencia y semántica técnica; Cloud valida capacidades; MAPS define sólo compensación funcional. |
-| Puede avanzar | Software + Cloud pueden evaluar capacidades de proveedor, definir evidencia técnica y diseñar manejo de callbacks; MAPS puede decidir en paralelo una acción o notificación compensatoria. |
-| Bloquea | Cierre técnico de `TDD-SW-005` y `TDD-CLD-005` / C6 una vez que Software + Cloud resuelvan criterios de evidencia y callbacks; no hay bloqueo funcional de MAPS. |
+| Contrato / input Software | `TDD-SW-005` decisión 1 debe resolver qué evidencia (`ACEPTADO` vs `ENTREGADO`) habilita `DERIVADA`; su cierre depende de las capacidades del proveedor en `TDD-CLD-005` y bloquea pasar el TDD a `EN REVISIÓN`. Si se elige A, la decisión 6 también bloquea el cierre. ADR-SW-004 establece que un bounce posterior a `DERIVADA` se registra y no revierte el estado. |
+| Decisión / diseño Cloud | Evaluar capacidades del proveedor para la decisión 1, webhooks/callbacks, reintentos/backoff y registro de callbacks tardíos/duplicados; no elegir semántica funcional. |
+| Input funcional MAPS + Kondor | Resolver la decisión 6 de `TDD-SW-005`: si el Admin puede reenviar el aviso o reasignar una solicitud `DERIVADA` con Productor activo tras un bounce. Si se elige A en la decisión 1, esto bloquea el cierre; habilitarlo requiere un cambio controlado de F1/F2. |
+| Owner actual | Software + Cloud resuelven evidencia y capacidades del proveedor; MAPS + Kondor definen la regla funcional de la decisión 6. |
+| Puede avanzar | Software + Cloud pueden evaluar proveedores, evidencia y callbacks en paralelo; MAPS + Kondor pueden resolver la decisión 6. El runtime Outbox de C1 sigue avanzando. |
+| Bloquea | La decisión 1 y las capacidades del proveedor bloquean que `TDD-SW-005` pase a `EN REVISIÓN` y el cierre de `TDD-CLD-005` / C6. Si se adopta A, la decisión funcional 6 de MAPS + Kondor también bloquea el cierre. |
 | No bloquea | Runtime Outbox de DEP-03, C1 y la máquina de estados aceptada; no se reabre DERIVADA. |
 | ADR/TDD relacionados | [ADR-SW-004](./software/adr/MAPS-110-asincronia-outbox-idempotencia/ADR-SW-004-outbox-asincronia-e-idempotencia.md); [TDD-SW-005](./software/tdd/MAPS-114-assignment-delivery-outbox/TDD-SW-005-assignment-delivery-y-coordinacion-outbox.md) `BORRADOR` en `main`; previsto TDD-CLD-005. |
 | Jira verificado (estado) | [MAPS-114 (En revisión)](https://santitalavera.atlassian.net/browse/MAPS-114), [MAPS-142 TDD-SW-005 (En revisión)](https://santitalavera.atlassian.net/browse/MAPS-142), [MAPS-125 (Por hacer)](https://santitalavera.atlassian.net/browse/MAPS-125), [MAPS-157 (Por hacer)](https://santitalavera.atlassian.net/browse/MAPS-157), [MAPS-167 Ronda MAPS A (Por hacer)](https://santitalavera.atlassian.net/browse/MAPS-167). |
-| Siguiente acción | Software y Cloud resuelven evidencia de entrega y callbacks tardíos/duplicados según capacidades del proveedor; MAPS decide sólo si necesita acción o notificación compensatoria. |
+| Siguiente acción | Software + Cloud validan la decisión 1 contra las capacidades del proveedor en `TDD-CLD-005`; MAPS + Kondor resuelven la decisión 6 si se adopta A. |
 
 <a id="dep-05"></a>
 ### DEP-05 — Auth/RBAC ↔ seguridad e IAM Cloud
@@ -158,16 +158,16 @@ Seleccioná una dependencia para consultar sus contratos, decisiones, límites y
 
 | Aspecto | Detalle |
 | --- | --- |
-| Contrato / input Software | RN-19 y TDD-SW-005 en `main` (`BORRADOR`) definen la mecánica técnica: cerrar Assignment anterior; mantener InsuranceRequest en `DERIVADA`; crear Assignment `PENDIENTE_ENTREGA`, que pasa a `EFECTIVO` tras Delivery exitosa. Sigue pendiente la confirmación funcional del alcance/secuencia de baja: el prototipo bloqueaba baja con solicitudes activas y MAPS respondió “informar a la Org para analizar cada caso”; confirmar antes de pasar TDD-SW-005 a `EN REVISIÓN`. |
+| Contrato / input Software | RN-19 y `TDD-SW-005` (`BORRADOR`) proponen cerrar el Assignment anterior, conservar la solicitud `DERIVADA` y crear otro Assignment `PENDIENTE_ENTREGA`. La decisión 2, a cargo de Kondor + MAPS, bloquea `EN REVISIÓN`: falta confirmar el alcance/secuencia de baja frente a la respuesta de F1 (“informar a la Org para analizar cada caso”) y al bloqueo del prototipo. |
 | Decisión / diseño Cloud | Revocación/identidad se diseña sólo donde haya impacto de seguridad real; no condicionar toda la estrategia Cloud. |
-| Input funcional MAPS | MAPS debe confirmar si la inhabilitación se mantiene en el MVP y su efecto sobre nuevas asignaciones. F1 registra que no habrá casos inhabilitados con solicitudes en curso. TDD-SW-005 indica que lo relevado apunta a retirar la inhabilitación del MVP, pero falta el cambio controlado en F1/F2. |
-| Owner actual | MAPS define alcance funcional pendiente; Software/Cloud definen y materializan mecanismos técnicos afectados. |
-| Puede avanzar | Mantener RN-19 y diseñar baja lógica/controles ya definidos; avanzar seguridad Cloud general. |
-| Bloquea | Contrato aplicativo de inhabilitación y los cambios de revocación que dependan de RN-20. |
+| Input funcional MAPS | Confirmar si RN-20 se mantiene en el MVP y qué efecto tiene sobre nuevas asignaciones. F1 registra que no habrá casos inhabilitados con solicitudes en curso; retirar RN-20 requiere cambio controlado de F1/F2. El alcance/secuencia RN-19 se resuelve conjuntamente con Kondor y no se delega a esta pregunta de MAPS-167. |
+| Owner actual | Kondor + MAPS definen alcance/secuencia funcional de baja RN-19; MAPS define RN-20; Software/Cloud resuelven sólo los mecanismos técnicos afectados. |
+| Puede avanzar | Mantener la baja lógica ya establecida y avanzar seguridad Cloud general; los mecanismos de revocación afectados se condicionan al cierre funcional. |
+| Bloquea | Confirmar alcance/secuencia de baja RN-19 (Kondor + MAPS) antes de `EN REVISIÓN`; el contrato aplicativo de RN-20 y los cambios de revocación que dependan de esa regla. |
 | No bloquea | Diseño base de C2 para IAM de workloads, secretos y trust boundaries; baja lógica ya establecida y diseños Cloud no afectados por la semántica de inhabilitación. Los mecanismos de revocación de identidad de usuario quedan sujetos al contrato aplicativo de RN-20. |
 | ADR/TDD relacionados | [ADR-SW-005](./software/adr/MAPS-111-identidad-autorizacion/ADR-SW-005-identidad-y-autorizacion.md), [TDD-SW-003](./software/tdd/MAPS-113-insurance-request-estados/TDD-SW-003-insurance-request-y-maquina-de-estados.md), [TDD-SW-005](./software/tdd/MAPS-114-assignment-delivery-outbox/TDD-SW-005-assignment-delivery-y-coordinacion-outbox.md) (`BORRADOR` en `main`); previstos ADR-CLD-007/TDD-CLD-006. |
 | Jira verificado (estado) | [MAPS-98 baja/inhabilitación (En revisión)](https://santitalavera.atlassian.net/browse/MAPS-98), [MAPS-123 seguridad/IAM (En curso)](https://santitalavera.atlassian.net/browse/MAPS-123), [MAPS-142 TDD-SW-005 (En revisión)](https://santitalavera.atlassian.net/browse/MAPS-142). |
-| Siguiente acción | Confirmar con MAPS en MAPS-167 si RN-20 se mantiene en el MVP y su efecto sobre nuevas asignaciones; conservar como abierto el alcance/secuencia funcional de baja de RN-19 antes de revisar TDD-SW-005. |
+| Siguiente acción | Llevar sólo RN-20 a MAPS-167; confirmar RN-19 conjuntamente con Kondor + MAPS antes de pasar `TDD-SW-005` a `EN REVISIÓN`. |
 
 <a id="dep-08"></a>
 ### DEP-08 — Public entry / environments ↔ frontend, API y exposición
@@ -299,7 +299,8 @@ Seleccioná una dependencia para consultar sus contratos, decisiones, límites y
 
 ## Bloqueos reales actuales
 
-- La decisión técnica sobre evidencia de Delivery (`ACEPTADO` vs `ENTREGADO`) y callbacks tardíos/duplicados corresponde a Software + Cloud; MAPS sólo define si necesita acción/notificación compensatoria ante un bounce posterior a `DERIVADA` (DEP-04). Puede condicionar el cierre técnico de TDD-SW-005/TDD-CLD-005, pero no bloquea runtime Outbox/C1.
+- La decisión 1 de `TDD-SW-005` sobre evidencia (`ACEPTADO` vs `ENTREGADO`) y capacidades de proveedor/callbacks corresponde a Software + Cloud y bloquea `EN REVISIÓN`; si se elige A, la decisión 6 exige que MAPS + Kondor definan si el Admin puede reenviar el aviso o reasignar una `DERIVADA` con Productor activo. Esto no bloquea el runtime Outbox/C1.
+- El alcance/secuencia funcional de baja RN-19 es una decisión conjunta de Kondor + MAPS que bloquea `EN REVISIÓN` de `TDD-SW-005`; RN-20, su permanencia en el MVP y el efecto sobre nuevas asignaciones, se consulta a MAPS (DEP-07).
 - Cierre de lifecycle/eliminación final de adjuntos depende de retención y conservación definidas por MAPS (DEP-11); privacidad, acceso y arquitectura general de Storage pueden avanzar.
 - Las decisiones finales de HA/recovery y parámetros de recuperación dependen de RPO/RTO de negocio aún no definidos (DEP-15); no bloquea la mayor parte de TDD-CLD-003.
 - Cierre de SLA/alertas de negocio depende de una expectativa de derivación definida por MAPS (DEP-14); instrumentación y operación técnica base pueden avanzar.
@@ -319,8 +320,8 @@ La selección de servicios GCP sigue sujeta a los ADR/TDD correspondientes; esta
 
 1. Resolver si todo Product publicado requiere FormVersion/formulario o si pueden publicarse Products informativos sin formulario; además validar el contrato con 1–2 formularios reales (MAPS-96).
 2. Definir campos visibles, editables y obligatorios de Mi perfil (MAPS-97).
-3. Confirmar si la inhabilitación RN-20 se mantiene en el MVP y qué efecto tiene sobre nuevas asignaciones (MAPS-98); F1 ya registra que no habrá casos inhabilitados con solicitudes en curso. Mantener abierta la confirmación funcional del alcance/secuencia de baja RN-19 antes de pasar TDD-SW-005 a `EN REVISIÓN`.
-4. Definir si MAPS quiere una acción o notificación compensatoria ante un bounce posterior a `DERIVADA`, sin revertir ese estado (TDD-SW-005 / MAPS-114, MAPS-142). La evidencia que habilita `DERIVADA` (`ACEPTADO` o `ENTREGADO`) y los callbacks tardíos/duplicados son decisiones técnicas de Software + Cloud, no inputs para MAPS.
+3. Confirmar si RN-20 se mantiene en el MVP y qué efecto tiene sobre nuevas asignaciones (MAPS-98); F1 registra que no habrá casos inhabilitados con solicitudes en curso. La confirmación de alcance/secuencia de baja RN-19 es conjunta de Kondor + MAPS y debe cerrarse antes de pasar `TDD-SW-005` a `EN REVISIÓN`; no es una pregunta exclusiva para esta ronda MAPS.
+4. Resolver con MAPS + Kondor la decisión 6 de `TDD-SW-005`: si el Admin puede reenviar el aviso o reasignar una solicitud `DERIVADA` con Productor activo tras un bounce. Si se elige A en la decisión 1, la decisión 6 bloquea el cierre y habilitar la acción requiere un cambio controlado de F1/F2. La evidencia de entrega y callbacks siguen siendo decisiones técnicas de Software + Cloud.
 5. Definir retención, eliminación física y conservación aplicables a solicitudes y archivos (MAPS-99).
 6. Definir expectativa/SLA de derivación y consecuencia operativa de su incumplimiento (MAPS-99).
 7. Expresar necesidades de negocio de pérdida de datos y tiempo de recuperación para que Cloud derive RPO/RTO; no presentar cifras previas como requisito (MAPS-167).
