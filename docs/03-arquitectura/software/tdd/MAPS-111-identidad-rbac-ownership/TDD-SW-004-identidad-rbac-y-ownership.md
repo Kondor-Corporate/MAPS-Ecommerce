@@ -11,7 +11,7 @@
 | Work item | [MAPS-111](https://santitalavera.atlassian.net/browse/MAPS-111) · subtarea [MAPS-141](https://santitalavera.atlassian.net/browse/MAPS-141) |
 | URL del work item | https://santitalavera.atlassian.net/browse/MAPS-111 |
 | Fase origen | [F1 §3/5, RN-02/04/05/14/15/16/17/18/19/20, RF-CLI-01, RF-PRODUCER-01/02/03, RNF-SEC-01](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md), [F2 §6/7/11/12/13](../../../../02-diseno/Fase_2__Design_Handoff.md) |
-| Decisiones relacionadas | [ADR-SW-001](../../adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-001-monolito-modular-y-limites.md); [ADR-SW-002](../../adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-002-arquitectura-hexagonal-y-capas.md); [ADR-SW-004](../../adr/MAPS-110-asincronia-outbox-idempotencia/ADR-SW-004-outbox-asincronia-e-idempotencia.md); [ADR-SW-005](../../adr/MAPS-111-identidad-autorizacion/ADR-SW-005-identidad-y-autorizacion.md); [TDD-SW-001](../MAPS-109-modelo-dominio-datos/TDD-SW-001-modelo-de-dominio-y-datos.md); [TDD-SW-003](../MAPS-113-insurance-request-estados/TDD-SW-003-insurance-request-y-maquina-de-estados.md); TDD-SW-005, TDD-SW-007, ADR-CLD-007, TDD-CLD-006 y TDD-CLD-007 (previstos, sin redactar) |
+| Decisiones relacionadas | [ADR-SW-001](../../adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-001-monolito-modular-y-limites.md); [ADR-SW-002](../../adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-002-arquitectura-hexagonal-y-capas.md); [ADR-SW-004](../../adr/MAPS-110-asincronia-outbox-idempotencia/ADR-SW-004-outbox-asincronia-e-idempotencia.md); [ADR-SW-005](../../adr/MAPS-111-identidad-autorizacion/ADR-SW-005-identidad-y-autorizacion.md); [TDD-SW-001](../MAPS-109-modelo-dominio-datos/TDD-SW-001-modelo-de-dominio-y-datos.md); [TDD-SW-003](../MAPS-113-insurance-request-estados/TDD-SW-003-insurance-request-y-maquina-de-estados.md); [TDD-SW-005](../MAPS-114-assignment-delivery-outbox/TDD-SW-005-assignment-delivery-y-coordinacion-outbox.md) (`BORRADOR`); TDD-SW-007, ADR-CLD-007, TDD-CLD-006 y TDD-CLD-007 (previstos, sin redactar) |
 | Depende de | ADR-SW-001, ADR-SW-002 y ADR-SW-005, todos `ACEPTADO`; ADR-CLD-007 y TDD-CLD-006 para proveedor de identidad, MFA y validación de tokens; RN-20 y campos de Mi perfil (`PENDIENTE FUNCIONAL MAPS`) |
 | Reemplaza | No aplica |
 | Reemplazado por | No aplica |
@@ -26,14 +26,14 @@ Este TDD baja a diseño ejecutable las decisiones de [ADR-SW-005](../../adr/MAPS
 
 - Elección y configuración del proveedor de identidad, MFA, validación criptográfica de tokens, secretos e IAM de infraestructura: ADR-CLD-007 y TDD-CLD-006 (Cloud).
 - Almacenamiento, consulta y retención de la auditoría: TDD-SW-007 y TDD-CLD-007.
-- Semántica de Assignment, entrega y reintentos: [TDD-SW-003](../MAPS-113-insurance-request-estados/TDD-SW-003-insurance-request-y-maquina-de-estados.md) y TDD-SW-005.
+- Semántica de Assignment, entrega y reintentos: [TDD-SW-003](../MAPS-113-insurance-request-estados/TDD-SW-003-insurance-request-y-maquina-de-estados.md) y [TDD-SW-005](../MAPS-114-assignment-delivery-outbox/TDD-SW-005-assignment-delivery-y-coordinacion-outbox.md).
 - Lista definitiva de campos de Mi perfil y alcance de la inhabilitación de Productor: `PENDIENTE FUNCIONAL MAPS`.
 
 ### Aclaraciones respecto del ADR-SW-005
 
 Este TDD no modifica el ADR. Concreta cuatro puntos que el ADR dejó abiertos al diseño:
 
-1. **Baja de Productor como operación guiada única.** El ADR pide que el Admin trate las ASIGNADAS y DERIVADAS "antes de completar la baja" y que el acceso se corte de inmediato (RN-19). Se diseña como una sola operación que cumple ambas condiciones (ver [Baja guiada de Productor](#baja-guiada-de-productor)). Si la revisión considera que implica un trade-off de primer orden, se eleva a un ADR.
+1. **Baja de Productor como operación guiada única.** El ADR pide que el Admin trate las ASIGNADAS y DERIVADAS "antes de completar la baja" y que el acceso se corte de inmediato (RN-19). Se diseña como una sola operación: en el mismo momento en que se corta el acceso, el Admin elige los casos y los reasigna (ver [Baja guiada de Productor](#baja-guiada-de-productor)). Es decisión de alcance Kondor del 2026-10-28, alineada con [TDD-SW-005](../MAPS-114-assignment-delivery-outbox/TDD-SW-005-assignment-delivery-y-coordinacion-outbox.md), y queda sujeta a la confirmación conjunta con MAPS que pide la matriz de dependencias (DEP-07). Si la revisión considera que implica un trade-off de primer orden, se eleva a un ADR.
 2. **Registro explícito del Cliente.** El ADR dice que el Cliente se registra por sí mismo; este TDD fija que lo hace en un paso explícito de "completar registro".
 3. **Invitación de Productor propia**, vinculada por token y no por email.
 4. **Un único email por cuenta**, el verificado por el proveedor de identidad, sin edición desde el Portal en el MVP.
@@ -46,8 +46,8 @@ Este TDD no modifica el ADR. Concreta cuatro puntos que el ADR dejó abiertos al
 | Productor sólo ve DERIVADAS asignadas a su identidad, autorizadas y read-only; el enlace del email no concede acceso | RN-05/16, [F1 §5](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md) — CONFIRMADO | `AccessScope` del Productor derivado de estado + Assignment `EFECTIVO` + cuenta `ACTIVA` |
 | Matriz de permisos UX | [F2 §6/13](../../../../02-diseno/Fase_2__Design_Handoff.md) — CONFIRMADO | Fuente del catálogo de políticas; el enforcement técnico es de este TDD |
 | Baja de Cliente: pierde el login de inmediato, sus solicitudes siguen su ciclo, se conserva el historial y se le notifica | RN-18 — CONFIRMADO | Cuenta `BAJA` sin tocar `InsuranceRequest` |
-| Baja de Productor: pierde el acceso de inmediato; el Admin trata ASIGNADAS y DERIVADAS antes de completar la baja; baja lógica y reversible | RN-19 — CONFIRMADO y decisión de alcance Kondor MVP | Operación guiada única |
-| Inhabilitar a un Productor sólo impide nuevas asignaciones | RN-15 — CONFIRMADO | Indicador `disponible` separado del estado de cuenta |
+| Baja de Productor: pierde el acceso de inmediato; el Admin trata ASIGNADAS y DERIVADAS antes de completar la baja; baja lógica y reversible | RN-19 — CONFIRMADO; secuencia: decisión de alcance Kondor MVP (2026-10-28), a confirmar con MAPS | Operación guiada única: corte de acceso y reasignación en el mismo commit |
+| Inhabilitar a un Productor sólo impide nuevas asignaciones | RN-15 — CONFIRMADO; MAPS respondió que no habrá casos inhabilitados, lo que apunta a quitarla del MVP (decisión 7 de TDD-SW-005) | No se modela inhabilitación: la elegibilidad es sólo cuenta `ACTIVA` |
 | Alcance de la inhabilitación y su efecto sobre casos existentes | RN-20 — `PENDIENTE FUNCIONAL MAPS` | No se modela ningún estado de inhabilitación |
 | Campos de Mi perfil | RN-17 — `PENDIENTE FUNCIONAL MAPS` | Se define sólo la frontera de autorización; el perfil básico es propuesta Kondor |
 | Alta de Cliente por Admin (F2 ADM-10) | Discrepancia con ADR-SW-005 (el Cliente se registra por sí mismo) | Fuera del MVP; ver [Decisiones abiertas](#decisiones-abiertas) |
@@ -63,10 +63,10 @@ Este TDD no modifica el ADR. Concreta cuatro puntos que el ADR dejó abiertos al
 | `AccessScope` | Identity (tipo), consumido por los repositorios | Alcance de lectura obligatorio para toda consulta de solicitudes |
 | Registro y cuentas | Identity | `CompleteRegistration`, `AcceptProducerInvitation`, baja y reactivación de Cliente |
 | Invitaciones | Identity | Entidad `ProducerInvitation` y su ciclo de vida |
-| Baja guiada de Productor | Assignment (coordinador, propuesto) | Orquesta cierre y creación de asignaciones y llama a un puerto de Identity para pasar la cuenta a `BAJA` en la misma unidad de trabajo |
+| Baja guiada de Productor | Assignment (`DeactivateProducer`, [TDD-SW-005](../MAPS-114-assignment-delivery-outbox/TDD-SW-005-assignment-delivery-y-coordinacion-outbox.md)) | Inicia la unidad de trabajo: cierra y crea asignaciones y pasa la cuenta a `BAJA` a través de un puerto de entrada de Identity |
 | Adaptadores HTTP | Entrada | Sólo autentican y traducen; no deciden permisos. El frontend oculta acciones por UX, pero el control real está en la aplicación |
 
-El rol Admin es un rol de `UserIdentity`, no una entidad aparte ([TDD-SW-001](../MAPS-109-modelo-dominio-datos/TDD-SW-001-modelo-de-dominio-y-datos.md)). Que Assignment coordine la baja sigue el mismo patrón que `Assign`, `Reassign` y `ReassignDerived`; el contrato exacto se confirma con TDD-SW-005.
+El rol Admin es un rol de `UserIdentity`, no una entidad aparte ([TDD-SW-001](../MAPS-109-modelo-dominio-datos/TDD-SW-001-modelo-de-dominio-y-datos.md)). Que Assignment coordine la baja sigue el mismo patrón que `Assign`, `Reassign` y `ReassignDerived`, y respeta la dirección de dependencias de ADR-SW-001 (Assignment → Identity). Identity sigue siendo owner del estado de la cuenta y no llama a Assignment.
 
 ## Contratos y flujos
 
@@ -95,7 +95,7 @@ Una identidad autenticada sin cuenta del Portal ve el paso "completar registro".
 1. El Admin crea el `Producer` desde el ABM, con sus datos y su email. El Productor existe como registro, sin `UserIdentity` y sin acceso. Sin cuenta `ACTIVA` no puede recibir asignaciones.
 2. El sistema crea una `ProducerInvitation` y registra una intención de aviso por outbox ([ADR-SW-004](../../adr/MAPS-110-asincronia-outbox-idempotencia/ADR-SW-004-outbox-asincronia-e-idempotencia.md)) con un enlace al Portal. El enlace contiene el token de la invitación y ninguna credencial.
 3. La persona abre el enlace, se autentica con el proveedor y ejecuta `AcceptProducerInvitation`.
-4. La aceptación exige a la vez: token válido (existente, no usado, no vencido, no invalidado) y email verificado de la identidad **igual** al email invitado (sin distinguir mayúsculas). Si se cumplen, en una sola operación se crea la `UserIdentity` (rol `PRODUCTOR`, `ACTIVA`), se vincula al `Producer`, se marca la invitación como `ACEPTADA` y el Productor queda `disponible`.
+4. La aceptación exige a la vez: token válido (existente, no usado, no vencido, no invalidado) y email verificado de la identidad **igual** al email invitado (sin distinguir mayúsculas). Si se cumplen, en una sola operación se crea la `UserIdentity` (rol `PRODUCTOR`, `ACTIVA`), se vincula al `Producer` y se marca la invitación como `ACEPTADA`. Desde ese momento el Productor puede recibir asignaciones.
 
 Reglas de la invitación:
 
@@ -125,11 +125,11 @@ Toda operación sin política declarada se rechaza con `ACCESO_DENEGADO`.
 | `CancelByCustomer` | Cliente | Es el dueño; ENVIADA o ASIGNADA; motivo y confirmación |
 | `RequestCancellation` | Cliente | Es el dueño; DERIVADA; sin otra solicitud pendiente |
 | `DecideCancellation` | Admin | Existe una solicitud `SOLICITADA` |
-| `Assign`, `Reassign`, reintentar entrega | Admin | Productor destino con cuenta `ACTIVA` y `disponible` |
-| `ReassignDerived` | Admin | Sólo dentro de la baja guiada; sin cancelación `SOLICITADA` |
+| `Assign`, `Reassign`, reintentar entrega | Admin | Productor destino con cuenta `ACTIVA` (`PRODUCTOR_NO_DISPONIBLE` si no) |
+| `ReassignDerived` | Admin | Sólo dentro de la baja guiada (`REASIGNACION_DERIVADA_NO_PERMITIDA` fuera de ella); sin cancelación `SOLICITADA` |
 | `MarkDerived` | Sistema | Entrega exitosa acreditada (TDD-SW-005); no es un actor humano |
 | ABM de categorías, productos y formularios | Admin | — |
-| ABM de Productores (alta con invitación, edición, baja guiada, reactivación, `disponible`) | Admin | La baja sigue el flujo guiado |
+| ABM de Productores (alta con invitación, edición, baja guiada, reactivación) | Admin | La baja sigue el flujo guiado |
 | ABM de Clientes (edición, baja, reactivación) | Admin | No edita el email; sólo los datos permitidos |
 | Ver y editar Mi perfil | Cliente | Sólo el propio; campos pendientes de MAPS |
 | Crear Admin | Kondor | Comando de operación fuera del Portal |
@@ -152,12 +152,12 @@ El acceso del Productor se calcula siempre a partir de estado y Assignment, sin 
 
 ### Baja guiada de Productor
 
-El Admin inicia la baja de un Productor. El sistema muestra las ASIGNADAS y DERIVADAS afectadas y exige, por cada una:
+La baja y la reasignación ocurren **en el mismo momento**: no hay un corte de acceso previo ni una baja "pendiente de completar". El Admin inicia la baja de un Productor; el sistema muestra las ASIGNADAS y DERIVADAS afectadas y exige, por cada una:
 
 1. Resolver antes cualquier `CancellationRequest` en estado `SOLICITADA` (`DecideCancellation`).
-2. Elegir un Productor destino distinto, con cuenta `ACTIVA` y `disponible`, y un motivo. El Admin **no** cancela solicitudes por su cuenta: las cancelaciones las inicia el Cliente ([F2 §12](../../../../02-diseno/Fase_2__Design_Handoff.md)).
+2. Elegir un Productor destino distinto, con cuenta `ACTIVA`, y un motivo. El Admin **no** cancela solicitudes por su cuenta: las cancelaciones las inicia el Cliente ([F2 §12](../../../../02-diseno/Fase_2__Design_Handoff.md)).
 
-La confirmación ejecuta, en una única unidad de trabajo:
+Mientras el Admin prepara la baja, nada cambia: el Productor conserva su acceso. La confirmación ejecuta, en una única unidad de trabajo iniciada por Assignment ([TDD-SW-005](../MAPS-114-assignment-delivery-outbox/TDD-SW-005-assignment-delivery-y-coordinacion-outbox.md)):
 
 - Cierre de cada Assignment del Productor con motivo "baja del Productor" y creación del nuevo en `PENDIENTE_ENTREGA`, con su intención de entrega por outbox. Las DERIVADAS mantienen su estado (`ReassignDerived`); las ASIGNADAS se reasignan (`Reassign`).
 - Cuenta del Productor en `BAJA`, con registro de fecha, Admin y motivo.
@@ -165,10 +165,12 @@ La confirmación ejecuta, en una única unidad de trabajo:
 
 Consecuencias:
 
-- El Productor pierde el acceso desde la siguiente request. El nuevo Productor lo obtiene recién cuando su entrega se acredita como exitosa; entre ambos momentos nadie del lado Productor ve el caso, como ya establece TDD-SW-003.
-- Si no existe otro Productor habilitado, la baja se bloquea con `SIN_PRODUCTOR_DISPONIBLE` y la lista de casos afectados. Es una validación defensiva: con la cantidad de Productores esperada es un caso improbable.
+- El corte de acceso y la reasignación quedan en el mismo commit: el Productor pierde el acceso desde la siguiente request. El nuevo Productor lo obtiene recién cuando su entrega se acredita como exitosa; entre ambos momentos nadie del lado Productor ve el caso, como ya establece TDD-SW-003.
+- Si no existe otro Productor con cuenta `ACTIVA`, la baja se bloquea con `SIN_PRODUCTOR_DISPONIBLE` y la lista de casos afectados. Es una validación defensiva: con la cantidad de Productores esperada es un caso improbable.
 - Si otra operación modifica un caso afectado mientras tanto (por ejemplo, el Cliente cancela una ENVIADA o ASIGNADA), la operación falla completa con `CONFLICTO_CONCURRENCIA` y el Admin reintenta sobre el estado nuevo. Decisión de diseño: no se reintentan parcialmente los casos que cambiaron; es lo más simple y seguro para el MVP.
-- Si la entrega al nuevo Productor falla, la incidencia queda visible para el Admin, que reintenta o vuelve a reasignar (TDD-SW-003).
+- Si la entrega al nuevo Productor falla, la incidencia queda visible para el Admin, que reintenta la entrega (TDD-SW-005).
+- Un Productor sin casos abiertos se da de baja con la misma operación, con la lista vacía.
+- Se acepta que todos los casos viajen en una sola transacción: con el volumen esperado por Productor es razonable para el MVP.
 
 ### Baja y reactivación de Cliente
 
@@ -178,7 +180,7 @@ Consecuencias:
 
 ### Reactivación de Productor
 
-La reactivación vuelve la cuenta a `ACTIVA` con auditoría y aviso. No devuelve al Productor las solicitudes que ya fueron reasignadas, y recupera su indicador `disponible` sólo si el Admin lo habilita.
+La reactivación vuelve la cuenta a `ACTIVA` con auditoría y aviso. No devuelve al Productor las solicitudes que ya fueron reasignadas; vuelve a ser elegible para nuevas asignaciones.
 
 ### Códigos de error
 
@@ -190,9 +192,11 @@ La reactivación vuelve la cuenta a `ACTIVA` con auditoría y aviso. No devuelve
 | `REGISTRO_YA_COMPLETO` | La identidad ya tiene cuenta |
 | `INVITACION_INVALIDA` | Token inexistente, usado, vencido o invalidado |
 | `EMAIL_NO_COINCIDE` | El email verificado no es el invitado |
-| `SIN_PRODUCTOR_DISPONIBLE` | Baja de Productor sin otro Productor habilitado |
+| `PRODUCTOR_NO_DISPONIBLE` | El Productor destino no tiene cuenta `ACTIVA` (reutilizado de TDD-SW-005) |
+| `REASIGNACION_DERIVADA_NO_PERMITIDA` | Reasignación de DERIVADA fuera de la baja guiada (reutilizado de TDD-SW-005) |
+| `SIN_PRODUCTOR_DISPONIBLE` | Baja de Productor sin otro Productor con cuenta `ACTIVA` |
 | `DISPOSICION_INCOMPLETA` | La baja guiada deja algún caso sin Productor destino |
-| `CANCELACION_PENDIENTE` | La baja guiada encuentra una `CancellationRequest` sin resolver |
+| `CANCELACION_PENDIENTE` | La baja guiada encuentra una `CancellationRequest` sin resolver (reutilizado de TDD-SW-005) |
 | `CONFLICTO_CONCURRENCIA` | Otra operación modificó el caso (reutilizado de TDD-SW-003) |
 
 ## Datos, consistencia y migraciones
@@ -203,14 +207,14 @@ El modelo lógico parte de [TDD-SW-001](../MAPS-109-modelo-dominio-datos/TDD-SW-
 | --- | --- | --- |
 | `UserIdentity` | `issuer`, `subject`, rol (`CLIENTE`, `PRODUCTOR`, `ADMIN`), estado (`ACTIVA`, `BAJA`), fecha, Admin y motivo de baja o reactivación | Par `issuer + subject` único; un único rol por cuenta; sin vínculos a Customer/Producer para `ADMIN` |
 | `Customer` | Email (copia del verificado, sólo lectura), datos del perfil básico (campos a confirmar) | A lo sumo una `UserIdentity`; los datos sensibles de cada solicitud viven en sus respuestas y no en el perfil |
-| `Producer` | Datos, email, `disponible`, referencia a `UserIdentity` (vacía hasta aceptar la invitación) | A lo sumo una `UserIdentity`; sin `UserIdentity` activa no es asignable |
+| `Producer` | Datos, email, referencia a `UserIdentity` (vacía hasta aceptar la invitación) | A lo sumo una `UserIdentity`; sin `UserIdentity` activa no es asignable |
 | `ProducerInvitation` | `producerId`, email invitado, hash del token, `expiresAt`, estado | A lo sumo una `PENDIENTE` por Productor; el token no se guarda en claro |
 
 Invariantes:
 
 - Una persona con dos roles usa dos cuentas y, probablemente, dos emails: es la restricción propuesta del MVP de ADR-SW-005, condicionada a la factibilidad que confirme ADR-CLD-007.
 - El estado de cuenta (`ACTIVA` o `BAJA`) es independiente del estado de cualquier `InsuranceRequest`.
-- `disponible` y el estado de cuenta son independientes. Inhabilitar sólo cambia `disponible`; no corta accesos ni toca casos existentes (RN-15). No se modela ningún estado de inhabilitación hasta que MAPS cierre RN-20.
+- No se modela inhabilitación: la elegibilidad para asignar depende sólo de la cuenta `ACTIVA`. Si MAPS mantiene RN-20, se incorpora en Identity sin cambiar los flujos de Assignment (decisión 7 de TDD-SW-005).
 - El email del Cliente no es editable en el Portal ni por el Cliente ni por el Admin. Un cambio excepcional lo resuelve Kondor con un procedimiento manual y auditado que actualiza el proveedor y el Portal juntos.
 
 Transacciones:
@@ -232,7 +236,7 @@ Transacciones:
 
 | Grupo | Eventos |
 | --- | --- |
-| Siempre | Alta, baja y reactivación de cuentas; cambios de rol; creación de Admin; invitaciones (creación, reenvío, aceptación); asignaciones y reasignaciones; cambios de `disponible`; actualización de email por sincronización |
+| Siempre | Alta, baja y reactivación de cuentas; cambios de rol; creación de Admin; invitaciones (creación, reenvío, aceptación); asignaciones y reasignaciones; actualización de email por sincronización |
 | Apertura de expediente | Cada apertura por un Productor: actor, solicitud y fecha |
 | Denegaciones | Accesos denegados con actor, acción, recurso y motivo |
 
@@ -270,7 +274,7 @@ Secuencia sugerida, sin crear Epic ni Issues F4:
 2. Evaluador de políticas y `AccessScope` con las pruebas de arquitectura.
 3. `CompleteRegistration`, `Customer`, baja y reactivación de Cliente.
 4. `Producer`, `ProducerInvitation` y `AcceptProducerInvitation`; comando `create-admin`.
-5. Baja guiada de Productor, después de que TDD-SW-005 cierre el contrato de Assignment.
+5. Baja guiada de Productor, junto con los flujos de reasignación de [TDD-SW-005](../MAPS-114-assignment-delivery-outbox/TDD-SW-005-assignment-delivery-y-coordinacion-outbox.md).
 6. Auditoría de identidad, con TDD-SW-007.
 
 Dependencias entre equipos: ADR-CLD-007 y TDD-CLD-006 antes de integrar un proveedor real. Las áreas condicionadas por MAPS (Mi perfil, inhabilitación, consentimientos) se excluyen de un primer tramo de F4 hasta que se cierren.
@@ -279,19 +283,19 @@ Dependencias entre equipos: ADR-CLD-007 y TDD-CLD-006 antes de integrar un prove
 
 | Tema | Responsable | Qué puede avanzar | Condición de cierre |
 | --- | --- | --- | --- |
-| Alcance de la inhabilitación de Productor (RN-20) | MAPS | Indicador `disponible` sin estado nuevo | MAPS cierra RN-20 |
+| Alcance de la inhabilitación de Productor (RN-20) | MAPS | Elegibilidad sólo por cuenta `ACTIVA`, sin estado nuevo | MAPS cierra RN-20 o se quita del MVP con cambio controlado de F1/F2 |
 | Campos de Mi perfil (MAPS-97) | MAPS; Kondor propone | Frontera de autorización y propuesta de perfil básico (nombre y datos de contacto, sin datos sensibles) | Aprobación de MAPS |
 | Alta de Cliente por Admin (F2 ADM-10) | Kondor + MAPS | Fuera del MVP; la invitación puede generalizarse a otros roles | Confirmar con MAPS si se requiere |
 | Carga inicial de unos 200 Productores | Kondor + MAPS | Decidido: alta e invitación individual en el MVP | Importación e invitación masivas se evalúan en F4 |
 | Textos y versión de consentimientos del registro | MAPS | Paso de registro con punto de extensión | Textos aprobados |
 | Factibilidad en el proveedor: cuenta única por rol, MFA de Admin, bloqueo del cambio de email por el usuario, revocación de sesiones, eventos de login | Software + Cloud | Diseño detrás de `IdentityProviderPort` | ADR-CLD-007 |
 | Validación de tokens y TTL de una eventual caché | Software + Cloud | Contrato del puerto | TDD-CLD-006 |
-| Módulo coordinador y tamaño de la baja guiada ante un Productor con muchos casos | Software | Contrato propuesto | TDD-SW-005 |
+| Confirmación de la secuencia de baja RN-19 (operación única) | Kondor + MAPS | Decidido por Kondor el 2026-10-28; diseño coherente con TDD-SW-005 | Confirmación conjunta con MAPS (DEP-07, MAPS-167) |
 | Vencimiento de la invitación | Kondor | Decidido: 7 días iniciales, configurable | Ajustar con la operación si hace falta |
 | Almacenamiento y consulta de la auditoría | Software + Cloud | Catálogo de eventos de este TDD | TDD-SW-007 y TDD-CLD-007 |
 
 ## Referencias y trazabilidad
 
-- ADR y TDD relacionados: [ADR-SW-001](../../adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-001-monolito-modular-y-limites.md), [ADR-SW-002](../../adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-002-arquitectura-hexagonal-y-capas.md), [ADR-SW-004](../../adr/MAPS-110-asincronia-outbox-idempotencia/ADR-SW-004-outbox-asincronia-e-idempotencia.md), [ADR-SW-005](../../adr/MAPS-111-identidad-autorizacion/ADR-SW-005-identidad-y-autorizacion.md), [TDD-SW-001](../MAPS-109-modelo-dominio-datos/TDD-SW-001-modelo-de-dominio-y-datos.md), [TDD-SW-003](../MAPS-113-insurance-request-estados/TDD-SW-003-insurance-request-y-maquina-de-estados.md); previstos TDD-SW-005, TDD-SW-007, ADR-CLD-007, TDD-CLD-006, TDD-CLD-007.
+- ADR y TDD relacionados: [ADR-SW-001](../../adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-001-monolito-modular-y-limites.md), [ADR-SW-002](../../adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-002-arquitectura-hexagonal-y-capas.md), [ADR-SW-004](../../adr/MAPS-110-asincronia-outbox-idempotencia/ADR-SW-004-outbox-asincronia-e-idempotencia.md), [ADR-SW-005](../../adr/MAPS-111-identidad-autorizacion/ADR-SW-005-identidad-y-autorizacion.md), [TDD-SW-001](../MAPS-109-modelo-dominio-datos/TDD-SW-001-modelo-de-dominio-y-datos.md), [TDD-SW-003](../MAPS-113-insurance-request-estados/TDD-SW-003-insurance-request-y-maquina-de-estados.md), [TDD-SW-005](../MAPS-114-assignment-delivery-outbox/TDD-SW-005-assignment-delivery-y-coordinacion-outbox.md); previstos TDD-SW-007, ADR-CLD-007, TDD-CLD-006, TDD-CLD-007.
 - Fuentes F0/F1/F2: [F1 §3/5, RN-02/04/05/14/15/16/17/18/19/20, RF-CLI-01, RF-PRODUCER-01/02/03, RNF-SEC-01](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md); [F2 §6/7/11/12/13](../../../../02-diseno/Fase_2__Design_Handoff.md).
 - Filas de [traceability.md](../../../traceability.md): acceso del Productor; ABM de Clientes y Productores; Mi perfil.
