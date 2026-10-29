@@ -251,7 +251,7 @@ Transacciones:
 
 | Grupo | Eventos |
 | --- | --- |
-| Siempre | Alta, baja y reactivación de cuentas; cambios de rol; creación de Admin; invitaciones (creación, reenvío, aceptación); asignaciones y reasignaciones; actualización de email por sincronización |
+| Siempre | Alta, baja y reactivación de cuentas; cambios de rol; creación de Admin; invitaciones (creación, reenvío, invalidación por edición del email, aceptación); asignaciones y reasignaciones; actualización de email por sincronización |
 | Apertura de expediente | Cada apertura por un Productor: actor, solicitud y fecha |
 | Denegaciones | Accesos denegados con actor, acción, recurso y motivo |
 
@@ -305,7 +305,7 @@ Dependencias entre equipos: ADR-CLD-007 y TDD-CLD-006 antes de integrar un prove
 | Carga inicial de unos 200 Productores | Kondor + MAPS | Decidido: alta e invitación individual en el MVP | Importación e invitación masivas se evalúan en F4 |
 | Textos y versión de consentimientos del registro | MAPS | Paso de registro con punto de extensión | Textos aprobados |
 | Factibilidad en el proveedor: cuenta única por rol, MFA de Admin, bloqueo del cambio de email por el usuario, revocación de sesiones, eventos de login | Software + Cloud | Diseño detrás de `IdentityProviderPort` | ADR-CLD-007 |
-| Validación de tokens y TTL de una eventual caché | Software + Cloud | Contrato del puerto | TDD-CLD-006 |
+| Validación de tokens y TTL de una eventual caché | Software + Cloud | Contrato del puerto; revocación inmediata por consulta local | TDD-CLD-006; una caché se registra como desvío aceptado del contrato de revocación, con su TTL máximo |
 | Confirmación de la secuencia de baja RN-19 (operación única) | Kondor + MAPS | Decidido por Kondor el 2026-10-28, sin validación de MAPS; diseño coherente con TDD-SW-005. Pendiente funcional, no defecto técnico | Ratificación de MAPS (DEP-07, MAPS-167) y, si corresponde, cambio controlado de F1/F2 y actualización del prototipo de PR #19 |
 | Vencimiento de la invitación | Kondor | Decidido: 7 días iniciales, configurable | Ajustar con la operación si hace falta |
 | Almacenamiento y consulta de la auditoría | Software + Cloud | Catálogo de eventos de este TDD | TDD-SW-007 y TDD-CLD-007 |
