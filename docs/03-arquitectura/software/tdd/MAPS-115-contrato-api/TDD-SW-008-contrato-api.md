@@ -8,7 +8,7 @@
 | Fecha | 2026-10-29 |
 | Autor | Joaquin Rodriguez |
 | Revisores | Santiago Talavera — revisión cruzada Cloud pendiente (entrada pública, CORS/dominios, límites de tamaño y tiempos, health checks, webhooks) |
-| Work item | [MAPS-115](https://santitalavera.atlassian.net/browse/MAPS-115) · subtarea a confirmar |
+| Work item | [MAPS-115](https://santitalavera.atlassian.net/browse/MAPS-115) · subtarea [MAPS-145](https://santitalavera.atlassian.net/browse/MAPS-145) |
 | URL del work item | https://santitalavera.atlassian.net/browse/MAPS-115 |
 | Fase origen | [F1 RF-SOL-01 a 05, RF-ADM-01, RF-CAT-01, RF-PROD-01, RF-FORM-01, RF-CLI-01, RF-PRODUCER-01/02/03, RF-DELIVERY-01, RNF-SEC-01](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md), [F2 §3/5/6/10/13/14](../../../../02-diseno/Fase_2__Design_Handoff.md) |
 | Decisiones relacionadas | [ADR-SW-001](../../adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-001-monolito-modular-y-limites.md), [ADR-SW-002](../../adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-002-arquitectura-hexagonal-y-capas.md), [ADR-SW-003](../../adr/MAPS-108-persistencia-fronteras-transaccionales/ADR-SW-003-persistencia-y-fronteras-transaccionales.md), [ADR-SW-004](../../adr/MAPS-110-asincronia-outbox-idempotencia/ADR-SW-004-outbox-asincronia-e-idempotencia.md), [ADR-SW-005](../../adr/MAPS-111-identidad-autorizacion/ADR-SW-005-identidad-y-autorizacion.md) (`ACEPTADO`); [TDD-SW-001](../MAPS-109-modelo-dominio-datos/TDD-SW-001-modelo-de-dominio-y-datos.md), [TDD-SW-003](../MAPS-113-insurance-request-estados/TDD-SW-003-insurance-request-y-maquina-de-estados.md) (`APROBADO`); [TDD-SW-002](../MAPS-112-product-category-formularios/TDD-SW-002-product-category-y-formversion.md), [TDD-SW-005](../MAPS-114-assignment-delivery-outbox/TDD-SW-005-assignment-delivery-y-coordinacion-outbox.md) (`BORRADOR`); TDD-SW-004 (`BORRADOR`, [PR #27](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/27)); ADR-SW-006 (`PROPUESTO`) y TDD-SW-006 (`BORRADOR`, [PR #28](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/28)); ADR-CLD-001 (`PROPUESTO`, [PR #31](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/31)); ADR-CLD-007 y TDD-CLD-006 ([PR #30](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/30)) |
@@ -28,7 +28,10 @@
 - Idempotencia, concurrencia optimista, paginación, filtros y orden.
 - Versionado de la API y gestión del contrato como OpenAPI.
 
-**Propuesta, no decisión aceptada.** El estilo HTTP/JSON orientado a recursos, con comandos explícitos y contrato-primero en OpenAPI, se propone aquí como diseño. No hay ADR que lo acepte. Si la revisión considera que el estilo de API es una decisión de nivel ADR, se eleva antes de pasar este TDD a `EN REVISIÓN` (ver [Decisiones abiertas](#decisiones-abiertas)).
+**Estilo de API decidido en este TDD (decisión del owner del 2026-10-29).** El estilo HTTP/JSON orientado a recursos, con comandos explícitos y contrato-primero en OpenAPI, no requiere ADR propio: materializa la API única que [ADR-SW-001](../../adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-001-monolito-modular-y-limites.md) ya acepta, el catálogo de ADR de software no prevé uno para esto y cambiarlo antes de F4 tiene bajo costo. Alternativas descartadas:
+
+- **GraphQL:** agrega esquema, resolvers y control de autorización y de costo por campo para un contrato de comandos y listados acotados; no resuelve ninguna necesidad de F2.
+- **RPC tipado (por ejemplo, tRPC):** acopla el frontend a los tipos TypeScript del backend y no deja un contrato neutral para pruebas de contrato, revisión en PR o consumidores futuros. OpenAPI conserva la generación de tipos del frontend sin ese acoplamiento.
 
 Fuera de este documento:
 
@@ -37,7 +40,7 @@ Fuera de este documento:
 - Esquema de campos de formulario y validación por tipo: [TDD-SW-002](../MAPS-112-product-category-formularios/TDD-SW-002-product-category-y-formversion.md), condicionado a MAPS-96.
 - Flujo interno de adjuntos: TDD-SW-006. Este TDD sólo fija sus endpoints.
 - Entrada pública, TLS, dominio y routing del balanceador: ADR-CLD-001. Proveedor de identidad y validación criptográfica de tokens: ADR-CLD-007 y TDD-CLD-006. Autenticación de webhooks del proveedor de email: TDD-CLD-005.
-- Eventos de funnel y auditoría: TDD-SW-007 (previsto).
+- Eventos de funnel y auditoría: TDD-SW-007 (`BORRADOR`, [PR #32](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/32)). Este TDD sólo fija sus endpoints: el registro público de `product_viewed` y el historial de una solicitud.
 
 ## Baseline y dependencias
 
@@ -93,6 +96,7 @@ Admin, Cliente y Productor usan prefijos separados (`/admin`, `/me`, `/producer`
 | Nombres | Rutas en inglés y plural según las entidades de TDD-SW-001 (`requests`, `products`); propiedades en `camelCase` |
 | Enumeraciones | Valores del dominio sin traducir: `BORRADOR`, `ENVIADA`, `ASIGNADA`, `DERIVADA`, `CANCELADA`; códigos de error de TDD-SW-003/004/005/006 |
 | Identificadores | Opacos (UUID como string); no secuenciales ni enumerables |
+| Número de solicitud | `number`: identificador legible y único que se asigna al pasar a ENVIADA y se muestra desde la confirmación (CLI-05, [F2 §7](../../../../02-diseno/Fase_2__Design_Handoff.md)); `null` en BORRADOR. Sirve para buscar y para soporte; no se usa en rutas ni para autorizar. Requiere enmienda de TDD-SW-001/003 (ver [Decisiones abiertas](#decisiones-abiertas)) |
 | Fechas | ISO 8601 en UTC (`2026-10-29T13:45:00Z`); la UI convierte a la zona del usuario |
 | Montos | `{ "amount": "12500.00", "currency": "<ISO 4217>" }`; el monto viaja como string decimal para no perder precisión; la moneda la informa Catalog |
 | Recurso único | Sin sobre: el cuerpo es la representación. `ETag` cuando el recurso admite comandos con concurrencia optimista |
@@ -115,6 +119,7 @@ Admin, Cliente y Productor usan prefijos separados (`/admin`, `/me`, `/producer`
 | `GET /api/v1/catalog/categories` | Ver catálogo | Sólo categorías con productos publicados, según TDD-SW-002 |
 | `GET /api/v1/catalog/products` | Ver catálogo | Filtros `categoryId`, `q`; paginado; sólo publicados |
 | `GET /api/v1/catalog/products/{productId}` | Ver detalle | Ficha, precio vigente y disponibilidad; 404 si no está publicado |
+| `POST /api/v1/catalog/products/{productId}/views` | Registrar `product_viewed` (TDD-SW-007) | `204`. Cuerpo vacío; `authenticated` se deriva de si la request trae un token válido, sin guardar la identidad. Sólo Products publicados; sin cookies; límite de frecuencia |
 
 **Identidad y cuenta**
 
@@ -132,6 +137,7 @@ Admin, Cliente y Productor usan prefijos separados (`/admin`, `/me`, `/producer`
 | `POST /api/v1/me/requests` | `CreateDraft` `{ productId }` | — | `201`, `Location`, `ETag`, representación |
 | `GET /api/v1/me/requests` | Mis solicitudes | — | Listado paginado; filtros `status`, `productId`, `q`; sin BORRADORES descartados |
 | `GET /api/v1/me/requests/{requestId}` | Ver solicitud propia | — | `200` + `ETag` |
+| `GET /api/v1/me/requests/{requestId}/history` | Historial (`GetRequestHistory`, TDD-SW-007) | — | Eventos visibles para el Cliente, en orden cronológico |
 | `PUT /api/v1/me/requests/{requestId}/answers` | `SaveDraft` | `If-Match` | `200` + nuevo `ETag`. Reemplaza el conjunto guardado; los campos `file` envían la lista completa de `documentId` del campo (TDD-SW-006) |
 | `POST /api/v1/me/requests/{requestId}/price-confirmation` | `ConfirmPrice` `{ priceRef }` | `If-Match` | `200` + nuevo `ETag` |
 | `POST /api/v1/me/requests/{requestId}/submission` | `Submit` `{ confirmedPriceRef, consents }` | `If-Match` + `Idempotency-Key` | `200` con la solicitud ENVIADA |
@@ -160,6 +166,7 @@ La lista de consentimientos y su texto dependen del contrato de formularios (MAP
 | `GET /api/v1/admin/requests` | Bandeja (desde ENVIADA) | Filtros `status`, `productId`, `producerId`, `hasDeliveryIncident`, `hasPendingCancellation`, `q`; orden permitido |
 | `GET /api/v1/admin/requests/summary` | Contadores de la bandeja | Conteos por estado/condición calculados dentro del `AccessScope` |
 | `GET /api/v1/admin/requests/{requestId}` | Detalle con Assignment, intentos de entrega y cancelación | `ETag` |
+| `GET /api/v1/admin/requests/{requestId}/history` | Historial (`GetRequestHistory`, TDD-SW-007) | — |
 | `POST /api/v1/admin/requests/{requestId}/assignment` | `Assign` `{ producerId }` | `If-Match` |
 | `POST /api/v1/admin/requests/{requestId}/reassignment` | `Reassign` `{ producerId }` | `If-Match` |
 | `POST /api/v1/admin/requests/{requestId}/delivery-retries` | `RetryDelivery` (TDD-SW-005) | `If-Match` |
@@ -231,7 +238,7 @@ Se propone [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457) (`application/prob
 | `401` | `NO_AUTENTICADO` (con `WWW-Authenticate: Bearer`) |
 | `403` | `CUENTA_INACTIVA`; `ACCESO_DENEGADO` cuando el actor puede ver el recurso pero no ejecutar la operación |
 | `404` | `NO_ENCONTRADO`: recurso inexistente **o fuera del `AccessScope`** del actor; no se revela su existencia (TDD-SW-003, TDD-SW-004) |
-| `409` | `TRANSICION_INVALIDA`, `BORRADOR_NO_UTILIZABLE`, `PRECIO_NO_CONFIRMADO`, `PRODUCTO_NO_DISPONIBLE`, `PRODUCTOR_NO_DISPONIBLE`, `CANCELACION_YA_SOLICITADA`, `CANCELACION_PENDIENTE`, `REASIGNACION_DERIVADA_NO_PERMITIDA`, `SIN_PRODUCTOR_DISPONIBLE`, `REGISTRO_YA_COMPLETO`, `PRODUCTO_SIN_VERSION_UTILIZABLE`, `PRECIO_NO_CONFIGURADO`, `DOCUMENTO_NO_DISPONIBLE`; `CONFLICTO_CONCURRENCIA` cuando la request no trajo `If-Match` o hay una ejecución en curso con la misma clave de idempotencia |
+| `409` | `TRANSICION_INVALIDA`, `BORRADOR_NO_UTILIZABLE`, `PRECIO_NO_CONFIRMADO`, `PRODUCTO_NO_DISPONIBLE`, `PRODUCTOR_NO_DISPONIBLE`, `CANCELACION_YA_SOLICITADA`, `CANCELACION_PENDIENTE`, `REASIGNACION_DERIVADA_NO_PERMITIDA`, `SIN_PRODUCTOR_DISPONIBLE`, `REGISTRO_YA_COMPLETO`, `PRODUCTO_SIN_VERSION_UTILIZABLE`, `PRECIO_NO_CONFIGURADO`, `DOCUMENTO_NO_DISPONIBLE`; `CONFLICTO_CONCURRENCIA` en endpoints que no exigen `If-Match` cuando la escritura detecta un cambio concurrente, o cuando hay una ejecución en curso con la misma clave de idempotencia |
 | `412` | `CONFLICTO_CONCURRENCIA` cuando la versión de `If-Match` no coincide con la vigente, al validar o al escribir |
 | `413` | `CARGA_EXCEDIDA` (cuerpo mayor al límite) |
 | `415` | `TIPO_CONTENIDO_NO_SOPORTADO` |
@@ -241,19 +248,19 @@ Se propone [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457) (`application/prob
 | `500` | `ERROR_INTERNO`, sin detalle |
 | `503` | `SERVICIO_NO_DISPONIBLE` (base o proveedor de identidad no disponible), con `Retry-After` cuando se conozca |
 
-`NO_ENCONTRADO`, `PETICION_INVALIDA`, `CARGA_EXCEDIDA`, `TIPO_CONTENIDO_NO_SOPORTADO`, `PRECONDICION_REQUERIDA`, `ERROR_INTERNO` y `SERVICIO_NO_DISPONIBLE` son códigos de la capa HTTP. El resto proviene de TDD-SW-002/003/004/005/006 sin cambios. Para `IDEMPOTENCIA_CONFLICTO` (`422`) y la ejecución concurrente con la misma clave (`409`) se sigue el borrador IETF del encabezado `Idempotency-Key`.
+`NO_ENCONTRADO`, `PETICION_INVALIDA`, `CARGA_EXCEDIDA`, `TIPO_CONTENIDO_NO_SOPORTADO`, `PRECONDICION_REQUERIDA`, `ERROR_INTERNO` y `SERVICIO_NO_DISPONIBLE` son códigos de la capa HTTP. El resto proviene de TDD-SW-002/003/004/005/006 sin cambios. Para `IDEMPOTENCIA_CONFLICTO` (`422`) y la ejecución concurrente con la misma clave (`409`) se sigue el borrador IETF del encabezado `Idempotency-Key`. `CONFLICTO_CONCURRENCIA` usa `412` sólo cuando falla la precondición `If-Match` (RFC 9110) y `409` en los demás conflictos; la UI reacciona por `code`, no por `status` (decisión del owner del 2026-10-29).
 
 ### Idempotencia
 
 | Aspecto | Contrato |
 | --- | --- |
 | Encabezado | `Idempotency-Key`, UUID generado por el frontend por cada intención del usuario (un clic en "Enviar") y reutilizado en sus reintentos |
-| Obligatorio en | `Submit`, `CancelByCustomer`, `RequestCancellation`, `DecideCancellation` (TDD-SW-003). Sin la clave: `428` |
+| Obligatorio en | `Submit`, `CancelByCustomer`, `RequestCancellation`, `DecideCancellation` (TDD-SW-003). Sin la clave: `428`. No se extiende a `CreateDraft` ni a `RequestUpload` (decisión del owner del 2026-10-29): un doble envío deja un BORRADOR o un documento de más; la UI deshabilita la acción mientras la request está en curso, el Cliente puede descartar el BORRADOR sobrante y el job de limpieza de TDD-SW-006 elimina los documentos que no quedan en uso |
 | Alcance y huella | Los de TDD-SW-003: `(actorId, operación, requestId, clave)` y hash de los parámetros relevantes del cuerpo |
 | Repetición | Misma clave y misma huella: se devuelve el resultado registrado (status y cuerpo), sin nuevos efectos. La verificación de la clave ocurre **antes** de evaluar `If-Match`: un reintento legítimo no falla con `412` porque la versión ya avanzó con su propio efecto |
 | Huella distinta | `422 IDEMPOTENCIA_CONFLICTO` |
 | Ejecución en curso | `409 CONFLICTO_CONCURRENCIA`; el frontend reintenta con la misma clave |
-| Retención | Propuesta: 24 horas. Cubre reintentos de red y pestañas reabiertas; luego un job purga los registros. Configurable; se confirma con Cloud (ADR-CLD-003 para jobs) |
+| Retención | 24 horas, aceptado por Software (decisión del owner del 2026-10-29). Cubre reintentos de red y pestañas reabiertas; luego un job purga los registros. Configurable; Cloud lo confirma en la revisión cruzada (ADR-CLD-003 para jobs) |
 
 ### Concurrencia optimista
 
@@ -271,9 +278,9 @@ Se propone [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457) (`application/prob
 
 ### Paginación, filtros y orden
 
-- Paginación por número de página: `page` (desde 1) y `pageSize` (por defecto 20, máximo 100). Se elige por coincidir con la UI de F2 (listados paginados con número de página). La paginación por cursor queda como mejora si el conteo total se vuelve costoso.
+- Paginación por número de página: `page` (desde 1) y `pageSize` (por defecto 20, máximo 100). Se elige por coincidir con la UI de F2 (listados paginados con número de página). La paginación por cursor queda como mejora sólo si las mediciones de F4 muestran que el conteo total se vuelve costoso (decisión del owner del 2026-10-29).
 - Filtros y orden con listas permitidas por endpoint; un valor fuera de la lista responde `400 PETICION_INVALIDA`. Orden con `sort=-submittedAt`.
-- `q` busca sólo sobre las columnas permitidas de cada listado.
+- `q` busca sólo sobre las columnas permitidas de cada listado, incluido `number` en los listados de solicitudes.
 - El `AccessScope` se aplica dentro de la consulta, antes de paginar y contar (TDD-SW-004): `totalItems` nunca revela registros fuera del alcance.
 
 ### Versionado y compatibilidad
@@ -292,7 +299,7 @@ Se propone [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457) (`application/prob
 ## Datos, consistencia y migraciones
 
 - La API no tiene datos propios. Las representaciones son proyecciones de consultas de cada módulo; no hay tablas "de API".
-- El registro de idempotencia pertenece a Requests y se persiste en la misma unidad de trabajo del comando (TDD-SW-003); su purga usa la retención propuesta arriba.
+- El registro de idempotencia pertenece a Requests y se persiste en la misma unidad de trabajo del comando (TDD-SW-003); su purga usa la retención definida arriba.
 - Los DTO HTTP se mapean en el adaptador y nunca exponen modelos de persistencia ([ADR-SW-002](../../adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-002-arquitectura-hexagonal-y-capas.md)).
 - Una migración de base que cambia una representación sigue expand/contract, para que la API siga sirviendo a la SPA anterior durante el rollout.
 
@@ -304,7 +311,7 @@ Se propone [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457) (`application/prob
 - Cada listado proyecta sólo las columnas que su pantalla de F2 necesita. La vista del Productor se limita al expediente autorizado.
 - Los errores no incluyen PII. `traceId` permite al soporte correlacionar sin exponer datos.
 - Mismo host para SPA y API según ADR-CLD-001: sin CORS en staging/production. Desarrollo local puede requerir una lista explícita de orígenes, nunca comodín. Si ADR-CLD-001 cambia hacia otro host para la API, CORS pasa a lista explícita por ambiente.
-- Límites: cuerpo JSON de 1 MiB por defecto (propuesta), porque los archivos no pasan por la API. Límites de frecuencia de aplicación en registro, aceptación de invitación y subidas (`LIMITE_SUBIDAS`). La protección de borde la decide ADR-CLD-001/ADR-CLD-007.
+- Límites: cuerpo JSON de 1 MiB por defecto, aceptado por Software y sujeto a la revisión cruzada Cloud, porque los archivos no pasan por la API. Límites de frecuencia de aplicación en registro, aceptación de invitación y subidas (`LIMITE_SUBIDAS`). La protección de borde la decide ADR-CLD-001/ADR-CLD-007.
 - Encabezados: `Cache-Control: no-store` en respuestas autenticadas y `X-Content-Type-Options: nosniff`. HSTS y TLS corresponden al borde (Cloud).
 
 ## Operación y observabilidad
@@ -356,16 +363,24 @@ Pendiente con Santiago Talavera:
 
 | Tema | Responsable | Qué puede avanzar | Condición de cierre |
 | --- | --- | --- | --- |
-| Estilo de API (HTTP/JSON por recursos + OpenAPI 3.1) como decisión de TDD o de ADR | Joaquin Rodriguez | Todo el diseño de este TDD | Revisión del owner; si se eleva, ADR aceptado |
-| Transporte del token: Bearer en encabezado o BFF con cookie | Software + Cloud | Contrato con Bearer | ADR-CLD-007 / TDD-CLD-006 |
+| Transporte del token: Bearer en encabezado (contrato actual, coherente con Identity Platform que propone ADR-CLD-007) o BFF con cookie | Software + Cloud | Contrato con Bearer | Aceptación de ADR-CLD-007 / TDD-CLD-006 |
 | Esquema de respuestas, consentimientos y edición de FormVersion | `PENDIENTE FUNCIONAL MAPS` (MAPS-96) | Rutas, comandos y errores | Contrato de formularios validado con 1–2 formularios reales |
 | Campos de registro, Mi perfil y edición de Clientes por Admin | `PENDIENTE FUNCIONAL MAPS` (MAPS-97) | Rutas y autorización | Lista de campos visibles/editables/obligatorios de MAPS |
-| Idempotencia también en `CreateDraft` y `RequestUpload` (doble clic crea dos BORRADORES o dos documentos) | Software | Contrato actual de TDD-SW-003 | Decidir si se extiende; requiere ajustar TDD-SW-003/006 |
-| Retención de claves de idempotencia (propuesta 24 h) | Software + Cloud | Contrato | Revisión cruzada Cloud |
-| Identificador visible de solicitud para búsqueda y soporte | Software + UX | Búsqueda por producto y cliente | Definir en TDD-SW-001/003 si existe un número legible |
-| Mensaje al usuario ante `412` en `SaveDraft` | UX | Contrato del error | Texto y comportamiento de F2 |
-| Contadores de bandeja (`/summary`) | Software + UX | Endpoint propuesto | Confirmar con F2 qué contadores muestra la bandeja |
-| Paginación por página o por cursor | Software | Por página en el MVP | Mediciones de volumen en F4 |
+| Atributo `number` en el modelo y su formato | Software + UX | Contrato de la API con `number` | Enmienda de TDD-SW-001/003 en PR aparte; formato acordado con UX |
+| Retención de claves (24 h) y límite de cuerpo (1 MiB) | Cloud | Contrato con esos valores | Confirmación en la revisión cruzada Cloud |
+| Mensaje al usuario ante `412` en `SaveDraft` | UX | Contrato del error | Texto y comportamiento de F2 ([MAPS-106](https://santitalavera.atlassian.net/browse/MAPS-106)) |
+| Contadores de bandeja (`/summary`) | Software + UX | Endpoint propuesto | Confirmar con F2 qué contadores muestra la bandeja ([MAPS-106](https://santitalavera.atlassian.net/browse/MAPS-106)) |
+
+### Decisiones cerradas por el owner (2026-10-29)
+
+| Tema | Decisión | Motivo |
+| --- | --- | --- |
+| Estilo de API | HTTP/JSON por recursos, con comandos explícitos y OpenAPI 3.1, decidido en este TDD sin ADR propio | Materializa la API única de ADR-SW-001; alternativas descartadas en [Propósito y límites](#propósito-y-límites) |
+| Idempotencia en `CreateDraft` y `RequestUpload` | No se extiende en el MVP | TDD-SW-003 está `APROBADO`; el duplicado se mitiga en la UI, con el descarte del BORRADOR y con la limpieza de TDD-SW-006 |
+| Retención de claves y límite de cuerpo | 24 h y 1 MiB, aceptados por Software | Cubren reintentos y pestañas reabiertas; los archivos no pasan por la API. Cloud los confirma en la revisión cruzada |
+| `CONFLICTO_CONCURRENCIA` con `409` o `412` | Se mantiene | `412` sólo para `If-Match` desactualizado (RFC 9110); `409` para conflictos sin precondición o con ejecución en curso. La UI reacciona por `code` |
+| Número de solicitud legible | Se expone `number`, asignado al pasar a ENVIADA | F2 §7 muestra "Número" en CLI-05 y TDD-SW-001 no lo define. Requiere enmienda de TDD-SW-001/003 |
+| Paginación | Por número de página en el MVP | Coincide con la UI de F2; cursor sólo si las mediciones de F4 lo justifican |
 
 ## Referencias y trazabilidad
 
