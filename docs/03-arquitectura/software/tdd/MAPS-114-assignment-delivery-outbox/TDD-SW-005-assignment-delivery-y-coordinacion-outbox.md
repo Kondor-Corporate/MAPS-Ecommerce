@@ -64,7 +64,7 @@ Assignment (owner de Assignment y DeliveryAttempt)
 │   └── DeliveryResultPort       entrada del procesador de outbox
 └── ports/out/
     ├── InsuranceRequestAssignmentPort   puerto de Requests (ports/in de Requests, TDD-SW-003)
-    ├── ProducerAccountPort              consulta de elegibilidad de la cuenta de Productor (Identity, sólo lectura)
+    ├── ProducerAccountPort              consulta de elegibilidad de la cuenta de Productor (Identity, sólo lectura, con bloqueo compartido)
     ├── ProducerAccountCommandPort       pasa la cuenta a BAJA dentro de la baja guiada (ports/in de Identity, TDD-SW-004)
     ├── ProducerDeliveryContactPort      resuelve transitoriamente la dirección vigente y la referencia de contacto (Identity, sólo lectura)
     ├── EmailProviderPort                envío con clave de idempotencia (adaptador cloud)
@@ -149,7 +149,7 @@ Los reintentos automáticos de transporte **no** crean nuevos `DeliveryAttempt`:
 Una unidad de trabajo iniciada por Assignment:
 
 1. Verificar que el actor es Admin (ADR-SW-005) y que no hay un Assignment no cerrado para la solicitud.
-2. Verificar elegibilidad del Productor con `ProducerAccountPort`: cuenta `ACTIVA` (`PRODUCTOR_NO_DISPONIBLE` si no). ADR-SW-005 no modela todavía un estado de inhabilitación separado porque RN-20 sigue pendiente de MAPS; si MAPS lo confirma, la elegibilidad lo incorpora en Identity sin cambiar este flujo.
+2. Verificar elegibilidad del Productor con `ProducerAccountPort`: cuenta `ACTIVA` (`PRODUCTOR_NO_DISPONIBLE` si no), leída con bloqueo compartido hasta el commit (ver [Baja de Productor](#baja-de-productor)). ADR-SW-005 no modela todavía un estado de inhabilitación separado porque RN-20 sigue pendiente de MAPS; si MAPS lo confirma, la elegibilidad lo incorpora en Identity sin cambiar este flujo.
 3. Insertar `Assignment` en `PENDIENTE_ENTREGA`.
 4. Llamar a `InsuranceRequestAssignmentPort.asignar(requestId, versionLeida)` para pasar a ASIGNADA (TDD-SW-003, `Assign`).
 5. Insertar `DeliveryAttempt` `PENDIENTE` con `numero = 1`.
@@ -241,10 +241,10 @@ Un resultado de entrega posterior se descarta por la revalidación previa y la g
 
 ### Baja de Productor
 
-La baja es una **operación guiada única** (`DeactivateProducer`), iniciada por Assignment: el corte de acceso y la reasignación de los casos ocurren en el mismo momento, en una sola unidad de trabajo. Es la decisión de alcance Kondor del 2026-10-28 para RN-19, compartida con [TDD-SW-004](../MAPS-111-identidad-rbac-ownership/TDD-SW-004-identidad-rbac-y-ownership.md), y queda sujeta a la confirmación conjunta con MAPS (decisión 2). Cumple ADR-SW-005 §4: el Admin trata toda ASIGNADA o DERIVADA antes de que la baja se complete, y el acceso se corta en el commit.
+La baja es una **operación guiada única** (`DeactivateProducer`), iniciada por Assignment: el corte de acceso y la reasignación de los casos ocurren en el mismo momento, en una sola unidad de trabajo. Es la decisión de alcance Kondor del 2026-10-28 para RN-19, compartida con [TDD-SW-004](../MAPS-111-identidad-rbac-ownership/TDD-SW-004-identidad-rbac-y-ownership.md), y queda sujeta a la confirmación conjunta con MAPS (decisión 2): no está validada por MAPS y es un pendiente funcional, no un defecto técnico. Cumple ADR-SW-005 §4: el Admin trata toda ASIGNADA o DERIVADA antes de que la baja se complete, y el acceso se corta en el commit.
 
-1. **Preparación (sin escrituras).** `AssignmentQueryPort.asignacionesAbiertas(producerId)` lista los Assignment abiertos del Productor con el estado de su solicitud. Toda `CancellationRequest` `SOLICITADA` se decide antes (`CANCELACION_PENDIENTE` si no). El Admin elige, por cada caso, un Productor destino distinto con cuenta `ACTIVA` y un motivo. Mientras tanto el Productor conserva su acceso.
-2. **Confirmación (una unidad de trabajo).** Por cada ASIGNADA, el flujo de [Reasignar ASIGNADA](#reasignar-asignada-asignada--asignada) con `motivoCierre = BAJA_PRODUCTOR`; por cada DERIVADA, el de [Reasignar DERIVADA](#reasignar-derivada-rn-19-decisión-de-alcance-kondor). Luego `ProducerAccountCommandPort.darDeBaja(producerId, admin, motivo)` pasa la cuenta a `BAJA` en Identity. Se registran el aviso al Productor por outbox y la auditoría.
+1. **Preparación (sin escrituras).** `AssignmentQueryPort.asignacionesAbiertas(producerId)` lista los Assignment abiertos del Productor con el estado de su solicitud. Toda `CancellationRequest` `SOLICITADA` se decide antes (`CANCELACION_PENDIENTE` si no). El Admin elige, por cada caso, un Productor destino distinto con cuenta `ACTIVA` y un motivo. Mientras tanto el Productor conserva su acceso. La preparación sólo arma la propuesta, junto con la `version` leída de cada Assignment y solicitud; no garantiza nada al confirmar.
+2. **Confirmación (una unidad de trabajo).** Primero se serializa con las operaciones concurrentes (ver abajo). Luego, por cada ASIGNADA, el flujo de [Reasignar ASIGNADA](#reasignar-asignada-asignada--asignada) con `motivoCierre = BAJA_PRODUCTOR`; por cada DERIVADA, el de [Reasignar DERIVADA](#reasignar-derivada-rn-19-decisión-de-alcance-kondor). Luego `ProducerAccountCommandPort.darDeBaja(producerId, admin, motivo)` pasa la cuenta a `BAJA` en Identity. Se registran el aviso al Productor por outbox y la auditoría.
 3. **Efectos.** En el commit el Productor pierde el acceso (cuenta `BAJA` y Assignments `CERRADO`). Cada nuevo Productor obtiene acceso cuando su entrega es exitosa. Las derivaciones pendientes hacia el Productor dado de baja quedan `DESCARTADO` al procesarse.
 
 Reglas:
@@ -255,7 +255,16 @@ Reglas:
 - Se acepta que todos los casos viajen en una sola transacción: con el volumen esperado por Productor es razonable para el MVP.
 - La dirección de dependencias se mantiene: Assignment → Identity. Identity sigue siendo owner del estado de la cuenta y no llama a Assignment.
 
-El prototipo de PR #19 bloquea la baja mientras haya ASIGNADAS. Con esta operación ya no hace falta un bloqueo: la baja exige asignar un destino a cada caso. El prototipo se alinea en F4.
+**Serialización con `AssignProducer`, `ReassignProducer` y `RecordDeliveryResult`.** La confirmación revalida todo dentro de su unidad de trabajo, con bloqueos cortos en PostgreSQL y control de versión, como en TDD-SW-003; no con locks locales al proceso:
+
+1. **Cuentas, en orden fijo.** Se bloquean las cuentas involucradas en orden ascendente de `producerId`: la del Productor saliente en modo exclusivo (`FOR UPDATE`, mediante `ProducerAccountCommandPort`) y las de los destinos en modo compartido (`FOR SHARE`, mediante `ProducerAccountPort`). `AssignProducer` y `ReassignProducer` toman ese mismo bloqueo compartido sobre la cuenta destino. Una asignación hacia el saliente que empezó antes termina antes de que la baja avance; una que empieza después espera el commit de la baja y encuentra la cuenta en `BAJA` (`PRODUCTOR_NO_DISPONIBLE`). Un destino tampoco puede darse de baja mientras recibe casos.
+2. **Conjunto de casos.** Con la cuenta bloqueada se vuelve a leer `asignacionesAbiertas(producerId)`. Si difiere del conjunto que confirmó el Admin (un caso nuevo, uno que ya no está o una `version` distinta), la operación falla con `CONFLICTO_CONCURRENCIA`.
+3. **Cada caso.** El cierre de cada Assignment es un `UPDATE` condicionado por `version` y `estado`, y Requests valida la `version` de la solicitud en `reasignar` y `reasignarDerivada`. Si `RecordDeliveryResult` confirmó antes un resultado sobre uno de los casos, la versión ya cambió y la baja falla completa; si la baja confirmó antes, el resultado llega sobre un Assignment `CERRADO` y queda obsoleto.
+4. **Elegibilidad final.** Bajo el bloqueo, la cuenta saliente debe seguir `ACTIVA` y cada destino `ACTIVA` y distinto del saliente; si no, `CONFLICTO_CONCURRENCIA` o `PRODUCTOR_NO_DISPONIBLE`.
+
+El orden fijo evita bloqueos cruzados entre dos bajas simultáneas (A reasigna a B mientras B reasigna a A). Si PostgreSQL detecta igualmente un deadlock o un fallo de serialización, se traduce a `CONFLICTO_CONCURRENCIA` sin cambios parciales. Los bloqueos se piden a través de los puertos de Identity y Requests, sin acceso directo a sus tablas, y todo ocurre en la única unidad de trabajo del caso de uso iniciador (puntos 2 y 4 de la decisión de [ADR-SW-003](../../adr/MAPS-108-persistencia-fronteras-transaccionales/ADR-SW-003-persistencia-y-fronteras-transaccionales.md)). Tras el commit no puede crearse ningún Assignment hacia el Productor dado de baja.
+
+El prototipo de PR #19 bloquea la baja mientras haya ASIGNADAS. Con esta operación ya no hace falta un bloqueo: la baja exige asignar un destino a cada caso. Esa diferencia es parte del pendiente funcional de la decisión 2: si MAPS ratifica la operación única, el prototipo se actualiza con un cambio controlado.
 
 ### Errores observables
 
@@ -296,6 +305,7 @@ Las garantías se apoyan en la base de datos, no en locks locales al proceso:
 - **Claim del outbox.** Dos workers con el lease vencido no pueden procesar el mismo evento a la vez: el reclamo del evento usa un token de lease que se verifica al registrar el resultado (TDD-CLD-005 define tiempos).
 - **Acciones Admin concurrentes.** Dos reasignaciones o un reintento y una cancelación sobre la misma solicitud: la segunda recibe `CONFLICTO_CONCURRENCIA` o `TRANSICION_INVALIDA` por la condición de versión y el índice único parcial.
 - **Resultado tardío.** Un resultado que llega tras baja o cancelación se registra y no muta el Assignment cerrado.
+- **Baja guiada.** Bloqueo de cuentas en orden fijo, revalidación del conjunto de casos y condición de versión por caso; ver [Baja de Productor](#baja-de-productor).
 
 ### Migraciones
 
@@ -362,6 +372,11 @@ De integración, con base real y proveedor simulado:
 - Dos workers con el lease vencido sobre el mismo evento: sólo uno registra resultado; el otro queda descartado por el token de lease.
 - Dos acciones Admin concurrentes (reasignar y cancelar, o reintentar y reasignar): una sola tiene efecto.
 - Baja guiada concurrente con una cancelación del Cliente sobre uno de sus casos: la baja falla completa con `CONFLICTO_CONCURRENCIA` y la cuenta sigue `ACTIVA`.
+- Baja guiada contra `AssignProducer` hacia el mismo Productor: o la asignación confirma antes y la baja falla con `CONFLICTO_CONCURRENCIA` por el caso nuevo, o la baja confirma antes y la asignación recibe `PRODUCTOR_NO_DISPONIBLE`. En ningún orden queda un Assignment abierto hacia una cuenta `BAJA`.
+- Baja guiada contra `ReassignProducer` que elige al saliente como destino: mismo resultado.
+- Baja guiada contra `RecordDeliveryResult` sobre uno de sus casos: o el resultado queda obsoleto, o la baja falla completa.
+- Dos bajas cruzadas (A reasigna a B y B a A): una confirma, la otra falla sin cambios parciales y ninguna queda esperando indefinidamente.
+- Baja guiada contra la baja del Productor destino: ningún caso termina asignado a una cuenta `BAJA`.
 - Resultado de entrega que llega después de baja o cancelación: Assignment cerrado sin cambios; el resultado queda auditado.
 - Pruebas de integración contra base real. Las comprobaciones con locks locales al proceso no cuentan como evidencia.
 
@@ -378,7 +393,7 @@ Dependencias: TDD-SW-003 (`APROBADO`, en `main`), ADR-SW-004 (`ACEPTADO`, en `ma
 | Tema | Responsable | Qué puede avanzar | Condición de cierre |
 | --- | --- | --- | --- |
 | **1. Estado técnico que acredita la entrega requerida** (**bloqueante de `EN REVISIÓN`**) | Software + Cloud; MAPS/Kondor para la regla funcional | Estados, separación de solicitud y entrega | Elegir entre **(A)** `ACEPTADO` con `providerMessageId` (propuesta de este documento, provisional): habilita la derivación sin esperar webhook, pero una solicitud puede quedar DERIVADA con un email que después rebota, y la baseline no le da al Admin ninguna acción en DERIVADA para corregirlo; **(B)** `ENTREGADO` por webhook: cumple RN-07 de forma más estricta, pero la solicitud queda ASIGNADA mientras no llegue la confirmación. Con (B), si la confirmación nunca llega, el intento queda con incidencia visible para Admin y el plazo y la acción son la decisión 5. Cierra con las capacidades del proveedor en TDD-CLD-005. Aceptación del proveedor no equivale a entrega al destinatario. Si se elige (A), la decisión 6 pasa a ser bloqueante |
-| **2. Alcance de la baja de Productor** (bloqueante de `EN REVISIÓN`) | Kondor + MAPS | Operación guiada única (decisión de alcance Kondor, 2026-10-28) | Kondor decidió que el corte de acceso y la reasignación ocurren en el mismo momento, en una sola operación (ver [Baja de Productor](#baja-de-productor)). Es coherente con la respuesta de MAPS en el relevamiento ("debe informar a la Org para analizar cada caso"): el Admin analiza cada caso dentro de la baja, sin un bloqueo previo. Falta la confirmación conjunta con MAPS (DEP-07, MAPS-167) |
+| **2. Alcance de la baja de Productor** (bloqueante de `EN REVISIÓN`) | Kondor + MAPS | Operación guiada única (decisión de alcance Kondor, 2026-10-28) | Kondor decidió que el corte de acceso y la reasignación ocurren en el mismo momento, en una sola operación (ver [Baja de Productor](#baja-de-productor)). Es coherente con la respuesta de MAPS en el relevamiento ("debe informar a la Org para analizar cada caso"): el Admin analiza cada caso dentro de la baja, sin un bloqueo previo. No está validada por MAPS: es un pendiente funcional, no un defecto técnico. Cierra con la ratificación de MAPS (DEP-07, MAPS-167) y, si corresponde, un cambio controlado de F1/F2 y la actualización del prototipo de PR #19 |
 | **3. Bandeja de solicitudes sin Productor efectivo** | Kondor (F2) | Incidencia derivada de Assignment `PENDIENTE_ENTREGA` | Diseño de la bandeja del Admin |
 | **4. Política de reintentos automáticos y manuales** | Cloud | Límite de intentos y espera como parámetros | Valores definidos en TDD-CLD-005 |
 | **5. Tratamiento operativo de incidencias y SLA de derivación** | `PENDIENTE FUNCIONAL MAPS` | Registro, separación de estados y recuperación técnica. Incluye: plazo sin confirmación de webhook con opción (B) de la decisión 1, y clave de deduplicación de eventos de proveedor (ver Restricciones) | Plazos, acciones operativas y capacidades del proveedor confirmadas en TDD-CLD-005 |
@@ -414,6 +429,13 @@ Revisión de Santiago Talavera en la PR #20 (Software–Cloud, TDD-SW-005). Cada
 | Cancelación durante reasignación pendiente | [Decidir cancelación de DERIVADA](#decidir-cancelación-de-derivada) cierra el Assignment no cerrado, incluido `PENDIENTE_ENTREGA`; el resultado posterior queda obsoleto |
 | Webhook previo al resultado síncrono | [Estados técnicos](#deliveryattempt) y [Correlación temprana](#deliveryattempt) lo condicionan a un correlador auténtico que TDD-CLD-005 debe confirmar; sin él no hay transición funcional |
 | Dirección en reintentos | [Procesar la derivación](#procesar-la-derivación-fuera-de-la-unidad-de-trabajo) resuelve la dirección vigente por envío y registra sólo máscara + referencia/version de contacto |
+
+### Seguimiento de revisión PR #27
+
+| Punto | Respuesta en este documento |
+| --- | --- |
+| Concurrencia de baja guiada | [Baja de Productor](#baja-de-productor): bloqueo de cuentas en orden fijo por los puertos de Identity, revalidación del conjunto de casos y de la elegibilidad bajo el bloqueo, condición de versión por caso, deadlock traducido a `CONFLICTO_CONCURRENCIA`; pruebas de carreras contra PostgreSQL real |
+| RN-19 / decisión funcional pendiente | [Baja de Productor](#baja-de-productor) y decisión 2: alcance Kondor sin validación de MAPS; cierre con DEP-07/MAPS-167 y, si corresponde, cambio controlado de F1/F2 y del prototipo |
 
 La limitación de envío (ventana de carrera y duplicación residual) ya quedó incorporada en ADR-SW-004 `ACEPTADO` mediante PR #17. Pendiente, fuera de este documento: la decisión 1, que depende de las capacidades del proveedor en TDD-CLD-005.
 
