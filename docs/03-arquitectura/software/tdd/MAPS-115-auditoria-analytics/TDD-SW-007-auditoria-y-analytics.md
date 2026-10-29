@@ -8,7 +8,7 @@
 | Fecha | 2026-10-29 |
 | Autor | Joaquin Rodriguez |
 | Revisores | Santiago Talavera (revisión cruzada Cloud pendiente: privilegios de base, purga, correlación con telemetría, entrada pública del evento de vista) |
-| Work item | [MAPS-115](https://santitalavera.atlassian.net/browse/MAPS-115) · subtarea a confirmar |
+| Work item | [MAPS-115](https://santitalavera.atlassian.net/browse/MAPS-115) · subtarea [MAPS-144](https://santitalavera.atlassian.net/browse/MAPS-144) |
 | URL del work item | https://santitalavera.atlassian.net/browse/MAPS-115 |
 | Fase origen | [F0 §0.5/0.6/0.7/0.9](../../../../00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md); [F1 §5/6/7, RN-11/18/19, RF-ANALYTICS-01, RF-DELIVERY-01, RNF-SEC-01](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md); [F2 §7 (CLI-07, ADM-02, PRO-03) y §14](../../../../02-diseno/Fase_2__Design_Handoff.md) |
 | Decisiones relacionadas | [ADR-SW-001](../../adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-001-monolito-modular-y-limites.md); [ADR-SW-002](../../adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-002-arquitectura-hexagonal-y-capas.md); [ADR-SW-003](../../adr/MAPS-108-persistencia-fronteras-transaccionales/ADR-SW-003-persistencia-y-fronteras-transaccionales.md); [ADR-SW-004](../../adr/MAPS-110-asincronia-outbox-idempotencia/ADR-SW-004-outbox-asincronia-e-idempotencia.md); [ADR-SW-005](../../adr/MAPS-111-identidad-autorizacion/ADR-SW-005-identidad-y-autorizacion.md); [TDD-SW-001](../MAPS-109-modelo-dominio-datos/TDD-SW-001-modelo-de-dominio-y-datos.md); [TDD-SW-002](../MAPS-112-product-category-formularios/TDD-SW-002-product-category-y-formversion.md); [TDD-SW-003](../MAPS-113-insurance-request-estados/TDD-SW-003-insurance-request-y-maquina-de-estados.md); [TDD-SW-005](../MAPS-114-assignment-delivery-outbox/TDD-SW-005-assignment-delivery-y-coordinacion-outbox.md); TDD-SW-004 y TDD-SW-006 (en PR abiertas); ADR-CLD-006 y TDD-CLD-007 (previstos) |
@@ -32,7 +32,7 @@ No define:
 - Los eventos de identidad y acceso en sí: los fija TDD-SW-004 (PR #27). Este TDD los incorpora por referencia y define su almacenamiento y consulta, como ese documento delega.
 - El trazado técnico de la entrega: `DeliveryAttempt` ([TDD-SW-005](../MAPS-114-assignment-delivery-outbox/TDD-SW-005-assignment-delivery-y-coordinacion-outbox.md)) ya registra destinatario, fecha, resultado, fallas y reintentos (RF-DELIVERY-01). La auditoría no lo duplica.
 - Plazos de retención o eliminación física: `PENDIENTE FUNCIONAL MAPS`.
-- Proveedor externo de analytics: no se adopta ninguno (ver [Decisiones abiertas](#decisiones-abiertas)).
+- Proveedor externo de analytics: no se adopta ninguno en el MVP (decisión del owner del 2026-10-29). Incorporarlo requiere un ADR propio y revisión de privacidad y consentimiento.
 
 ## Baseline y dependencias
 
@@ -43,7 +43,7 @@ No define:
 | El acceso del Productor registra accesos relevantes | [F0 §0.6](../../../../00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md), [F1 §5](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md) — CONFIRMADO | Cada apertura de expediente por un Productor se audita (ADR-SW-005 §6) |
 | Eventos `product_viewed`, `request_started`, `request_saved`, `request_submitted` y sus métricas | [F0 §0.7](../../../../00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md), [F1 §6, RN-11, RF-ANALYTICS-01](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md) — CONFIRMADO / técnico F3 | Catálogo cerrado de cuatro eventos; abandono es métrica derivada, no evento |
 | Analytics no registra respuestas, documentos, adjuntos, DNI, CUIT, teléfono, datos de riesgo ni PII innecesaria; no crea Leads; no sustituye auditoría | [F0 §0.7](../../../../00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md), [F1 §6](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md) — CONFIRMADO | Payload en lista blanca; sin identificadores de persona |
-| Proveedor, SDK, instrumentación, persistencia y retención técnica de analytics | [F0 §0.7/0.9](../../../../00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md) — DIFERIDO F3 | Este TDD propone persistencia propia (ver Decisiones abiertas) |
+| Proveedor, SDK, instrumentación, persistencia y retención técnica de analytics | [F0 §0.7/0.9](../../../../00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md) — DIFERIDO F3 | Persistencia propia en la base del Portal, sin proveedor externo (decisión del owner del 2026-10-29); la retención técnica sigue abierta |
 | `AuditEvent` registra eventos relevantes | [F1 §7](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md) — CONFIRMADO | Entidad del módulo Audit |
 | Historial visible en el detalle de Cliente y Admin | [F2 §7 CLI-07, ADM-02](../../../../02-diseno/Fase_2__Design_Handoff.md) — CONFIRMADO | Proyección de lectura sobre `AuditEvent` filtrada por rol |
 | Baja lógica: el Admin conserva el historial | [F1 RN-18/RN-19](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md) — CONFIRMADO | La baja de cuentas no borra ni oculta auditoría |
@@ -123,7 +123,7 @@ Los nombres de la fila Identity y de la fila Acceso se alinean con los que fije 
 
 `EXPEDIENTE_ABIERTO` y `ACCESO_DENEGADO` ocurren en lecturas, sin UoW de negocio, y se escriben en una transacción propia:
 
-- **Apertura por Productor**: se registra antes de devolver el expediente. Propuesta: si la escritura falla, no se sirve el contenido (*fail-closed*), porque F0 exige registrar el acceso. Queda como decisión abierta.
+- **Apertura por Productor**: se registra antes de devolver el expediente. Si la escritura falla, no se sirve el contenido (*fail-closed*), porque F0 exige registrar el acceso (decisión del owner del 2026-10-29). La auditoría y el expediente comparten base, así que el costo adicional en disponibilidad es marginal; la revisión cruzada Cloud lo confirma.
 - **Denegación**: se registra sin alterar la respuesta (403/404 según TDD-SW-004). Si la escritura falla, la denegación se mantiene y queda una señal técnica.
 
 ### Historial (CLI-07, ADM-02)
@@ -134,19 +134,20 @@ Los nombres de la fila Identity y de la fila Acceso se alinean con los que fije 
 | Admin | Todos los eventos `NEGOCIO` de la solicitud, intentos de entrega (de TDD-SW-005) y actor | Eventos de acceso: el MVP no incluye una vista de accesos (TDD-SW-004) |
 | Productor | Sin historial: PRO-03 muestra el expediente DERIVADO y avisos | — |
 
-La autorización usa el `AccessScope` de TDD-SW-004: ninguna consulta del historial saltea el filtro de ownership. La visibilidad por rol se define en el catálogo por acción, no por evento.
+La autorización usa el `AccessScope` de TDD-SW-004: ninguna consulta del historial saltea el filtro de ownership. La visibilidad por rol se define en el catálogo por acción, no por evento. La visibilidad del Cliente se adopta como diseño y se valida con MAPS junto con el prototipo ([MAPS-105](https://santitalavera.atlassian.net/browse/MAPS-105)) antes de pasar el TDD a `EN REVISIÓN`.
 
 ### Funnel
 
 | Evento | Punto de emisión | Payload (lista blanca) |
 | --- | --- | --- |
 | `product_viewed` | Frontend, al mostrar PUB-02 de un Product publicado; `POST` público a la API | `productId`, `authenticated` (booleano) |
-| `request_started` | Después del commit de `CreateDraft` (ver decisión abierta 1) | `productId`, `requestId`, `formVersionId` |
+| `request_started` | Después del commit de `CreateDraft` | `productId`, `requestId`, `formVersionId` |
 | `request_saved` | Después del commit de cada `SaveDraft` exitoso | `productId`, `requestId`, `formVersionId` |
 | `request_submitted` | Después del commit de `Submit` | `productId`, `requestId`, `formVersionId` |
 
 Todos agregan `eventId` y `occurredAt` del servidor. No se guardan `customerId`, IP, user agent, cookies ni identificadores de visitante. `requestId` es un id interno seudónimo, necesario para tiempo de completado y conversión por solicitud.
 
+- **Inicio de solicitud.** `request_started` se emite en el servidor al confirmarse `CreateDraft`, con `requestId` (decisión del owner del 2026-10-29). Como el login es previo a crear el BORRADOR, la fricción del login queda dentro de Product view → Start; medirla por separado requiere un evento nuevo y un cambio controlado de F0/F1.
 - **Entrega best effort.** `FunnelPort` inserta en su propia transacción, después del commit del negocio. Un fallo se descarta con señal técnica y nunca afecta la operación del usuario. Las métricas son aproximadas por diseño.
 - **Endpoint público de `product_viewed`.** Valida que el `productId` exista y esté publicado, rechaza campos desconocidos y aplica límites de tasa en la API y en la entrada pública (coordinación con ADR-CLD-001). No requiere sesión ni setea cookies.
 
@@ -160,7 +161,7 @@ Métricas de F0 §0.7:
 | Tiempo mediano de completado | Mediana de `request_submitted.occurredAt − request_started.occurredAt` por solicitud |
 | % de borradores nunca enviados | Solicitudes iniciadas sin `request_submitted` luego de una ventana de observación configurable; incluye las descartadas |
 
-F2 no define una pantalla de métricas. En el MVP se exponen como vistas de sólo lectura para el reporte que Kondor prepare para MAPS; una pantalla Admin requiere cambio controlado de F2.
+F2 no define una pantalla de métricas. En el MVP se exponen como vistas de sólo lectura para un reporte técnico que Kondor prepara para MAPS (decisión del owner del 2026-10-29); una pantalla Admin requiere cambio controlado de F2.
 
 ## Datos, consistencia y migraciones
 
@@ -208,7 +209,7 @@ Backups y restore de ambas tablas siguen los de la base (TDD-CLD-003). Un restor
 - Comandos rechazados por guarda: sin `AuditEvent`.
 - Lista blanca: un `data` con campos no declarados o prohibidos falla en prueba unitaria.
 - Integración con base real (no simulada): el rol de la aplicación no puede `UPDATE` ni `DELETE` sobre `audit_event` ni `funnel_event`.
-- Apertura de expediente: un Productor con acceso vigente genera `EXPEDIENTE_ABIERTO`. Si se adopta fail-closed, un fallo de escritura impide servir el contenido.
+- Apertura de expediente: un Productor con acceso vigente genera `EXPEDIENTE_ABIERTO`. Un fallo de escritura impide servir el contenido (fail-closed).
 - Historial: el Cliente ve sólo las acciones permitidas y no ve eventos de otra solicitud; el Admin no ve eventos `ACCESO`.
 - Funnel: una falla de `FunnelPort` no altera el resultado de `SaveDraft` ni de `Submit`. `product_viewed` rechaza Products no publicados y campos extra. No se persiste ningún identificador de persona.
 - Métricas: sobre un conjunto fijo de eventos, las cinco métricas devuelven los valores esperados, incluida la mediana.
@@ -228,16 +229,21 @@ Dependencias: TDD-SW-004 (catálogo de identidad y accesos), TDD-SW-006 (acceso 
 
 | Tema | Responsable | Qué puede avanzar | Condición de cierre |
 | --- | --- | --- | --- |
-| 1. Punto de emisión de `request_started`: tras `CreateDraft` (propuesta) o al pulsar el CTA de PUB-02 antes del login. Medir la fricción del login por separado requeriría un evento nuevo | Software (owner); MAPS si cambia la definición de la métrica | Los otros tres eventos y la persistencia | Confirmación del owner. Un evento nuevo requiere cambio controlado F0/F1 |
-| 2. Retención y eliminación de `audit_event` | `PENDIENTE FUNCIONAL MAPS` ([MAPS-99](https://santitalavera.atlassian.net/browse/MAPS-99)) | Esquema, índices y mecanismo de purga sin plazos | Respuesta de MAPS en la Ronda MAPS A ([MAPS-167](https://santitalavera.atlassian.net/browse/MAPS-167)) |
-| 3. Plazo técnico de los eventos crudos de funnel | Software + Cloud | Agregados y purga parametrizable | Plazo acordado con costo estimado de Cloud |
-| 4. Fail-closed en la apertura de expediente del Productor | Software (owner) + Cloud | El registro de la apertura | Decisión del owner |
-| 5. Persistencia propia de analytics frente a un proveedor externo | Software (owner) | Diseño con persistencia propia | Confirmación del owner. Un proveedor externo requiere ADR y revisión de privacidad y consentimiento |
-| 6. Consumo de métricas: reporte técnico (propuesta) o pantalla Admin | MAPS + Kondor | Vistas de sólo lectura | Una pantalla requiere cambio controlado de F2 |
-| 7. Eventos y textos del historial visible al Cliente | Software + UX (F2) | Filtro por rol en el catálogo | Validación contra F2 y el prototipo |
-| 8. Evidencia de inmutabilidad más allá de privilegios (hash chain, exportación) | Software + Cloud | Privilegios de base | Requisito de MAPS o legal, si existe |
-| 9. Nombres de eventos de identidad y acceso; volumen o agrupación de `ACCESO_DENEGADO` | Software + Cloud | Contrato genérico de acceso | TDD-SW-004 en `EN REVISIÓN` |
-| 10. Login fallidos | Cloud | — | ADR-CLD-007 confirma si el IdP los expone de forma integrable |
+| 1. Retención y eliminación de `audit_event` | `PENDIENTE FUNCIONAL MAPS` ([MAPS-99](https://santitalavera.atlassian.net/browse/MAPS-99)) | Esquema, índices y mecanismo de purga sin plazos | Respuesta de MAPS en la Ronda MAPS A ([MAPS-167](https://santitalavera.atlassian.net/browse/MAPS-167)) |
+| 2. Plazo técnico de los eventos crudos de funnel | Software + Cloud | Agregados y purga parametrizable | Plazo acordado con costo estimado de Cloud |
+| 3. Eventos y textos del historial visible al Cliente | Software + UX (F2) | Diseño adoptado: estados y fechas, sin identidad de Admin ni de Productor | Validación con MAPS junto con el prototipo ([MAPS-105](https://santitalavera.atlassian.net/browse/MAPS-105)) |
+| 4. Evidencia de inmutabilidad más allá de privilegios (hash chain, exportación) | Software + Cloud | Privilegios de base | Requisito de MAPS o legal, si existe |
+| 5. Nombres de eventos de identidad y acceso; volumen o agrupación de `ACCESO_DENEGADO` | Software + Cloud | Contrato genérico de acceso | TDD-SW-004 en `EN REVISIÓN` |
+| 6. Login fallidos | Cloud | — | ADR-CLD-007 confirma si el IdP los expone de forma integrable |
+
+### Decisiones cerradas por el owner (2026-10-29)
+
+| Tema | Decisión | Motivo |
+| --- | --- | --- |
+| Emisión de `request_started` | En el servidor, tras el commit de `CreateDraft` | Evento confiable y con `requestId`, sin instrumentación anónima adicional. La fricción del login queda dentro de Product view → Start; medirla aparte requiere cambio controlado F0/F1 |
+| Apertura de expediente sin registro | *Fail-closed*: no se sirve el contenido | F0 §0.6 exige registrar los accesos del Productor; auditoría y expediente comparten base. Sujeto a la revisión cruzada Cloud |
+| Persistencia de analytics | Propia, en la base del Portal; sin proveedor externo en el MVP | Sin cookies ni terceros. Un proveedor externo requiere ADR propio y revisión de privacidad y consentimiento |
+| Consumo de métricas | Reporte técnico de Kondor sobre vistas de sólo lectura | F2 no define pantalla de métricas; una pantalla Admin requiere cambio controlado de F2 |
 
 ## Referencias y trazabilidad
 
