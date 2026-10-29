@@ -92,7 +92,7 @@ InsuranceRequest 1 ── 0..* CancellationRequest (sólo desde DERIVADA; a lo s
 | Transición | Actor | Condición | Efectos registrados |
 | --- | --- | --- | --- |
 | (inicio) → BORRADOR | Cliente autenticado | Product disponible con FormVersion utilizable | FormVersion vigente queda fijada |
-| BORRADOR → ENVIADA | Cliente | Requeridos, pasos, documentos y consentimientos completos; FormVersion utilizable; precio vigente confirmado | Snapshot de precio, fecha de envío, auditoría |
+| BORRADOR → ENVIADA | Cliente | Requeridos, pasos, documentos y consentimientos completos; FormVersion utilizable; precio vigente confirmado | Snapshot de precio, fecha de envío, número de solicitud ([enmienda 2026-10-29](#enmienda-2026-10-29-número-de-solicitud)), auditoría |
 | ENVIADA → ASIGNADA | Admin | Productor disponible | Assignment vigente, intención de entrega, auditoría |
 | ASIGNADA → ASIGNADA (reasignación) | Admin | Productor disponible | Assignment anterior cerrado, nuevo vigente, auditoría |
 | ASIGNADA → DERIVADA | Sistema | DeliveryAttempt con entrega requerida exitosa | Acceso del Productor habilitado, auditoría |
@@ -135,6 +135,7 @@ Para mostrar el aviso de cambio de precio, el BORRADOR guarda el último precio 
 - Una FormVersion publicada no se modifica; un cambio produce una versión nueva.
 - Las RequestAnswer corresponden a campos de la FormVersion referenciada; no se migran ni copian entre versiones.
 - Una ENVIADA tiene snapshot de precio y FormVersion; nunca se recalculan.
+- Toda solicitud que pasó por ENVIADA tiene un `number` único e inmutable, que no se reutiliza; ningún BORRADOR lo tiene ([enmienda 2026-10-29](#enmienda-2026-10-29-número-de-solicitud)).
 - Hay a lo sumo un Assignment vigente por solicitud, y sólo con un Producer disponible al asignar.
 - DERIVADA exige un DeliveryAttempt exitoso del Assignment vigente.
 - El Productor accede sólo si la solicitud está DERIVADA, el Assignment vigente es suyo y el acceso no fue revocado.
@@ -202,6 +203,17 @@ Secuencia sugerida: Identity y Catalog → Forms → Requests (BORRADOR/ENVIADA)
 | Textos y versiones de consentimiento | MAPS (legal) | Entidad Consent y su snapshot | Textos aprobados |
 | Estado técnico que acredita entrega exitosa | Software | Separación DeliveryAttempt/InsuranceRequest | TDD-SW-005, según [ADR-SW-004](../../adr/MAPS-110-asincronia-outbox-idempotencia/ADR-SW-004-outbox-asincronia-e-idempotencia.md) |
 
+## Enmienda 2026-10-29: número de solicitud
+
+Durante el diseño del contrato API (TDD-SW-008, [PR #33](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/33)) se detectó que [F2 §7](../../../../02-diseno/Fase_2__Design_Handoff.md) muestra el **Número** de la solicitud desde la confirmación del envío (CLI-05) y que el prototipo permite buscar por número, pero este TDD no define un identificador legible: el `id` de InsuranceRequest es opaco. Esta enmienda lo registra; no cambia entidades, estados ni relaciones.
+
+- **Qué se añade:** atributo `number` de InsuranceRequest, legible y único. Se asigna una sola vez, al pasar de BORRADOR a ENVIADA, y nunca se modifica ni se reutiliza, tampoco si la solicitud se cancela. Un BORRADOR, descartado o no, no tiene número.
+- **Invariante:** toda solicitud ENVIADA, ASIGNADA, DERIVADA o CANCELADA tiene `number`; ningún BORRADOR lo tiene; dos solicitudes no comparten número.
+- **Representación:** entero tomado de una secuencia dedicada de la base del Portal. El formato visible (prefijo, relleno) se acuerda con UX y no altera el valor almacenado. La secuencia puede dejar huecos: el número identifica, no cuenta solicitudes.
+- **Qué no cambia:** el `id` opaco sigue siendo la identidad técnica, la clave de las relaciones y el identificador de las rutas. `number` no se usa para autorizar ni para relacionar entidades.
+- **Alternativa descartada:** código alfanumérico aleatorio. Evita revelar el volumen aproximado de solicitudes, pero exige reintentos ante colisiones y es menos natural para buscar y para el soporte telefónico. El volumen que revela una secuencia no se considera información sensible para el MVP.
+- **Trazabilidad:** la asignación en `Submit` se registra en la [enmienda 2026-10-29 de TDD-SW-003](../MAPS-113-insurance-request-estados/TDD-SW-003-insurance-request-y-maquina-de-estados.md#enmienda-2026-10-29-número-de-solicitud); el contrato HTTP y la búsqueda, en TDD-SW-008. Registrada bajo [MAPS-115](https://santitalavera.atlassian.net/browse/MAPS-115).
+
 ## Referencias y trazabilidad
 
 - ADR y TDD relacionados: [ADR-SW-001](../../adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-001-monolito-modular-y-limites.md), [ADR-SW-002](../../adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-002-arquitectura-hexagonal-y-capas.md), [ADR-SW-003](../../adr/MAPS-108-persistencia-fronteras-transaccionales/ADR-SW-003-persistencia-y-fronteras-transaccionales.md), [ADR-SW-004](../../adr/MAPS-110-asincronia-outbox-idempotencia/ADR-SW-004-outbox-asincronia-e-idempotencia.md), [ADR-SW-005](../../adr/MAPS-111-identidad-autorizacion/ADR-SW-005-identidad-y-autorizacion.md), [TDD-SW-003](../MAPS-113-insurance-request-estados/TDD-SW-003-insurance-request-y-maquina-de-estados.md); previstos TDD-SW-002 y TDD-SW-004 a 007, TDD-CLD-003/004/005.
@@ -210,4 +222,4 @@ Secuencia sugerida: Identity y Catalog → Forms → Requests (BORRADOR/ENVIADA)
 
 ## Criterio de aprobación
 
-`APROBADO` el 2026-10-14 por el owner de software: ADR-SW-001/002/003 están `ACEPTADO` y se validaron entidades, estados, invariantes, snapshots y pendientes explícitos. La revisión cruzada Cloud del mismo día fue favorable con las observaciones formalizadas el 2026-10-22. Las decisiones abiertas siguen abiertas: aprobar el TDD no cierra un `PENDIENTE FUNCIONAL MAPS` ni acepta anticipadamente los documentos derivados. Si una de ellas cambia el modelo, se actualiza este TDD o se crea uno que lo reemplace.
+`APROBADO` el 2026-10-14 por el owner de software: ADR-SW-001/002/003 están `ACEPTADO` y se validaron entidades, estados, invariantes, snapshots y pendientes explícitos. La revisión cruzada Cloud del mismo día fue favorable con las observaciones formalizadas el 2026-10-22. Las decisiones abiertas siguen abiertas: aprobar el TDD no cierra un `PENDIENTE FUNCIONAL MAPS` ni acepta anticipadamente los documentos derivados. Si una de ellas cambia el modelo, se actualiza este TDD o se crea uno que lo reemplace. La [enmienda 2026-10-29](#enmienda-2026-10-29-número-de-solicitud) agrega el número de solicitud por decisión del owner, sin cambio de estado.
