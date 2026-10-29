@@ -33,7 +33,7 @@ Este TDD baja a diseño ejecutable las decisiones de [ADR-SW-005](../../adr/MAPS
 
 Este TDD no modifica el ADR. Concreta cuatro puntos que el ADR dejó abiertos al diseño:
 
-1. **Baja de Productor como operación guiada única.** El ADR pide que el Admin trate las ASIGNADAS y DERIVADAS "antes de completar la baja" y que el acceso se corte de inmediato (RN-19). Se diseña como una sola operación: en el mismo momento en que se corta el acceso, el Admin elige los casos y los reasigna (ver [Baja guiada de Productor](#baja-guiada-de-productor)). Es decisión de alcance Kondor del 2026-10-28, alineada con [TDD-SW-005](../MAPS-114-assignment-delivery-outbox/TDD-SW-005-assignment-delivery-y-coordinacion-outbox.md), y queda sujeta a la confirmación conjunta con MAPS que pide la matriz de dependencias (DEP-07). Si la revisión considera que implica un trade-off de primer orden, se eleva a un ADR.
+1. **Baja de Productor como operación guiada única.** El ADR pide que el Admin trate las ASIGNADAS y DERIVADAS "antes de completar la baja" y que el acceso se corte de inmediato (RN-19). Se diseña como una sola operación: en el mismo momento en que se corta el acceso, el Admin elige los casos y los reasigna (ver [Baja guiada de Productor](#baja-guiada-de-productor)). Es decisión de alcance Kondor del 2026-10-28, alineada con [TDD-SW-005](../MAPS-114-assignment-delivery-outbox/TDD-SW-005-assignment-delivery-y-coordinacion-outbox.md). **No está validada por MAPS:** modifica la secuencia documentada antes y el comportamiento del prototipo de PR #19. Es un pendiente funcional, no un defecto técnico, y cierra con la ratificación de MAPS (DEP-07, MAPS-167) y, si corresponde, un cambio controlado de F1/F2 y la actualización del prototipo. Si la revisión considera que implica un trade-off de primer orden, se eleva a un ADR.
 2. **Registro explícito del Cliente.** El ADR dice que el Cliente se registra por sí mismo; este TDD fija que lo hace en un paso explícito de "completar registro".
 3. **Invitación de Productor propia**, vinculada por token y no por email.
 4. **Un único email por cuenta**, el verificado por el proveedor de identidad, sin edición desde el Portal en el MVP.
@@ -46,7 +46,7 @@ Este TDD no modifica el ADR. Concreta cuatro puntos que el ADR dejó abiertos al
 | Productor sólo ve DERIVADAS asignadas a su identidad, autorizadas y read-only; el enlace del email no concede acceso | RN-05/16, [F1 §5](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md) — CONFIRMADO | `AccessScope` del Productor derivado de estado + Assignment `EFECTIVO` + cuenta `ACTIVA` |
 | Matriz de permisos UX | [F2 §6/13](../../../../02-diseno/Fase_2__Design_Handoff.md) — CONFIRMADO | Fuente del catálogo de políticas; el enforcement técnico es de este TDD |
 | Baja de Cliente: pierde el login de inmediato, sus solicitudes siguen su ciclo, se conserva el historial y se le notifica | RN-18 — CONFIRMADO | Cuenta `BAJA` sin tocar `InsuranceRequest` |
-| Baja de Productor: pierde el acceso de inmediato; el Admin trata ASIGNADAS y DERIVADAS antes de completar la baja; baja lógica y reversible | RN-19 — CONFIRMADO; secuencia: decisión de alcance Kondor MVP (2026-10-28), a confirmar con MAPS | Operación guiada única: corte de acceso y reasignación en el mismo commit |
+| Baja de Productor: pierde el acceso de inmediato; el Admin trata ASIGNADAS y DERIVADAS antes de completar la baja; baja lógica y reversible | RN-19 — CONFIRMADO; secuencia: decisión de alcance Kondor MVP (2026-10-28), sin validación de MAPS (DEP-07) | Operación guiada única: corte de acceso y reasignación en el mismo commit |
 | Inhabilitar a un Productor sólo impide nuevas asignaciones | RN-15 — CONFIRMADO; MAPS respondió que no habrá casos inhabilitados, lo que apunta a quitarla del MVP (decisión 7 de TDD-SW-005) | No se modela inhabilitación: la elegibilidad es sólo cuenta `ACTIVA` |
 | Alcance de la inhabilitación y su efecto sobre casos existentes | RN-20 — `PENDIENTE FUNCIONAL MAPS` | No se modela ningún estado de inhabilitación |
 | Campos de Mi perfil | RN-17 — `PENDIENTE FUNCIONAL MAPS` | Se define sólo la frontera de autorización; el perfil básico es propuesta Kondor |
@@ -77,9 +77,11 @@ El rol Admin es un rol de `UserIdentity`, no una entidad aparte ([TDD-SW-001](..
 3. Si la cuenta está en `BAJA`, se rechaza con `CUENTA_INACTIVA`.
 4. Se construye el `Actor` y se evalúa la política del caso de uso.
 
-El estado de cuenta no se cachea en el MVP. Toda request que empieza después del commit de una baja es rechazada aunque el token siga vigente. Los comandos de escritura y la apertura de expediente releen el estado de cuenta dentro de su propia unidad de trabajo. Si Cloud introduce una caché, su TTL máximo se documenta en TDD-CLD-006 como demora aceptada de revocación.
+**Contrato de revocación.** La revocación es inmediata y se apoya en una consulta local, no en el proveedor: el estado de cuenta no se cachea, toda request que empieza después del commit de una baja es rechazada aunque el token siga vigente, y los comandos de escritura y la apertura de expediente releen el estado de cuenta dentro de su propia unidad de trabajo.
 
-Cada vez que un Cliente inicia sesión, si el email verificado que informa el proveedor difiere del que guarda el Portal, se actualiza la copia y se audita. Es una red de seguridad: el requisito principal es que el proveedor no permita al usuario final cambiar su email (ver [Decisiones abiertas](#decisiones-abiertas)).
+Lo que depende del proveedor (MFA, bloqueo del cambio de email, revocación de sesiones, eventos de login) no se da por garantizado hasta ADR-CLD-007 y TDD-CLD-006. Si Cloud incorpora una caché del estado de cuenta, es un debilitamiento de este contrato: se registra explícitamente como desvío aceptado, con su TTL máximo como demora de revocación, en TDD-CLD-006 y en este TDD.
+
+Cada vez que un Cliente inicia sesión, si el email verificado que informa el proveedor difiere del que guarda el Portal, se actualiza la copia y se audita. Que el proveedor impida al usuario final cambiar su email es una hipótesis condicionada al proveedor (ver [Decisiones abiertas](#decisiones-abiertas)), no una garantía de este diseño. Por eso existe esta sincronización y la cuenta se vincula por `issuer + subject`, no por email.
 
 ### Registro del Cliente
 
@@ -95,19 +97,30 @@ Una identidad autenticada sin cuenta del Portal ve el paso "completar registro".
 1. El Admin crea el `Producer` desde el ABM, con sus datos y su email. El Productor existe como registro, sin `UserIdentity` y sin acceso. Sin cuenta `ACTIVA` no puede recibir asignaciones.
 2. El sistema crea una `ProducerInvitation` y registra una intención de aviso por outbox ([ADR-SW-004](../../adr/MAPS-110-asincronia-outbox-idempotencia/ADR-SW-004-outbox-asincronia-e-idempotencia.md)) con un enlace al Portal. El enlace contiene el token de la invitación y ninguna credencial.
 3. La persona abre el enlace, se autentica con el proveedor y ejecuta `AcceptProducerInvitation`.
-4. La aceptación exige a la vez: token válido (existente, no usado, no vencido, no invalidado) y email verificado de la identidad **igual** al email invitado (sin distinguir mayúsculas). Si se cumplen, en una sola operación se crea la `UserIdentity` (rol `PRODUCTOR`, `ACTIVA`), se vincula al `Producer` y se marca la invitación como `ACEPTADA`. Desde ese momento el Productor puede recibir asignaciones.
+4. La aceptación exige a la vez: token válido (existente, no usado, no vencido, no invalidado) y email verificado de la identidad **igual** al email invitado, ambos normalizados. Si se cumplen, en una sola operación se crea la `UserIdentity` (rol `PRODUCTOR`, `ACTIVA`), se vincula al `Producer` y se marca la invitación como `ACEPTADA`. Desde ese momento el Productor puede recibir asignaciones.
 
 Reglas de la invitación:
 
 - El token es de un solo uso y de alta entropía. Sólo se guarda su hash.
 - Vence a los 7 días como valor inicial configurable.
-- Reenviar la invitación invalida la anterior.
+- **Reemisión.** Reenviar emite un token nuevo e invalida el anterior en la misma operación. Editar el email del Productor con una invitación `PENDIENTE` también la invalida y emite una nueva a la dirección nueva. Una invitación vencida o invalidada sólo se reemplaza con una reemisión del Admin.
+- **Normalización.** El email invitado y el email verificado se comparan sin espacios al inicio o al final y en minúsculas. No se aplican otras equivalencias (puntos, sufijos `+`), porque dependen de cada proveedor de correo.
+- Una identidad que ya tiene cuenta del Portal no puede aceptar (`REGISTRO_YA_COMPLETO`): cada cuenta tiene un único rol.
 - Estados: `PENDIENTE`, `ACEPTADA`, `INVALIDADA`. El vencimiento se calcula con `expiresAt`.
 - Toda la lógica va detrás de un puerto del módulo Identity, para no depender del mecanismo de invitaciones del proveedor.
 
+Cambios de email o recuperación de cuenta entre la emisión y la aceptación:
+
+- La comparación usa el email verificado que informa el proveedor **al aceptar**, no uno anterior. Si la persona cambió su email verificado en el proveedor después de la emisión, la aceptación falla con `EMAIL_NO_COINCIDE`; el Admin corrige el email del Productor, lo que reemite la invitación.
+- Si la persona recupera su cuenta en el proveedor, acepta como cualquier identidad: con el email verificado vigente y la invitación todavía `PENDIENTE`. El diseño no supone que la recuperación conserve el `subject`.
+- Quien controle el buzón invitado mientras la invitación está vigente puede aceptarla: es el límite de una invitación por email. Se acota con el token de un solo uso, el vencimiento y la verificación de email del proveedor.
+- Después de la aceptación la cuenta queda vinculada por `issuer + subject`; un cambio posterior del email en el proveedor no rompe el vínculo.
+
+**Concurrencia.** La aceptación consume la invitación con un `UPDATE` condicionado (`estado = 'PENDIENTE'` y `expiresAt` futuro); si no afecta una fila, falla con `INVITACION_INVALIDA`. La reemisión y la edición del email invalidan con la misma condición, así que entre aceptar y reemitir gana sólo una. Los índices únicos sobre `issuer + subject` y sobre la `UserIdentity` del `Producer` impiden dos cuentas aunque compitan identidades distintas.
+
 ### Creación de Admin
 
-El Admin se crea con un comando de operación (`create-admin`) que ejecuta Kondor. No existe pantalla ni endpoint público. La cuenta tiene rol `ADMIN`, sin vínculo a Customer ni Producer, con su propio `issuer + subject`, y queda auditada. El MFA obligatorio es un requisito fijado por ADR-SW-005; su enforcement lo define ADR-CLD-007. La gestión de Admins desde el Portal queda fuera del MVP. Se espera que MAPS tenga dos o tres Admins.
+El Admin se crea con un comando de operación (`create-admin`) que ejecuta Kondor. No existe pantalla ni endpoint público. La cuenta tiene rol `ADMIN`, sin vínculo a Customer ni Producer, con su propio `issuer + subject`, y queda auditada. El MFA obligatorio es un requisito fijado por ADR-SW-005; su enforcement lo define ADR-CLD-007 y no se da por garantizado antes. La gestión de Admins desde el Portal queda fuera del MVP. Se espera que MAPS tenga dos o tres Admins.
 
 ### Catálogo de políticas
 
@@ -167,10 +180,12 @@ Consecuencias:
 
 - El corte de acceso y la reasignación quedan en el mismo commit: el Productor pierde el acceso desde la siguiente request. El nuevo Productor lo obtiene recién cuando su entrega se acredita como exitosa; entre ambos momentos nadie del lado Productor ve el caso, como ya establece TDD-SW-003.
 - Si no existe otro Productor con cuenta `ACTIVA`, la baja se bloquea con `SIN_PRODUCTOR_DISPONIBLE` y la lista de casos afectados. Es una validación defensiva: con la cantidad de Productores esperada es un caso improbable.
-- Si otra operación modifica un caso afectado mientras tanto (por ejemplo, el Cliente cancela una ENVIADA o ASIGNADA), la operación falla completa con `CONFLICTO_CONCURRENCIA` y el Admin reintenta sobre el estado nuevo. Decisión de diseño: no se reintentan parcialmente los casos que cambiaron; es lo más simple y seguro para el MVP.
+- Si otra operación modifica un caso afectado o asigna un caso nuevo al Productor mientras tanto (por ejemplo, el Cliente cancela una ASIGNADA o se acredita una entrega), la operación falla completa con `CONFLICTO_CONCURRENCIA` y el Admin reintenta sobre el estado nuevo. Decisión de diseño: no se reintentan parcialmente los casos que cambiaron; es lo más simple y seguro para el MVP.
 - Si la entrega al nuevo Productor falla, la incidencia queda visible para el Admin, que reintenta la entrega (TDD-SW-005).
 - Un Productor sin casos abiertos se da de baja con la misma operación, con la lista vacía.
 - Se acepta que todos los casos viajen en una sola transacción: con el volumen esperado por Productor es razonable para el MVP.
+
+**Concurrencia.** La validación al preparar la pantalla no alcanza: la confirmación revalida todo dentro de su unidad de trabajo. La serialización con `AssignProducer`, `ReassignProducer` y `RecordDeliveryResult` la detalla [TDD-SW-005](../MAPS-114-assignment-delivery-outbox/TDD-SW-005-assignment-delivery-y-coordinacion-outbox.md#baja-de-productor). Identity aporta el bloqueo de la fila de cuenta, siempre a través de sus puertos de entrada: `ProducerAccountPort` lee la elegibilidad con bloqueo compartido (`FOR SHARE`) y `ProducerAccountCommandPort` bloquea en modo exclusivo (`FOR UPDATE`) la cuenta que pasa a `BAJA`. La reactivación de Productor toma el mismo bloqueo exclusivo.
 
 ### Baja y reactivación de Cliente
 
@@ -207,8 +222,8 @@ El modelo lógico parte de [TDD-SW-001](../MAPS-109-modelo-dominio-datos/TDD-SW-
 | --- | --- | --- |
 | `UserIdentity` | `issuer`, `subject`, rol (`CLIENTE`, `PRODUCTOR`, `ADMIN`), estado (`ACTIVA`, `BAJA`), fecha, Admin y motivo de baja o reactivación | Par `issuer + subject` único; un único rol por cuenta; sin vínculos a Customer/Producer para `ADMIN` |
 | `Customer` | Email (copia del verificado, sólo lectura), datos del perfil básico (campos a confirmar) | A lo sumo una `UserIdentity`; los datos sensibles de cada solicitud viven en sus respuestas y no en el perfil |
-| `Producer` | Datos, email, referencia a `UserIdentity` (vacía hasta aceptar la invitación) | A lo sumo una `UserIdentity`; sin `UserIdentity` activa no es asignable |
-| `ProducerInvitation` | `producerId`, email invitado, hash del token, `expiresAt`, estado | A lo sumo una `PENDIENTE` por Productor; el token no se guarda en claro |
+| `Producer` | Datos, email, referencia a `UserIdentity` (vacía hasta aceptar la invitación) | A lo sumo una `UserIdentity` (índice único); sin `UserIdentity` activa no es asignable |
+| `ProducerInvitation` | `producerId`, email invitado (normalizado), hash del token, `expiresAt`, estado | A lo sumo una `PENDIENTE` por Productor; el token no se guarda en claro |
 
 Invariantes:
 
@@ -261,8 +276,9 @@ Las pruebas de política se ejecutan sin infraestructura (ADR-SW-002); las de in
 - **Revocación:** token criptográficamente válido con cuenta en `BAJA` es rechazado en la siguiente request; un comando en curso que relee la cuenta ya en `BAJA` se rechaza.
 - **Assignment y acceso:** `PENDIENTE_ENTREGA` y `CERRADO` no autorizan al Productor; un resultado de entrega tardío no revive un Assignment `CERRADO`.
 - **Registro:** doble `CompleteRegistration` concurrente crea una sola cuenta; una identidad sin cuenta no ejecuta otros comandos.
-- **Invitación:** token usado, vencido, invalidado o con email distinto es rechazado; reenviar invalida la anterior; dos aceptaciones concurrentes crean una sola cuenta.
-- **Baja guiada:** con casos sin destino se rechaza; con `CancellationRequest` pendiente se rechaza; sin otro Productor habilitado se bloquea; ante conflicto de concurrencia no queda ningún cambio parcial; tras el commit el Productor pierde el acceso y el nuevo no lo obtiene hasta la entrega exitosa.
+- **Invitación:** token usado, vencido, invalidado o con email distinto es rechazado; reenviar o editar el email invalida la anterior; el email con mayúsculas o espacios distintos coincide; una identidad con cuenta no acepta; un email verificado cambiado en el proveedor después de la emisión falla con `EMAIL_NO_COINCIDE`.
+- **Invitación, integración con PostgreSQL real:** dos aceptaciones concurrentes del mismo token (misma identidad o identidades distintas) crean una sola cuenta; aceptar y reemitir en paralelo tiene un solo efecto.
+- **Baja guiada:** con casos sin destino se rechaza; con `CancellationRequest` pendiente se rechaza; sin otro Productor habilitado se bloquea; ante conflicto de concurrencia no queda ningún cambio parcial; tras el commit el Productor pierde el acceso y el nuevo no lo obtiene hasta la entrega exitosa. Las carreras con asignaciones, reasignaciones y resultados de entrega se prueban contra PostgreSQL real (TDD-SW-005).
 - **Reactivación:** no devuelve solicitudes ya reasignadas.
 - **Auditoría:** cada evento del catálogo se registra sin datos personales innecesarios.
 
@@ -290,7 +306,7 @@ Dependencias entre equipos: ADR-CLD-007 y TDD-CLD-006 antes de integrar un prove
 | Textos y versión de consentimientos del registro | MAPS | Paso de registro con punto de extensión | Textos aprobados |
 | Factibilidad en el proveedor: cuenta única por rol, MFA de Admin, bloqueo del cambio de email por el usuario, revocación de sesiones, eventos de login | Software + Cloud | Diseño detrás de `IdentityProviderPort` | ADR-CLD-007 |
 | Validación de tokens y TTL de una eventual caché | Software + Cloud | Contrato del puerto | TDD-CLD-006 |
-| Confirmación de la secuencia de baja RN-19 (operación única) | Kondor + MAPS | Decidido por Kondor el 2026-10-28; diseño coherente con TDD-SW-005 | Confirmación conjunta con MAPS (DEP-07, MAPS-167) |
+| Confirmación de la secuencia de baja RN-19 (operación única) | Kondor + MAPS | Decidido por Kondor el 2026-10-28, sin validación de MAPS; diseño coherente con TDD-SW-005. Pendiente funcional, no defecto técnico | Ratificación de MAPS (DEP-07, MAPS-167) y, si corresponde, cambio controlado de F1/F2 y actualización del prototipo de PR #19 |
 | Vencimiento de la invitación | Kondor | Decidido: 7 días iniciales, configurable | Ajustar con la operación si hace falta |
 | Almacenamiento y consulta de la auditoría | Software + Cloud | Catálogo de eventos de este TDD | TDD-SW-007 y TDD-CLD-007 |
 
@@ -299,3 +315,14 @@ Dependencias entre equipos: ADR-CLD-007 y TDD-CLD-006 antes de integrar un prove
 - ADR y TDD relacionados: [ADR-SW-001](../../adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-001-monolito-modular-y-limites.md), [ADR-SW-002](../../adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-002-arquitectura-hexagonal-y-capas.md), [ADR-SW-004](../../adr/MAPS-110-asincronia-outbox-idempotencia/ADR-SW-004-outbox-asincronia-e-idempotencia.md), [ADR-SW-005](../../adr/MAPS-111-identidad-autorizacion/ADR-SW-005-identidad-y-autorizacion.md), [TDD-SW-001](../MAPS-109-modelo-dominio-datos/TDD-SW-001-modelo-de-dominio-y-datos.md), [TDD-SW-003](../MAPS-113-insurance-request-estados/TDD-SW-003-insurance-request-y-maquina-de-estados.md), [TDD-SW-005](../MAPS-114-assignment-delivery-outbox/TDD-SW-005-assignment-delivery-y-coordinacion-outbox.md); previstos TDD-SW-007, ADR-CLD-007, TDD-CLD-006, TDD-CLD-007.
 - Fuentes F0/F1/F2: [F1 §3/5, RN-02/04/05/14/15/16/17/18/19/20, RF-CLI-01, RF-PRODUCER-01/02/03, RNF-SEC-01](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md); [F2 §6/7/11/12/13](../../../../02-diseno/Fase_2__Design_Handoff.md).
 - Filas de [traceability.md](../../../traceability.md): acceso del Productor; ABM de Clientes y Productores; Mi perfil.
+
+## Respuesta a la revisión
+
+Revisión técnica Software de Santiago Talavera en la PR #27. La revisión cruzada Cloud/seguridad y la aprobación documental quedan aparte.
+
+| Punto | Respuesta en este documento |
+| --- | --- |
+| RN-19 / decisión funcional pendiente | [Aclaraciones](#aclaraciones-respecto-del-adr-sw-005), baseline y [Decisiones abiertas](#decisiones-abiertas): decisión de alcance Kondor sin validación de MAPS, pendiente funcional distinto de un defecto técnico; cierra con DEP-07/MAPS-167 y, si corresponde, cambio controlado de F1/F2 y del prototipo |
+| Concurrencia de baja guiada | [Baja guiada de Productor](#baja-guiada-de-productor): bloqueos de cuenta que aporta Identity por sus puertos; la serialización completa y las pruebas con PostgreSQL real, en [TDD-SW-005](../MAPS-114-assignment-delivery-outbox/TDD-SW-005-assignment-delivery-y-coordinacion-outbox.md#baja-de-productor) |
+| Contrato de revocación / IdP | [Resolución del actor](#resolución-del-actor-por-request): revocación inmediata por consulta local; MFA, bloqueo del cambio de email, revocación de sesiones y TTL de caché sin garantizar hasta ADR-CLD-007/TDD-CLD-006; una caché se registra como desvío aceptado |
+| Invitaciones y consistencia | [Alta e invitación de Productor](#alta-e-invitación-de-productor): reemisión, normalización, cambio de email o recuperación antes de aceptar, concurrencia y pruebas de aceptación concurrente |
