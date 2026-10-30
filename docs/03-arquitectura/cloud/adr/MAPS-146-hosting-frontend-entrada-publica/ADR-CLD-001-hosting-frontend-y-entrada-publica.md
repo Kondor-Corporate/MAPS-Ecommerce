@@ -32,7 +32,7 @@ Este ADR decide el patrón de hosting y entrada pública. No fija framework fron
 - ADR-SW-001/002 aceptan un monolito modular y separación hexagonal; la división en workloads cloud no crea módulos de dominio ni microservicios conceptuales.
 - ADR-SW-005 define autenticación/autorización de aplicación. La API debe validar token, UserIdentity activa, RBAC y ownership en sus operaciones. La red o el balanceador no sustituyen esos controles.
 - La PR [#29](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/29) (C1 Runtime + Database) y la PR [#30](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/30) (C2 Security / IAM) permanecen abiertas. Sus documentos son deltas candidatos, no baseline integrada ni decisiones aceptadas.
-- El discovery read-only de MAPS-LandingPage confirmó un patrón productivo de balanceador global, serverless NEGs, routing por paths e ingress Cloud Run restringido. Se usa como evidencia de experiencia y operabilidad; no constituye arquitectura aprobada para MAPS Portal.
+- En MAPS-LandingPage, el commit [`65814e2`](https://github.com/Kondor-Corporate/MAPS-Landingpage/commit/65814e2) contiene una implementación Terraform real en [`infra/terraform/modules/edge/main.tf`](https://github.com/Kondor-Corporate/MAPS-Landingpage/blob/65814e2/infra/terraform/modules/edge/main.tf): IP externa global; serverless NEGs de frontend y API; backend services; URL map con frontend por defecto y `/api`, `/api/*` hacia API; certificados administrados; proxy HTTPS; y redirección HTTP→HTTPS. Se clasifica como **PRECEDENTE TÉCNICO REUTILIZABLE / ADAPTAR**, no como arquitectura aceptada del Portal.
 
 ## Drivers y criterios
 
@@ -47,6 +47,7 @@ Este ADR decide el patrón de hosting y entrada pública. No fija framework fron
 | Reversibilidad de despliegues | Media | Recuperar una versión conocida sin alterar datos |
 | Evolución sin obligación inmediata | Media | Cloud CDN y Cloud Armor deben poder añadirse si un driver aparece |
 | Paridad de ambientes | Alta | La frontera pública no debe variar estructuralmente entre staging y producción |
+| Esfuerzo marginal / reutilización organizacional | Media | Existe experiencia y Terraform de Landing que puede adaptarse, sujeto a revisión; comparar carga marginal, no sólo complejidad nominal |
 
 ## Alternativas consideradas
 
@@ -58,7 +59,9 @@ Este ADR decide el patrón de hosting y entrada pública. No fija framework fron
 | D. Firebase App Hosting | Flujo gestionado de build/rollout y backend apoyado en Cloud Run, Load Balancer y Cloud CDN; dominios y operación integrados. | Requiere Blaze y configura abstracciones/build/rollout propios; su encaje con una SPA servida desde contenedor y con el contrato de artefacto promovido entre ambientes debe demostrarse. Puede introducir una superficie de operación distinta al patrón elegido para API. | Válida para aplicaciones/frameworks compatibles; no propuesta inicial para este frontend hasta validar ajuste y promoción. |
 | E. Domain mapping directo de Cloud Run | Pocas piezas para prototipo y dominio. | No proporciona por sí mismo routing común frontend/API ni las capacidades de borde elegidas; las capacidades y restricciones de domain mapping deben validarse y no reemplazan ingress. | No cubre el objetivo de entrada común; no propuesta. |
 
-Cloud Run + LB no se elige sólo por consistencia con Landing. La diferencia que inclina provisionalmente la evaluación es el requisito conjunto de una entrada pública por ambiente Cloud persistente, routing por paths y capacidad de impedir el acceso público directo a los servicios backend. Firebase Hosting sigue siendo razonable si una validación operativa demuestra que su menor complejidad y costo superan ese beneficio para el Portal.
+Cloud Run + LB no se elige sólo por consistencia con Landing. La diferencia que inclina provisionalmente la evaluación es el requisito conjunto de una entrada pública por ambiente Cloud, routing por paths y capacidad de impedir el acceso público directo a los servicios backend. En complejidad nominal, Firebase Hosting + Cloud Run tiene menos piezas. Para el balanceador, la experiencia existente, el módulo Terraform y los runbooks de Kondor pueden reducir el esfuerzo de implementación, el riesgo y el mantenimiento marginal tras revisar y adaptar el módulo; esa reutilización no decide por sí sola la alternativa.
+
+La comparación de TCO del Portal debe considerar, como mínimo, producción y staging, controles necesarios y esfuerzo operativo/mantenimiento además del costo de servicios. Las cifras del runbook de Landing son **estimaciones, budgets y órdenes de magnitud**, no facturación histórica comprobada de ese patrón para el Portal. No demuestran que el Portal quede dentro del guardrail global de USD 200/mes; no se incorpora ni fija aquí un costo nuevo.
 
 ## Decisión
 
@@ -82,6 +85,8 @@ DNS y TLS propuestos para cada ambiente: dominio/hostname propio → IP del bala
 Cloud CDN queda como capacidad disponible, no requisito inicial. Si se activa, se limita al frontend estático tras validar TCO y comportamiento de caché. Assets con hash deben poder usar public, max-age largo e immutable; index.html debe revalidarse (no-cache/must-revalidate o política equivalente segura). API autenticada debe responder private/no-store y no debe compartirse en CDN. El catálogo público no se cachea inicialmente en una CDN compartida sin evidencia de seguridad y frescura.
 
 No se exige Cloud Armor para el MVP: no hay driver actual que lo haga obligatorio. Se podrá incorporar ante necesidad demostrada de WAF, rate limiting en el borde, hallazgos de amenazas, requisito contractual o abuso real; este ADR no inventa una política.
+
+La implementación de Landing es evidencia técnica, no un template ciego. No se reutilizan automáticamente project IDs, prefixes, dominios, certificados, nombres de servicios o backend services, región, Terraform state, Cloud Build, IAM, monitoring ni budgets. El módulo deberá revisarse y adaptarse cuando C4/C8 materialicen el Portal.
 
 ## Consecuencias y trade-offs
 
@@ -113,4 +118,5 @@ Reconsiderar si: Firebase Hosting/App Hosting demuestra menor TCO y operación m
 - Software: [ADR-SW-001](../../../software/adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-001-monolito-modular-y-limites.md), [ADR-SW-002](../../../software/adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-002-arquitectura-hexagonal-y-capas.md), [ADR-SW-005](../../../software/adr/MAPS-111-identidad-autorizacion/ADR-SW-005-identidad-y-autorizacion.md).
 - PRs candidatas no integradas: [#29 C1](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/29), [#30 C2](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/30).
 - Fuentes oficiales actuales: [Firebase Hosting](https://firebase.google.com/docs/hosting), [Firebase Hosting → Cloud Run](https://firebase.google.com/docs/hosting/cloud-run), [Hosting configuration/rewrites/headers](https://firebase.google.com/docs/hosting/full-config), [Firebase App Hosting](https://firebase.google.com/docs/app-hosting), [App Hosting costs](https://firebase.google.com/docs/app-hosting/costs), [Cloud Storage static website](https://docs.cloud.google.com/storage/docs/hosting-static-website), [Cloud Load Balancing URL maps](https://docs.cloud.google.com/load-balancing/docs/https), [serverless NEGs](https://docs.cloud.google.com/load-balancing/docs/negs/serverless-neg-concepts), [Cloud Run ingress](https://docs.cloud.google.com/run/docs/securing/ingress), [disable Cloud Run default URL](https://docs.cloud.google.com/run/docs/securing/ingress), [Cloud CDN with serverless backends](https://docs.cloud.google.com/cdn/docs/setting-up-cdn-with-serverless).
+- Landing, commit [`65814e2`](https://github.com/Kondor-Corporate/MAPS-Landingpage/commit/65814e2): [módulo Terraform de edge](https://github.com/Kondor-Corporate/MAPS-Landingpage/blob/65814e2/infra/terraform/modules/edge/main.tf); [runbook de release y operación](https://github.com/Kondor-Corporate/MAPS-Landingpage/blob/65814e2/docs/R6_RELEASE_OPERATIONS_PLAN.md). Sus costos son estimaciones/budgets y órdenes de magnitud, no billing histórico comprobado para Portal.
 - Fila de trazabilidad: despliegue del Portal y exposición pública; los índices se actualizarán después de la revisión/sincronización C3.
