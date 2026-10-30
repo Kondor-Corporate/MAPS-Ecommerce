@@ -12,7 +12,7 @@
 | URL del work item | https://santitalavera.atlassian.net/browse/MAPS-148 |
 | Fase origen | [F0 §0.4/0.5/0.8](../../../../00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md), [F1 §3/5, RN-06/07/10, RF-DELIVERY-01](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md), [F2 §5/12](../../../../02-diseno/Fase_2__Design_Handoff.md) |
 | Decisiones relacionadas | [ADR-CLD-000](../MAPS-161-seleccion-plataforma-cloud/ADR-CLD-000-seleccion-plataforma-cloud.md) (`ACEPTADO`, GCP para el MVP); [ADR-SW-001](../../../software/adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-001-monolito-modular-y-limites.md); [ADR-SW-002](../../../software/adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-002-arquitectura-hexagonal-y-capas.md); [ADR-SW-003](../../../software/adr/MAPS-108-persistencia-fronteras-transaccionales/ADR-SW-003-persistencia-y-fronteras-transaccionales.md); [ADR-SW-004](../../../software/adr/MAPS-110-asincronia-outbox-idempotencia/ADR-SW-004-outbox-asincronia-e-idempotencia.md); [ADR-SW-005](../../../software/adr/MAPS-111-identidad-autorizacion/ADR-SW-005-identidad-y-autorizacion.md); [TDD-CLD-003](../../tdd/MAPS-155-cloud-sql-conexiones-backups-migraciones/TDD-CLD-003-cloud-sql-conexiones-backups-migraciones.md) |
-| Depende de | Aceptación de este ADR; latencia máxima de inicio de derivación pendiente de [MAPS-167](https://santitalavera.atlassian.net/browse/MAPS-167); diseño de materialización en TDD-CLD-003 y paquetes C2–C8 |
+| Depende de | Aceptación de este ADR; bajo la baseline actual, latencia máxima de inicio de derivación pendiente de [MAPS-167](https://santitalavera.atlassian.net/browse/MAPS-167); si MAPS aprueba desacoplar acceso/email, latencia operacional de notificación; materialización en TDD-CLD-003 y paquetes C2–C8 |
 | Reemplaza | No aplica |
 | Reemplazado por | No aplica |
 
@@ -80,6 +80,13 @@ La secuencia de esquema conserva **expand → desplegar aplicación compatible �
 
 **Separación física API / processor / migration job no crea microservicios conceptuales.** Son entrypoints/workloads que pueden reutilizar el mismo código modular, imagen base o composition roots donde corresponda; el ownership del dominio y los datos sigue siendo el aprobado por Software.
 
+## Observación funcional pendiente — revisión del 2026-10-29
+
+El comentario de revisión de Joaquin Rodriguez en [PR #29](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/29#issuecomment-6509710418) propone que, al confirmar una asignación, el Productor pueda consultar inmediatamente la solicitud y que el email sea sólo una notificación; una demora, fallo o rebote no impediría acceso y quedaría como incidencia Admin con posibilidad de reenvío. Es una propuesta funcional transversal, no una decisión Cloud. [MAPS-167](https://santitalavera.atlassian.net/browse/MAPS-167) debe resolverla y coordinar la actualización controlada de F1/F2 y Software. C1 conserva la baseline vigente hasta esa resolución: Delivery exitoso → Assignment EFECTIVO → ASIGNADA a DERIVADA → acceso del Productor.
+
+Pregunta funcional para MAPS-167: **Al confirmar una asignación, ¿el Productor debe poder acceder inmediatamente a la solicitud aunque el email todavía no haya sido entregado, haya fallado o rebote?**
+
+Si MAPS aprueba el desacoplamiento, el acceso y la transición que Software defina dejarían de depender de la latencia del email; el Outbox Job seguiría siendo válido, y el intervalo de Scheduler pasaría a afectar latencia operacional de notificación, no autorización del Productor. No se decide aquí cuándo ocurre ASIGNADA → DERIVADA, cuándo Assignment pasa a EFECTIVO, si el Productor puede ver ASIGNADA ni qué cambios requiere la máquina de estados; corresponde a MAPS + Software.
 ## Consecuencias y trade-offs
 
 ### Positivas
@@ -92,7 +99,7 @@ La secuencia de esquema conserva **expand → desplegar aplicación compatible �
 
 ### Negativas y riesgos
 
-- Polling introduce latencia y el Scheduler no satisface automáticamente un SLA de segundos.
+- Bajo la baseline actual, polling puede demorar el inicio efectivo de la derivación y Scheduler no satisface automáticamente un SLA de segundos. Si MAPS aprueba desacoplar acceso/email, el intervalo afectará la latencia de notificación, no la autorización del Productor.
 - Puede haber arranques fríos y demora de escalado en la API.
 - La autoscaling de API puede multiplicar conexiones, sobre todo durante picos o coexistencia temporal de revisiones; un `max instances` no elimina por sí solo la necesidad de pools acotados y margen.
 - Jobs pueden reiniciarse, reintentarse o solaparse; leases, fencing e idempotencia son obligatorios.
@@ -104,7 +111,7 @@ La secuencia de esquema conserva **expand → desplegar aplicación compatible �
 
 | Riesgo o pendiente | Responsable | Acción / condición de cierre |
 | --- | --- | --- |
-| Latencia máxima entre asignación y comienzo de derivación | MAPS ([MAPS-167](https://santitalavera.atlassian.net/browse/MAPS-167)); Cloud materializa | MAPS expresa la necesidad de negocio. Si Job + Scheduler no cabe en el límite, comparar Worker Pool o flujo event-driven; no pedir a MAPS escoger tecnología |
+| Latencia pendiente de MAPS-167 | MAPS ([MAPS-167](https://santitalavera.atlassian.net/browse/MAPS-167)); Cloud materializa | Baseline actual: máximo entre asignación y comienzo efectivo de derivación. Si MAPS aprueba desacoplar acceso/email: latencia operacional de notificación. Sólo la baseline actual condiciona el runtime a inicio de derivación; no pedir a MAPS escoger tecnología |
 | Tráfico y concurrencia no medidos | Software + Cloud | Definir baseline mediante pruebas de carga antes de fijar CPU/RAM, concurrencia, instancias o pools |
 | Runtime puede exceder presupuesto global de USD 200/mes | Cloud + owner | Reconciliar sizing/arquitectura/costo de plataforma completa; el guardrail no es un presupuesto unitario de este runtime |
 | Migración concurrente o incompatible | Software + Cloud | TDD-CLD-003 define serialización/resultado; C8 define promoción que consume el contrato |
@@ -113,7 +120,7 @@ La secuencia de esquema conserva **expand → desplegar aplicación compatible �
 
 ## Criterios de revisión futura
 
-Revisar el patrón Outbox cuando MAPS defina un SLA de inicio incompatible con el intervalo viable de polling, cuando el volumen/fan-out haga ineficiente reclamar desde PostgreSQL, cuando los spikes muestren presión sostenida de DB o costo desproporcionado, o cuando un requisito real necesite capacidades de orquestación ausentes. La revisión debe preservar contratos Software y puede proponer reemplazo formal si el ADR ya fue aceptado.
+Revisar el patrón Outbox cuando MAPS defina una latencia de inicio de derivación incompatible con el intervalo viable de polling bajo la baseline actual —o una latencia operacional de notificación si aprueba desacoplar acceso/email—, cuando volumen/fan-out haga ineficiente reclamar desde PostgreSQL, cuando los spikes muestren presión sostenida de DB o costo desproporcionado, o cuando un requisito real necesite capacidades de orquestación ausentes. La revisión debe preservar contratos Software y puede proponer reemplazo formal si el ADR ya fue aceptado.
 
 ## Referencias y trazabilidad
 

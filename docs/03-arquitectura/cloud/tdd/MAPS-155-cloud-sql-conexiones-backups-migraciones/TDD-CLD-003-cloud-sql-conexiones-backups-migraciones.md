@@ -12,7 +12,7 @@
 | URL del work item | https://santitalavera.atlassian.net/browse/MAPS-155 |
 | Fase origen | [F0 §0.1/0.8](../../../../00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md), [F1 §3/5/7, RN-06/07/10](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md), [F2 §5/9/10/12](../../../../02-diseno/Fase_2__Design_Handoff.md) |
 | Decisiones relacionadas | [ADR-CLD-000](../../adr/MAPS-161-seleccion-plataforma-cloud/ADR-CLD-000-seleccion-plataforma-cloud.md) (`ACEPTADO`, GCP para el MVP); [ADR-CLD-003](../../adr/MAPS-148-runtime-api-worker-jobs-migraciones/ADR-CLD-003-runtime-api-worker-jobs-migraciones.md) (`PROPUESTO`); [ADR-SW-001](../../../software/adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-001-monolito-modular-y-limites.md); [ADR-SW-002](../../../software/adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-002-arquitectura-hexagonal-y-capas.md); [ADR-SW-003](../../../software/adr/MAPS-108-persistencia-fronteras-transaccionales/ADR-SW-003-persistencia-y-fronteras-transaccionales.md); [ADR-SW-004](../../../software/adr/MAPS-110-asincronia-outbox-idempotencia/ADR-SW-004-outbox-asincronia-e-idempotencia.md); [ADR-SW-005](../../../software/adr/MAPS-111-identidad-autorizacion/ADR-SW-005-identidad-y-autorizacion.md); [TDD-SW-001](../../../software/tdd/MAPS-109-modelo-dominio-datos/TDD-SW-001-modelo-de-dominio-y-datos.md); [TDD-SW-003](../../../software/tdd/MAPS-113-insurance-request-estados/TDD-SW-003-insurance-request-y-maquina-de-estados.md) |
-| Depende de | ADR-CLD-003 mientras permanezca `PROPUESTO`; [MAPS-167](https://santitalavera.atlassian.net/browse/MAPS-167) para necesidad de negocio RPO/RTO, HA y latencia Outbox; decisiones de región/topología en paquetes C2–C4 |
+| Depende de | ADR-CLD-003 mientras permanezca `PROPUESTO`; [MAPS-167](https://santitalavera.atlassian.net/browse/MAPS-167) para RPO/RTO, HA y latencia de inicio de derivación bajo la baseline actual; si MAPS aprueba desacoplar acceso/email, latencia operacional de notificación; región/topología en paquetes C2–C4 |
 | Reemplaza | No aplica |
 | Reemplazado por | No aplica |
 
@@ -39,7 +39,7 @@ Fuera de alcance: topología final y configuración detallada de Cloud Run (C4),
 | Assignment, DeliveryAttempt, resultados tardíos y concurrencia coordinados sobre DB | [TDD-SW-003](../../../software/tdd/MAPS-113-insurance-request-estados/TDD-SW-003-insurance-request-y-maquina-de-estados.md) — `APROBADO`; [TDD-SW-002](../../../software/tdd/MAPS-112-product-category-formularios/TDD-SW-002-product-category-y-formversion.md) y [TDD-SW-005](../../../software/tdd/MAPS-114-assignment-delivery-outbox/TDD-SW-005-assignment-delivery-y-coordinacion-outbox.md) — `BORRADOR` en `main`, integrados por PR #20 | C1 usa los documentos integrados en `main`; su estado `BORRADOR` no equivale a aprobación |
 | Migraciones versionadas expand/contract; app rollback no revierte DB | ADR-SW-003 — `ACEPTADO` | Migración ejecutada como operación separada; compatibilidad entre versiones desplegadas |
 | PostgreSQL histórico de MAPS fuera de la dependencia funcional del MVP | ADR-SW-003 — `ACEPTADO` | Cloud SQL sólo alberga la base nueva del Portal |
-| Latencia máxima entre asignación y comienzo de la derivación | MAPS-167 — `PENDIENTE MAPS` | Determina si el polling propuesto por ADR-CLD-003 sirve; no se inventa un SLA |
+| Latencia funcional pendiente de MAPS-167 | MAPS-167 — `PENDIENTE MAPS` | Baseline actual: máximo entre asignación y comienzo efectivo de derivación, que condiciona el polling. Si MAPS aprueba desacoplar acceso/email: máximo de latencia operacional de notificación, sin condicionar autorización del Productor |
 | RPO/RTO en términos de negocio, necesidad zonal y tolerancia a indisponibilidad | MAPS-167 — `PENDIENTE MAPS` | No se asignan RPO/RTO numéricos, HA obligatoria ni retención final |
 | Tráfico, concurrencia, volumen, crecimiento, tamaño de DB, patrón de consultas y carga Outbox | No medido / pendiente de evidencia | El tamaño y los pools se determinan mediante sizing y pruebas, no por intuición |
 
@@ -163,18 +163,25 @@ Son controles distintos y no equivalen entre sí:
 | --- | --- | --- |
 | Backup automatizado | Copia recuperable conforme a configuración del servicio | No demuestra que restore sea operable ni fija RPO/RTO de MAPS |
 | PITR | Recuperación a un instante dentro de la ventana configurada, si edición/configuración lo soportan; siempre crea una instancia nueva | Requiere habilitación y retención de logs; restaurar un backup sobre una instancia existente elimina sus logs PITR previos; no define por sí sola RTO ni pérdida de negocio aceptable |
-| Restore | Restaurar backup hacia una instancia existente o nueva; PITR crea una instancia nueva | Puede tomar tiempo, requiere validar datos/conectividad y puede necesitar promoción/cambio de configuración posterior |
+| Restore | Restaurar primero a una instancia/recurso separado; PITR crea una instancia nueva | Validar integridad y smoke test contra el recurso separado; sólo después promoverlo o cambiar la conexión de aplicación |
 | HA regional | Failover administrado ante ciertos fallos zonales | No sustituye backup, PITR, recuperación ante corrupción lógica ni decisión de continuidad de negocio |
 
-Propuesta de baseline para producción, a ratificar con requisitos de MAPS:
+Opciones de recuperación para producción a evaluar antes de cerrar la baseline:
 
-- backups automatizados habilitados;
-- PITR habilitado si la edición/configuración elegida lo permite y el costo se acepta;
-- política de retención, almacenamiento de logs y protección contra borrado definidas al cerrar el requisito;
-- procedimiento de restore hacia recurso separado y verificación de integridad/datos;
-- prueba de restore como evidencia operacional antes de declarar recuperación comprobada.
+**Opción económica inicial de referencia para el MVP, no decisión de producción:** Cloud SQL zonal/standalone + backups automáticos + restore probado a un recurso separado + protecciones operacionales. No se trasladan automáticamente tier, CPU/RAM, región, versión de PostgreSQL, frecuencia/retención, costo ni objetivos del precedente Landing.
 
-No se fijan frecuencia final, retención exacta, RPO, RTO ni coste. Según la documentación vigente, PITR viene habilitado por defecto en Enterprise Plus; en Enterprise depende de si se crea desde la consola (predeterminado habilitado) o por CLI/Terraform/API (predeterminado deshabilitado). La retención de logs WAL es configurable: Enterprise admite 1–7 días (predeterminado 7) y Enterprise Plus 1–35 días (predeterminado 14). Son defaults del producto, no política aceptada por MAPS; C8 debe declarar la configuración efectiva. Backup diario de comparación no implica RPO de 24 horas.
+Comparación PITR pendiente de reconciliación de costo y necesidad MAPS:
+
+| Opción | Evaluar |
+| --- | --- |
+| PITR deshabilitado | Recuperación limitada a backups disponibles; menor capacidad de recuperación puntual y mayor exposición a cambios entre copias |
+| PITR habilitado | Recuperación a un instante dentro de la ventana configurada; requiere automated backups, retención configurada y procedimiento operacional probado. Verificar cualquier costo incremental según edición/configuración/precios vigentes; no asumir costo adicional de transaction logs. Puede ayudar ante borrado/corrupción lógica detectada a tiempo, pero no reemplaza validaciones ni elimina complejidad de selección del instante |
+
+La evaluación debe separar capacidad de recuperación, complejidad operacional, retención y costo real verificado. La documentación vigente de Cloud SQL para PostgreSQL indica que los transaction logs almacenados en Cloud Storage no generan costo adicional por instancia; la configuración efectiva y cualquier otro costo deben verificarse para la edición elegida. Si PITR no introduce costo material en esa configuración, el argumento económico para deshabilitarlo pierde peso, pero eso no equivale a aceptarlo. PITR no queda elegido hasta resolver la necesidad de MAPS y verificar configuración/costo.
+
+Como escenario/orientación a validar, el reviewer mencionó tolerar algunas horas de recuperación. Eso no es un requisito MAPS ni fija un RTO. RPO = pendiente de MAPS; RTO = pendiente de MAPS. No se fijan frecuencia final, retención exacta ni costo. Según la documentación vigente, PITR viene habilitado por defecto en Enterprise Plus; en Enterprise depende de si se crea desde la consola (predeterminado habilitado) o por CLI/Terraform/API (predeterminado deshabilitado). La retención de logs WAL es configurable: Enterprise admite 1–7 días (predeterminado 7) y Enterprise Plus 1–35 días (predeterminado 14). Son defaults del producto, no política aceptada por MAPS; C8 debe declarar la configuración efectiva. Backup diario de comparación no implica RPO de 24 horas.
+
+### Precedente operacional / baseline de comparación (no requisito MAPS): [GCP_PRODUCTION_RUNBOOK.md en MAPS-LandingPage, commit 65814e2](https://github.com/Kondor-Corporate/MAPS-Landingpage/blob/65814e2/docs/GCP_PRODUCTION_RUNBOOK.md#L385) documenta Cloud SQL zonal, backup automático diario, retención de 14 backups, PITR de 7 días, restore a instancia nueva, validación y smoke test antes de cambiar la conexión de aplicación, y una prueba de restore ya realizada en una instancia independiente. No trasladar automáticamente tier, CPU/RAM, región, versión de PostgreSQL, retención, PITR, costo, RPO ni RTO al Portal.
 
 ### HA y disponibilidad
 
@@ -183,7 +190,7 @@ No se fijan frecuencia final, retención exacta, RPO, RTO ni coste. Según la do
 | Zonal / standalone | Sin failover automático ante una interrupción de zona; recovery puede requerir restore/PITR o promoción configurada | Menor costo relativo y diseño más simple; mayor dependencia del procedimiento de recuperación | Alternativa base para evaluación, no elegida |
 | Regional HA | Primario y standby en zonas distintas de una región; failover administrado para ciertos fallos | Recursos redundantes y costo adicional; hay failover/reconexión y no reemplaza backup/restores | Recomendación condicional sólo si objetivos de disponibilidad/RPO/RTO y presupuesto lo justifican |
 
-HA regional no se cierra en este TDD. MAPS-167 debe describir cuánto tiempo puede permanecer indisponible el Portal y cuánta información reciente puede tolerarse perder; Cloud lo traduce luego a opción de HA, backup, PITR y recuperación. Tampoco se selecciona recuperación regional/DR.
+HA regional no se cierra en este TDD ni se adopta por ser técnicamente más resiliente. Sólo se justifica si tolerancia a indisponibilidad, RTO/RPO, impacto operativo y presupuesto lo requieren. MAPS-167 debe describir cuánto tiempo puede permanecer indisponible el Portal y cuánta información reciente puede tolerarse perder; Cloud traduce esas necesidades a opción de HA, backup, PITR y recuperación. Tampoco se selecciona recuperación regional/DR.
 
 ### Sizing
 
@@ -234,7 +241,7 @@ Este documento especifica un **PLAN DE VALIDACIÓN**. No se ejecutó infraestruc
 | Migración fallida | Provocar error controlado en entorno aislado; verificar que no se promueva runtime | Estado no exitoso, error visible y procedimiento de recuperación/forward-fix; no rollback automático de schema |
 | Migración duplicada | Lanzar doble ejecución concurrente en ambiente aislado | Lock/control impide segunda aplicación concurrente; versión no queda parcialmente aplicada sin señal |
 | Backup | Confirmar backup automatizado habilitado y resultado observado | Evidencia de configuración y ejecución real; captura temporal sin credenciales |
-| Restore | Restaurar a instancia/recurso separado, conectar y validar consistencia de datos de prueba | Duración técnica, punto recuperado, checks y limpieza controlada; no etiquetar tiempo como RTO |
+| Restore | Restaurar a instancia/recurso separado, validar integridad de datos y smoke test; promover/cambiar conexión sólo después de la validación | Duración técnica, punto recuperado, checks y limpieza controlada; no etiquetar tiempo como RTO |
 | PITR | Ejecutar sólo si aplica y está habilitado; restaurar un instante de prueba y validar operaciones antes/después del punto | Configuración, instante y resultado; no derivar RPO aceptado por MAPS |
 | HA/failover | Si se elige HA en fase posterior, probar reconexión controlada y registrar interrupción | Evidencia de failover técnico; no equivale a SLA/RTO organizacional |
 | Job/Outbox | Restart de job, ejecución duplicada, expiración de lease, idempotencia y solapamiento | Resultado funcional único; claims/fencing verificados y presión DB dentro de presupuesto |
@@ -243,7 +250,7 @@ No usar locks en memoria local como prueba de exclusión entre instancias. Para 
 
 ## Implementación y handoff a F4
 
-1. Aceptar ADR-CLD-003 y acordar, mediante MAPS-167, latencia de derivación y objetivos de recuperación en lenguaje de negocio.
+1. Aceptar ADR-CLD-003 y acordar, mediante MAPS-167, la latencia de inicio de derivación bajo la baseline actual o, si MAPS aprueba desacoplar acceso/email, la latencia operacional de notificación; definir también objetivos de recuperación en lenguaje de negocio.
 2. En C2–C4 decidir identidad de workloads, red, región/proyectos por ambiente y topología habilitante; convertir Direct VPC egress + IP privada en configuración reproducible.
 3. C8 entrega una ruta para provisionar DB y ejecutar migraciones explícitas desde artifacts inmutables, bloqueando promoción ante fallo.
 4. Implementar pools, máximos y límites de concurrency a partir del presupuesto y pruebas de carga; registrar el sizing utilizado.
@@ -257,9 +264,9 @@ Este handoff no crea Epic ni Issues de F4 y no aprueba los documentos mencionado
 | Tema | Responsable | Qué puede avanzar | Condición de cierre |
 | --- | --- | --- | --- |
 | Aceptación del modelo Cloud Run propuesto | Revisión Cloud/Software | Cloud SQL y flujo operativo permanecen como diseño condicionado | ADR-CLD-003 aceptado tras revisión |
-| Latencia de inicio de derivación | MAPS ([MAPS-167](https://santitalavera.atlassian.net/browse/MAPS-167)) | Diseñar job/claim/recovery sin intervalo fijado | Máximo tolerable desde asignación hasta comienzo efectivo del procesamiento |
+| Latencia de derivación/notificación | MAPS ([MAPS-167](https://santitalavera.atlassian.net/browse/MAPS-167)) | Baseline actual: diseñar job/claim/recovery sin intervalo fijado. Si MAPS aprueba desacoplar acceso/email, evaluar Scheduler por latencia operacional de notificación | Baseline: máximo desde asignación hasta comienzo efectivo del procesamiento; alternativa: máximo aceptable de notificación después de confirmar asignación |
 | Pérdida de información tolerable / RPO | MAPS ([MAPS-167](https://santitalavera.atlassian.net/browse/MAPS-167)) | Comparar backup/PITR como capacidades | MAPS expresa necesidad de negocio; Cloud traduce a configuración |
-| Indisponibilidad tolerable / RTO | MAPS ([MAPS-167](https://santitalavera.atlassian.net/browse/MAPS-167)) | Describir recuperación zonal y restore | MAPS expresa impacto/tiempo máximo; Cloud traduce a plan y pruebas |
+| Indisponibilidad tolerable / RTO | MAPS ([MAPS-167](https://santitalavera.atlassian.net/browse/MAPS-167)) | Describir recuperación zonal y restore; algunas horas sólo es escenario/orientación del reviewer a validar | RTO numérico sigue pendiente; MAPS expresa impacto/tiempo máximo y Cloud traduce a plan y pruebas |
 | Volumen, concurrencia, crecimiento y consultas | Software + MAPS; mide Cloud | Proceso de sizing, esquema relacional y métricas candidatas | Perfil representativo y pruebas de carga medibles |
 | Índices y depuración técnica de Outbox | Software + Cloud | Diseñar índices para pendientes/leases vencidos y lotes de limpieza independientes de retención funcional | Query plan, carga real/representativa y retención técnica definida con TDD-CLD-005/007 |
 | Tier, edición, CPU/RAM/storage y pool | Cloud | Presupuesto de conexiones y pruebas | Resultados de sizing más reconciliación del guardrail USD 200/mes |
@@ -269,7 +276,7 @@ Este handoff no crea Epic ni Issues de F4 y no aprueba los documentos mencionado
 | Roles SQL, WIF/IAM, secretos y rotación | C2 | Requisito de separación y mínimo privilegio | Diseño C2, sin credenciales en repo |
 | Migrator y exclusión de concurrencia | Software + C8 | Contrato de job explícito y resultado auditable | Herramienta elegida y doble ejecución/fallo probados |
 
-MAPS debe responder necesidades, no escoger tier, HA zonal/regional, herramienta, pool ni servicio. En particular, [MAPS-167](https://santitalavera.atlassian.net/browse/MAPS-167) consulta: **¿cuánta información reciente podría perderse ante una falla grave? ¿Cuánto tiempo puede permanecer indisponible el Portal antes de afectar seriamente la operación? ¿Cuánto tiempo máximo es aceptable entre asignación por Admin e inicio efectivo del proceso de derivación/notificación?**
+MAPS debe responder necesidades, no escoger tier, HA zonal/regional, herramienta, pool ni servicio. En particular, [MAPS-167](https://santitalavera.atlassian.net/browse/MAPS-167) consulta: **¿cuánta información reciente podría perderse ante una falla grave? ¿Cuánto tiempo puede permanecer indisponible el Portal antes de afectar seriamente la operación? ¿Cuánto tiempo máximo es aceptable entre asignación por Admin e inicio efectivo del proceso de derivación/notificación bajo la baseline actual? Si MAPS aprueba desacoplar acceso/email, ¿qué latencia operacional máxima de notificación es aceptable? Al confirmar una asignación, ¿el Productor debe poder acceder inmediatamente a la solicitud aunque el email todavía no haya sido entregado, haya fallado o rebote?**
 
 ## Referencias y trazabilidad
 
