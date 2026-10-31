@@ -89,7 +89,7 @@ Requests (owner de InsuranceRequest, RequestAnswer, Consent, CancellationRequest
 | `SaveDraft` | Cliente propietario | BORRADOR → BORRADOR | BORRADOR utilizable y no descartado; respuestas corresponden a campos de su FormVersion | Persiste respuestas parciales; no valida completitud |
 | `DiscardDraft` | Cliente propietario | BORRADOR (sin cambio de estado) | No descartado | `discardedAt`, `discardedBy`; auditoría; sin motivo |
 | `ConfirmPrice` | Cliente propietario | BORRADOR → BORRADOR | Precio enviado por el cliente == precio vigente (Catalog) | `confirmedPrice` + identificador de precio vigente + fecha |
-| `Submit` | Cliente propietario | BORRADOR → ENVIADA | Utilizable; completitud (Forms); consentimientos; `confirmedPrice` coincide con el precio vigente actual | Snapshots de precio y Product; `submittedAt`; auditoría |
+| `Submit` | Cliente propietario | BORRADOR → ENVIADA | Utilizable; completitud (Forms); consentimientos; `confirmedPrice` coincide con el precio vigente actual | Snapshots de precio y Product; `submittedAt`; `number` ([enmienda 2026-10-29](#enmienda-2026-10-29-número-de-solicitud)); auditoría |
 | `Assign` | Admin, coordinado por Assignment | ENVIADA → ASIGNADA | Productor con cuenta activa (Identity) | Assignment crea el vínculo y solicita a Requests el cambio de estado dentro de la misma UoW; intención de entrega y auditoría |
 | `Reassign` | Admin, coordinado por Assignment | ASIGNADA → ASIGNADA | Productor distinto con cuenta activa | Assignment cierra el vínculo anterior, solicita a Requests el cambio y crea el nuevo vínculo/intención de entrega dentro de la misma UoW; auditoría |
 | `ReassignDerived` | Admin, coordinado por Assignment | DERIVADA → DERIVADA | Sólo dentro del tratamiento de la baja del Productor vigente (RN-19); no hay CancellationRequest `SOLICITADA` (el Admin la resuelve antes); Productor nuevo distinto, con cuenta activa; motivo no vacío | Requests valida estado y cancelaciones por puerto, sin cambiar `status`. Assignment cierra el vínculo anterior (fecha, Admin, motivo), crea el nuevo como pendiente de entrega y registra la intención de entrega en la misma UoW; auditoría. El Productor anterior pierde el acceso al cerrarse su vínculo ([ADR-SW-005](../../adr/MAPS-111-identidad-autorizacion/ADR-SW-005-identidad-y-autorizacion.md)) |
@@ -163,6 +163,7 @@ El contrato HTTP de estos errores lo fija TDD-SW-008.
 | `priceSnapshot` (monto, moneda, referencia de precio) | `Submit` | No |
 | `productSnapshot` (nombre y datos comerciales mostrados) | `Submit` | No |
 | `submittedAt` | `Submit` | No |
+| `number` (número de solicitud) | `Submit` | No |
 | `discardedAt`, `discardedBy` | `DiscardDraft` | No |
 | `cancelledAt`, `cancelledBy`, `cancellationReason` | Transición a CANCELADA | No |
 | `version` | Cada escritura | Incremental |
@@ -273,6 +274,20 @@ Secuencia sugerida: dominio y `RequestStateMachine` con pruebas → `CreateDraft
 | Completitud por tipo de campo | `PENDIENTE FUNCIONAL MAPS` | Puerto `FormsQueryPort` y códigos de error | TDD-SW-002 tras validar 1–2 formularios reales |
 | Retención de BORRADORES descartados/no utilizables | `PENDIENTE FUNCIONAL MAPS` | Marcas sin borrado físico | Plazos y eliminación aprobados |
 
+## Enmienda 2026-10-29: número de solicitud
+
+La [enmienda 2026-10-29 de TDD-SW-001](../MAPS-109-modelo-dominio-datos/TDD-SW-001-modelo-de-dominio-y-datos.md#enmienda-2026-10-29-número-de-solicitud) incorpora el atributo `number`. Esta enmienda fija cuándo lo asigna la máquina de estados; no cambia estados, comandos, guardas ni errores.
+
+- **Qué se añade:** `Submit` asigna `number` en la misma UoW que el cambio a ENVIADA, los snapshots y la auditoría. El valor se toma de la secuencia después de validar las guardas, así que un `Submit` rechazado por guarda no consume número. `nextval` no se revierte: un fallo posterior o una carrera dentro de la transacción puede dejar un hueco. Por eso `number` no sirve para contar envíos exitosos ni para métricas, y no se exige correlativo.
+- **Idempotencia:** un reintento de `Submit` con la misma clave devuelve el resultado registrado, con el mismo número; nunca asigna uno nuevo.
+- **Concurrencia y restricciones:** `UNIQUE (number)` impide duplicados y `CHECK ((status = 'BORRADOR') = (number IS NULL))` ata el número al estado, incluidos los BORRADORES descartados. La secuencia no requiere bloqueos adicionales ni interfiere con el bloqueo corto sobre Catalog y Forms descrito en [Concurrencia](#concurrencia).
+- **Pruebas de integración con PostgreSQL real:** el `CHECK` rechaza un BORRADOR o un descartado con número y una solicitud de otro estado sin número; dos `Submit` concurrentes sobre la misma solicitud y un reintento con la misma clave dejan un solo número persistido y devuelven ese número; un `Submit` revertido después de `nextval` no deja número en la solicitud y admite el hueco.
+- **Qué no cambia:** ningún otro comando modifica `number`; `DiscardDraft` no lo asigna; CANCELADA lo conserva. La búsqueda aplica RBAC y `AccessScope`.
+- **Migraciones:** como todavía no hay datos productivos, la columna, la secuencia, el índice único y el `CHECK` entran en la migración inicial. Si se incorporaran sobre datos existentes, se seguiría expand/contract: columna nula, backfill por orden de `submittedAt` y luego las restricciones.
+- **Impacto Cloud (TDD-CLD-003):** no cambia topología, dimensionamiento ni estrategia de backup, pero amplía el esquema que esos mecanismos deben cubrir: ownership de la secuencia y `USAGE` para el rol de la aplicación, restricciones e índices, y restauración consistente del estado de la secuencia. Una prueba de recuperación verifica que el próximo valor supere `MAX(number)`. Una restauración a un punto anterior o una intervención manual puede reutilizar números ya comunicados a un Cliente, incluso de solicitudes perdidas con esa restauración: el procedimiento debe avanzar la secuencia antes de reabrir el servicio.
+- **Trazabilidad:** contrato HTTP y búsqueda por `q` en TDD-SW-008 ([PR #33](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/33)), cuya dependencia del atributo resuelve esta enmienda; formato visible pendiente con UX. Registrada bajo [MAPS-115](https://santitalavera.atlassian.net/browse/MAPS-115).
+- **Ratificación:** Joaquin Rodriguez, responsable de Software, ratifica esta enmienda el 2026-10-30 en la [conversación de PR #34](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/34), donde se solicita además la conformidad de la revisión cruzada. El historial de aprobación original se conserva y el documento no vuelve a `BORRADOR`.
+
 ## Referencias y trazabilidad
 
 - ADR y TDD relacionados: [ADR-SW-001](../../adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-001-monolito-modular-y-limites.md), [ADR-SW-002](../../adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-002-arquitectura-hexagonal-y-capas.md), [ADR-SW-003](../../adr/MAPS-108-persistencia-fronteras-transaccionales/ADR-SW-003-persistencia-y-fronteras-transaccionales.md), [ADR-SW-004](../../adr/MAPS-110-asincronia-outbox-idempotencia/ADR-SW-004-outbox-asincronia-e-idempotencia.md), [ADR-SW-005](../../adr/MAPS-111-identidad-autorizacion/ADR-SW-005-identidad-y-autorizacion.md), [TDD-SW-001](../MAPS-109-modelo-dominio-datos/TDD-SW-001-modelo-de-dominio-y-datos.md); previstos TDD-SW-002/004/005/008.
@@ -281,4 +296,4 @@ Secuencia sugerida: dominio y `RequestStateMachine` con pruebas → `CreateDraft
 
 ## Criterio de aprobación
 
-`APROBADO` mediante formalización documental del 2026-10-22 basada en la aceptación explícita de PR #17 y en la conformidad final de la revisión cruzada Cloud, registrada como `APPROVED` el 2026-10-17. No se atribuye al owner una nueva intervención. La aprobación no cierra las decisiones abiertas ni acepta anticipadamente TDD-SW-002/005 o los ADR/TDD Cloud derivados. Si una decisión posterior cambia la máquina de estados, se actualiza este TDD o se crea uno que lo reemplace.
+`APROBADO` mediante formalización documental del 2026-10-22 basada en la aceptación explícita de PR #17 y en la conformidad final de la revisión cruzada Cloud, registrada como `APPROVED` el 2026-10-17. No se atribuye al owner una nueva intervención. La aprobación no cierra las decisiones abiertas ni acepta anticipadamente TDD-SW-002/005 o los ADR/TDD Cloud derivados. Si una decisión posterior cambia la máquina de estados, se actualiza este TDD o se crea uno que lo reemplace. La [enmienda 2026-10-29](#enmienda-2026-10-29-número-de-solicitud) agrega la asignación del número de solicitud en `Submit`. No forma parte de la aprobación del 2026-10-22: el responsable de Software la ratificó de forma expresa el 2026-10-30, sin cambio de estado ni de la máquina de estados.
