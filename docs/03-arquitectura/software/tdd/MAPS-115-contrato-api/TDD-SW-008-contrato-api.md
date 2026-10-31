@@ -7,7 +7,7 @@
 | Estado | `BORRADOR` |
 | Fecha | 2026-10-29 |
 | Autor | Joaquin Rodriguez |
-| Revisores | Santiago Talavera — revisión cruzada Cloud pendiente (entrada pública, CORS/dominios, límites de tamaño y tiempos, health checks, webhooks) |
+| Revisores | Santiago Talavera: revisión técnica y revisión cruzada Cloud del 2026-10-30, respondidas en [Seguimiento de revisión PR #33](#seguimiento-de-revisión-pr-33) y pendientes de su verificación |
 | Work item | [MAPS-115](https://santitalavera.atlassian.net/browse/MAPS-115) · subtarea [MAPS-145](https://santitalavera.atlassian.net/browse/MAPS-145) |
 | URL del work item | https://santitalavera.atlassian.net/browse/MAPS-115 |
 | Fase origen | [F1 RF-SOL-01 a 05, RF-ADM-01, RF-CAT-01, RF-PROD-01, RF-FORM-01, RF-CLI-01, RF-PRODUCER-01/02/03, RF-DELIVERY-01, RNF-SEC-01](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md), [F2 §3/5/6/10/13/14](../../../../02-diseno/Fase_2__Design_Handoff.md) |
@@ -79,6 +79,7 @@ apps/api
 | Componente | Responsabilidad | No hace |
 | --- | --- | --- |
 | Controlador del módulo owner | Traducir HTTP ↔ comando/consulta de su módulo; validar sintaxis del cuerpo contra el esquema OpenAPI | Decidir permisos, evaluar guardas, leer tablas de otro módulo |
+| Composición de lectura | Armar el detalle de Admin y el historial (TDD-SW-007) con contratos públicos de varios módulos, aplicando el `AccessScope` | Tener datos propios, escribir o ser invocada por un módulo |
 | Caso de uso (`application`) | Evaluar política (TDD-SW-004), ejecutar el comando y devolver resultado o error de dominio | Conocer status HTTP |
 | Mapeador de errores | Única tabla de correspondencia código → status; arma `application/problem+json` | Inventar códigos fuera de la tabla |
 | Documento OpenAPI | Fuente de verdad del contrato; genera tipos del frontend y alimenta pruebas de contrato | Definir reglas de negocio |
@@ -96,19 +97,44 @@ Admin, Cliente y Productor usan prefijos separados (`/admin`, `/me`, `/producer`
 | Nombres | Rutas en inglés y plural según las entidades de TDD-SW-001 (`requests`, `products`); propiedades en `camelCase` |
 | Enumeraciones | Valores del dominio sin traducir: `BORRADOR`, `ENVIADA`, `ASIGNADA`, `DERIVADA`, `CANCELADA`; códigos de error de TDD-SW-003/004/005/006 |
 | Identificadores | Opacos (UUID como string); no secuenciales ni enumerables |
-| Número de solicitud | `number`: identificador legible y único que se asigna al pasar a ENVIADA y se muestra desde la confirmación (CLI-05, [F2 §7](../../../../02-diseno/Fase_2__Design_Handoff.md)); `null` en BORRADOR. Sirve para buscar y para soporte; no se usa en rutas ni para autorizar. Requiere enmienda de TDD-SW-001/003 (ver [Decisiones abiertas](#decisiones-abiertas)) |
+| Número de solicitud | `number`: identificador legible y único que se asigna al pasar a ENVIADA y se muestra desde la confirmación (CLI-05, [F2 §7](../../../../02-diseno/Fase_2__Design_Handoff.md)); `null` en BORRADOR. Sirve para buscar y para soporte; no se usa en rutas ni para autorizar. Condicionado a la enmienda de TDD-SW-001/003 ([PR #34](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/34)): generación, unicidad, reintentos y huecos se definen allí, no en este contrato |
 | Fechas | ISO 8601 en UTC (`2026-10-29T13:45:00Z`); la UI convierte a la zona del usuario |
 | Montos | `{ "amount": "12500.00", "currency": "<ISO 4217>" }`; el monto viaja como string decimal para no perder precisión; la moneda la informa Catalog |
-| Recurso único | Sin sobre: el cuerpo es la representación. `ETag` cuando el recurso admite comandos con concurrencia optimista |
+| Recurso único | Sin sobre: el cuerpo es la representación. `ETag` cuando el recurso admite comandos con concurrencia optimista. `Location` usa una ruta relativa, sin construir URLs externas desde encabezados reenviados |
 | Listados | `{ "items": [...], "page": { "number", "size", "totalItems", "totalPages" } }` |
-| Caché | `Cache-Control: no-store` en toda respuesta autenticada; el catálogo público puede declarar caché corta (a coordinar con ADR-CLD-001 si se habilita CDN) |
+| Caché | `Cache-Control: no-store` en toda respuesta autenticada; sólo los `GET` del catálogo público pueden declarar caché corta (a coordinar con ADR-CLD-001 si se habilita CDN). Nunca se comparte una respuesta autenticada |
 
 ### Autenticación y transporte del token
 
 - **Propuesta:** la SPA obtiene el token del proveedor de identidad y lo envía en `Authorization: Bearer <token>` en cada request. ADR-CLD-007 (`PROPUESTO`) propone Google Cloud Identity Platform; el formato y la validación los fija TDD-CLD-006.
-- Con Bearer en encabezado y sin cookies de sesión emitidas por la API, CSRF no aplica. Si se eligiera un BFF con cookie de sesión, el contrato debe agregar protección CSRF y la decisión vuelve a revisión cruzada.
+- CSRF no aplica sólo bajo este supuesto: autenticación exclusivamente por encabezado Bearer, sin cookies de sesión ni otras credenciales ambientales que el navegador envíe solo. Si se eligiera un BFF con cookie de sesión, el contrato debe agregar protección CSRF y la decisión vuelve a revisión cruzada. Compartir origen evita CORS, pero no protege por sí mismo de solicitudes maliciosas.
 - Cada request autenticada valida el token y relee el estado de cuenta en el Portal (ADR-SW-005, TDD-SW-004): una cuenta en `BAJA` se rechaza desde la siguiente request aunque el token siga vigente.
-- Los tokens nunca viajan en la URL ni se registran en logs. El token de invitación de Productor va en el cuerpo, no en la ruta.
+- Los tokens nunca viajan en una parte de la URL que llegue al servidor ni se registran en logs. El token de invitación de Productor llega a la SPA en el fragmento del enlace y a la API en el cuerpo (ver abajo).
+
+### Token de invitación de Productor
+
+El token es una credencial temporal de un solo uso. Su recorrido es:
+
+1. El email contiene `https://<host>/invitacion#token=<token>`. El fragmento no se envía en las requests HTTP ni en `Referer`, así que no llega al CDN, al balanceador ni a la API.
+2. La SPA lo lee al arrancar en esa ruta, antes de inicializar diagnóstico o analytics, y lo borra de la barra y del historial con `history.replaceState`.
+3. Lo conserva en memoria y, sólo si el login redirige fuera de la SPA, en `sessionStorage`. Lo elimina al recibir la respuesta de la aceptación o un error definitivo.
+4. Lo envía una vez, en el cuerpo de `POST /api/v1/producer-invitations/acceptance`. Los logs de la API no registran cuerpos.
+
+Controles de la ruta `/invitacion`: `Referrer-Policy: no-referrer`, sin analytics ni recursos de terceros, y reportes de error sin URL completa ni `sessionStorage`. La plantilla del email se envía sin seguimiento de clics, porque el proveedor reescribiría el enlace y vería el fragmento (TDD-CLD-005).
+
+Riesgo residual: un script malicioso en la SPA podría leer el token mientras exista. Lo acotan su vida corta y un solo uso, y por sí solo no alcanza: la aceptación también exige el email verificado invitado (TDD-SW-004). El mecanismo se coordina con TDD-SW-004 y TDD-CLD-006.
+
+### Clasificación de rutas
+
+| Clase | Rutas | Regla |
+| --- | --- | --- |
+| Pública anónima | `GET /api/v1/catalog/*`, `POST .../views` | Sin sesión; límites de frecuencia en la API y en el borde |
+| Autenticada sin cuenta | `GET /api/v1/me`, `POST /registrations`, `POST /producer-invitations/acceptance` | Únicos endpoints, además de los públicos, que admiten una identidad sin `UserIdentity` |
+| Autenticada con cuenta | `/api/v1/me/*`, `/api/v1/admin/*`, `/api/v1/producer/*`, `/api/v1/documents/*` | Política del caso de uso y `AccessScope`. Una identidad sin cuenta recibe `403 REGISTRO_PENDIENTE` |
+| Máquina a máquina | `POST /api/v1/webhooks/*` | Sin sesión de usuario; autenticidad del mensaje según TDD-CLD-005 |
+| Operativa | Health checks y diagnóstico | Fuera de este contrato (TDD-CLD-002). Ningún endpoint de diagnóstico público expone configuración, topología ni conectividad detallada |
+
+Una ruta no declarada aquí no se publica. La protección de borde complementa la autorización de Software y no la reemplaza.
 
 ### Mapa de recursos
 
@@ -125,9 +151,9 @@ Admin, Cliente y Productor usan prefijos separados (`/admin`, `/me`, `/producer`
 
 | Método y ruta | Caso de uso | Notas |
 | --- | --- | --- |
-| `GET /api/v1/me` | Resolver actor | Rol, estado de cuenta y datos mínimos para la navegación de la SPA. No devuelve una lista de permisos: la UI oculta acciones por UX y la API decide |
+| `GET /api/v1/me` | Resolver actor | Rol, estado de cuenta y datos mínimos para la navegación de la SPA. No devuelve una lista de permisos: la UI oculta acciones por UX y la API decide. Identidad válida sin cuenta: `200` con `{ "accountStatus": "SIN_CUENTA", "role": null }`, para iniciar el registro o la aceptación de la invitación. Token ausente o inválido: `401 NO_AUTENTICADO`. Cuenta en `BAJA`: `403 CUENTA_INACTIVA` |
 | `POST /api/v1/registrations` | `CompleteRegistration` | Identidad autenticada sin cuenta; crea rol `CLIENTE`. Datos del cuerpo condicionados a MAPS-97 |
-| `POST /api/v1/producer-invitations/acceptance` | `AcceptProducerInvitation` | Cuerpo `{ "token" }`; errores `INVITACION_INVALIDA`, `EMAIL_NO_COINCIDE` |
+| `POST /api/v1/producer-invitations/acceptance` | `AcceptProducerInvitation` | Cuerpo `{ "token" }`, según [Token de invitación](#token-de-invitación-de-productor); errores `INVITACION_INVALIDA`, `EMAIL_NO_COINCIDE` |
 | `GET /api/v1/me/profile` · `PATCH /api/v1/me/profile` | Ver y editar Mi perfil | Sólo Cliente. Esquema condicionado a MAPS-97 |
 
 **Cliente — solicitudes**
@@ -165,7 +191,7 @@ La lista de consentimientos y su texto dependen del contrato de formularios (MAP
 | --- | --- | --- |
 | `GET /api/v1/admin/requests` | Bandeja (desde ENVIADA) | Filtros `status`, `productId`, `producerId`, `hasDeliveryIncident`, `hasPendingCancellation`, `q`; orden permitido |
 | `GET /api/v1/admin/requests/summary` | Contadores de la bandeja | Conteos por estado/condición calculados dentro del `AccessScope` |
-| `GET /api/v1/admin/requests/{requestId}` | Detalle con Assignment, intentos de entrega y cancelación | `ETag` |
+| `GET /api/v1/admin/requests/{requestId}` | Detalle con Assignment, intentos de entrega y cancelación | `ETag` compuesto (ver [Concurrencia optimista](#concurrencia-optimista)) |
 | `GET /api/v1/admin/requests/{requestId}/history` | Historial (`GetRequestHistory`, TDD-SW-007) | — |
 | `POST /api/v1/admin/requests/{requestId}/assignment` | `Assign` `{ producerId }` | `If-Match` |
 | `POST /api/v1/admin/requests/{requestId}/reassignment` | `Reassign` `{ producerId }` | `If-Match` |
@@ -193,7 +219,7 @@ La baja guiada usa dos pasos. `GET .../deactivation-impact` lista las ASIGNADAS 
 | Método y ruta | Consulta | Notas |
 | --- | --- | --- |
 | `GET /api/v1/producer/requests` | Mis solicitudes del Productor | Sólo DERIVADAS con Assignment `EFECTIVO` propio y cuenta `ACTIVA`; filtros `productId`, `q`; paginado |
-| `GET /api/v1/producer/requests/{requestId}` | Expediente read-only | Fuera del alcance responde `404`. Adjuntos por `GetDocumentLink` |
+| `GET /api/v1/producer/requests/{requestId}` | Expediente read-only | Fuera del alcance responde `404`. Cada `GET` registra `EXPEDIENTE_ABIERTO` antes de responder; si el registro falla, responde `503` sin contenido (TDD-SW-007). Adjuntos por `GetDocumentLink` |
 
 El Productor no tiene endpoints de escritura sobre solicitudes. El enlace del email de derivación apunta a la ruta del Portal de ese expediente, sin token: abrirlo exige iniciar sesión (ADR-SW-005).
 
@@ -201,13 +227,14 @@ El Productor no tiene endpoints de escritura sobre solicitudes. El enlace del em
 
 | Método y ruta | Uso | Notas |
 | --- | --- | --- |
-| `POST /api/v1/webhooks/email-delivery` | Resultados del proveedor de email (TDD-SW-005) | Sin sesión de usuario; autenticado por la firma del proveedor (TDD-CLD-005). Idempotente por identificador de evento del proveedor. Fuera del OpenAPI público |
+| `POST /api/v1/webhooks/email-delivery` | Resultados del proveedor de email (TDD-SW-005) | Sin sesión de usuario; autenticado por la firma del proveedor, no por una URL difícil de adivinar. Idempotente por identificador de evento del proveedor. TDD-SW-005 conserva las reglas ante eventos tardíos o contradictorios; TDD-CLD-005 materializa autenticidad, protección contra repetición, orden, tamaño, tiempos y reintentos. Fuera del OpenAPI público |
 
 ### Respuestas exitosas
 
 - Los comandos sobre una solicitud devuelven `200` con la representación actualizada y su nuevo `ETag`, para que la UI se actualice sin otra lectura.
 - La creación devuelve `201` con `Location`.
 - No se usa `202`: cada comando termina su efecto transaccional al responder. Lo asíncrono (entrega, avisos) queda registrado como intención de Outbox ([ADR-SW-004](../../adr/MAPS-110-asincronia-outbox-idempotencia/ADR-SW-004-outbox-asincronia-e-idempotencia.md)) y se refleja en lecturas posteriores.
+- Un timeout o un corte de red **no implica rollback**: el commit pudo haberse completado aunque la respuesta se pierda. Con `Idempotency-Key`, el frontend reintenta con la misma clave. Sin ella, recarga el recurso y el usuario decide con el estado actual.
 
 ### Modelo de errores
 
@@ -236,10 +263,10 @@ Se propone [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457) (`application/prob
 | --- | --- |
 | `400` | `PETICION_INVALIDA` (JSON mal formado, tipos incorrectos, propiedades desconocidas, filtro u orden no permitido) |
 | `401` | `NO_AUTENTICADO` (con `WWW-Authenticate: Bearer`) |
-| `403` | `CUENTA_INACTIVA`; `ACCESO_DENEGADO` cuando el actor puede ver el recurso pero no ejecutar la operación |
+| `403` | `CUENTA_INACTIVA`; `REGISTRO_PENDIENTE` cuando una identidad válida sin cuenta invoca un endpoint que la requiere; `ACCESO_DENEGADO` cuando el actor puede ver el recurso pero no ejecutar la operación |
 | `404` | `NO_ENCONTRADO`: recurso inexistente **o fuera del `AccessScope`** del actor; no se revela su existencia (TDD-SW-003, TDD-SW-004) |
 | `409` | `TRANSICION_INVALIDA`, `BORRADOR_NO_UTILIZABLE`, `PRECIO_NO_CONFIRMADO`, `PRODUCTO_NO_DISPONIBLE`, `PRODUCTOR_NO_DISPONIBLE`, `CANCELACION_YA_SOLICITADA`, `CANCELACION_PENDIENTE`, `REASIGNACION_DERIVADA_NO_PERMITIDA`, `SIN_PRODUCTOR_DISPONIBLE`, `REGISTRO_YA_COMPLETO`, `PRODUCTO_SIN_VERSION_UTILIZABLE`, `PRECIO_NO_CONFIGURADO`, `DOCUMENTO_NO_DISPONIBLE`; `CONFLICTO_CONCURRENCIA` en endpoints que no exigen `If-Match` cuando la escritura detecta un cambio concurrente, o cuando hay una ejecución en curso con la misma clave de idempotencia |
-| `412` | `CONFLICTO_CONCURRENCIA` cuando la versión de `If-Match` no coincide con la vigente, al validar o al escribir |
+| `412` | `CONFLICTO_CONCURRENCIA` cuando alguna versión de `If-Match` no coincide con la vigente, al validar o al escribir |
 | `413` | `CARGA_EXCEDIDA` (cuerpo mayor al límite) |
 | `415` | `TIPO_CONTENIDO_NO_SOPORTADO` |
 | `422` | `SOLICITUD_INCOMPLETA`, `MOTIVO_REQUERIDO`, `CAMPO_INVALIDO`, `TIPO_NO_PERMITIDO`, `TAMANO_EXCEDIDO`, `DOCUMENTO_INVALIDO`, `DISPOSICION_INCOMPLETA`, `INVITACION_INVALIDA`, `EMAIL_NO_COINCIDE`, `IDEMPOTENCIA_CONFLICTO` |
@@ -248,24 +275,54 @@ Se propone [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457) (`application/prob
 | `500` | `ERROR_INTERNO`, sin detalle |
 | `503` | `SERVICIO_NO_DISPONIBLE` (base o proveedor de identidad no disponible), con `Retry-After` cuando se conozca |
 
-`NO_ENCONTRADO`, `PETICION_INVALIDA`, `CARGA_EXCEDIDA`, `TIPO_CONTENIDO_NO_SOPORTADO`, `PRECONDICION_REQUERIDA`, `ERROR_INTERNO` y `SERVICIO_NO_DISPONIBLE` son códigos de la capa HTTP. El resto proviene de TDD-SW-002/003/004/005/006 sin cambios. Para `IDEMPOTENCIA_CONFLICTO` (`422`) y la ejecución concurrente con la misma clave (`409`) se sigue el borrador IETF del encabezado `Idempotency-Key`. `CONFLICTO_CONCURRENCIA` usa `412` sólo cuando falla la precondición `If-Match` (RFC 9110) y `409` en los demás conflictos; la UI reacciona por `code`, no por `status` (decisión del owner del 2026-10-29).
+`NO_ENCONTRADO`, `PETICION_INVALIDA`, `CARGA_EXCEDIDA`, `TIPO_CONTENIDO_NO_SOPORTADO`, `PRECONDICION_REQUERIDA`, `ERROR_INTERNO` y `SERVICIO_NO_DISPONIBLE` son códigos de la capa HTTP. `REGISTRO_PENDIENTE` es nuevo y se incorpora a TDD-SW-004 (ver [Decisiones abiertas](#decisiones-abiertas)). El resto proviene de TDD-SW-002/003/004/005/006 sin cambios. Para `IDEMPOTENCIA_CONFLICTO` (`422`) y la ejecución concurrente con la misma clave (`409`) se sigue el borrador IETF del encabezado `Idempotency-Key`. `CONFLICTO_CONCURRENCIA` usa `412` sólo cuando falla la precondición `If-Match` (RFC 9110) y `409` en los demás conflictos; la UI reacciona por `code`, no por `status` (decisión del owner del 2026-10-29).
 
 ### Idempotencia
 
 | Aspecto | Contrato |
 | --- | --- |
 | Encabezado | `Idempotency-Key`, UUID generado por el frontend por cada intención del usuario (un clic en "Enviar") y reutilizado en sus reintentos |
-| Obligatorio en | `Submit`, `CancelByCustomer`, `RequestCancellation`, `DecideCancellation` (TDD-SW-003). Sin la clave: `428`. No se extiende a `CreateDraft` ni a `RequestUpload` (decisión del owner del 2026-10-29): un doble envío deja un BORRADOR o un documento de más; la UI deshabilita la acción mientras la request está en curso, el Cliente puede descartar el BORRADOR sobrante y el job de limpieza de TDD-SW-006 elimina los documentos que no quedan en uso |
+| Obligatorio en | `Submit`, `CancelByCustomer`, `RequestCancellation`, `DecideCancellation` (TDD-SW-003). Sin la clave: `428`. No se extiende a `CreateDraft` ni a `RequestUpload` (decisión del owner del 2026-10-29); ver [Riesgo aceptado](#riesgo-aceptado-sin-idempotencia-en-createdraft-y-requestupload) |
 | Alcance y huella | Los de TDD-SW-003: `(actorId, operación, requestId, clave)` y hash de los parámetros relevantes del cuerpo |
 | Repetición | Misma clave y misma huella: se devuelve el resultado registrado (status y cuerpo), sin nuevos efectos. La verificación de la clave ocurre **antes** de evaluar `If-Match`: un reintento legítimo no falla con `412` porque la versión ya avanzó con su propio efecto |
 | Huella distinta | `422 IDEMPOTENCIA_CONFLICTO` |
 | Ejecución en curso | `409 CONFLICTO_CONCURRENCIA`; el frontend reintenta con la misma clave |
-| Retención | 24 horas, aceptado por Software (decisión del owner del 2026-10-29). Cubre reintentos de red y pestañas reabiertas; luego un job purga los registros. Configurable; Cloud lo confirma en la revisión cruzada (ADR-CLD-003 para jobs) |
+| Persistencia | El resultado se guarda en la misma unidad de trabajo que el comando, en PostgreSQL, con restricción única sobre el alcance. Nunca en memoria: vale con varias instancias de API y workers. Una respuesta perdida después del commit se recupera reintentando con la misma clave |
+| Retención | 24 horas, aceptado por Software (decisión del owner del 2026-10-29). Cubre reintentos de red y pestañas reabiertas; luego un job purga los registros, por lotes y de forma segura ante corridas concurrentes. Configurable; Cloud confirma suficiencia, índices y crecimiento (TDD-CLD-003, ADR-CLD-003 para jobs) |
+| Repetición con la clave vencida | Se trata como una intención nueva, sin doble efecto: `If-Match` con la versión vieja responde `412`, o la guarda de estado rechaza el comando. No se recupera la respuesta original: la UI recarga y muestra el estado actual |
+
+#### Riesgo aceptado: sin idempotencia en `CreateDraft` y `RequestUpload`
+
+La UI deshabilita la acción mientras la request está en curso, pero eso no cubre una respuesta perdida después del commit. Los dos casos se tratan distinto:
+
+- **`RequestUpload`:** el documento sobrante nunca queda en uso y lo elimina el job de limpieza de TDD-SW-006.
+- **`CreateDraft`:** el BORRADOR sobrante no se limpia solo, porque TDD-SW-003 no prohíbe varios BORRADORES por Product y su retención depende de MAPS-99.
+
+Recuperación de `CreateDraft`: ante un timeout o un error de red, la SPA no repite el `POST` automáticamente. Consulta `GET /api/v1/me/requests?status=BORRADOR&productId=<id>` y, si encuentra BORRADORES, ofrece retomar uno antes de crear otro. Un duplicado queda visible en Mis solicitudes y se puede descartar con `DiscardDraft`.
+
+Criterios de aceptación del riesgo:
+
+- Un duplicado nunca pierde respuestas ni produce un efecto distinto de un BORRADOR de más.
+- Cada duplicado genera otro `request_started` e infla esa métrica; se cuenta como limitación conocida del funnel (TDD-SW-007).
+- Una señal sin PII cuenta los BORRADORES del mismo Cliente y Product creados en una ventana corta. Si el volumen justifica corregirlo, se revisa esta decisión con un cambio controlado de TDD-SW-003.
 
 ### Concurrencia optimista
 
-- `GET` del detalle devuelve `ETag: "<version>"`, con la `version` del agregado de TDD-SW-003. Se usa para precondiciones, no para caché.
-- Los comandos sobre una solicitud exigen `If-Match` con esa versión. Sin `If-Match`: `428 PRECONDICION_REQUERIDA`. Versión distinta: `412 CONFLICTO_CONCURRENCIA`; la UI recarga y el usuario decide de nuevo.
+- **Solicitud del Cliente:** `GET` devuelve `ETag: "<version>"`, con la `version` del agregado de TDD-SW-003. Los cambios de Assignment y entrega no se exponen al Cliente ni invalidan su `ETag`.
+- **Detalle de Admin:** `GET` devuelve un `ETag` compuesto, `"<requestVersion>-<assignmentVersion>"`, con la `version` de la solicitud y la del Assignment no cerrado (`0` si no hay). La UI lo trata como opaco. Se usa para precondiciones, no para caché.
+- Los comandos exigen `If-Match` con el `ETag` de su representación. Sin `If-Match`: `428 PRECONDICION_REQUERIDA`. Versión distinta: `412 CONFLICTO_CONCURRENCIA`; la UI recarga y el usuario decide de nuevo.
+
+Qué protege cada comando de Admin:
+
+| Comando | Compara en `If-Match` | La escritura se condiciona a | Qué incrementa |
+| --- | --- | --- | --- |
+| `Assign` | Ambas versiones | `InsuranceRequest.version` e índice único parcial de Assignment | `InsuranceRequest.version`; el Assignment nace con su versión inicial |
+| `Reassign` | Ambas versiones | `InsuranceRequest.version` y `Assignment.version` | `InsuranceRequest.version`; cierra el Assignment anterior |
+| `RetryDelivery` | Ambas versiones | `Assignment.version` y `estado = 'PENDIENTE_ENTREGA'` | `Assignment.version`; la solicitud no cambia |
+| `DecideCancellation` | Ambas versiones | `InsuranceRequest.version`; si cierra el Assignment, también su versión | Las de los agregados que modifica |
+
+Toda escritura sobre un Assignment no cerrado o sobre sus `DeliveryAttempt`, incluidos los resultados de entrega, incrementa `Assignment.version` ([TDD-SW-005](../MAPS-114-assignment-delivery-outbox/TDD-SW-005-assignment-delivery-y-coordinacion-outbox.md#concurrencia-de-reintentos-resultados-y-vigencia)). Así, un comando sobre una pantalla desactualizada recibe `412` aunque `InsuranceRequest.version` no haya cambiado.
+
 - `SaveDraft` en dos pestañas: la segunda recibe `412` y no pisa lo guardado. El MVP no fusiona respuestas. El mensaje al usuario lo define UX (ver [Decisiones abiertas](#decisiones-abiertas)).
 - Los comandos de baja guiada y de ABM que modifican agregados con versión siguen el mismo patrón con su propia versión.
 
@@ -287,7 +344,8 @@ Se propone [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457) (`application/prob
 
 - Versión mayor en la ruta (`/api/v1`). Agregar endpoints, propiedades opcionales o códigos de error no cambia la versión.
 - Quitar o renombrar propiedades, cambiar tipos o semántica, o volver obligatorio algo opcional es un cambio incompatible: requiere `/api/v2` con período de convivencia, o cambio coordinado expand/contract.
-- Durante un despliegue puede haber pestañas con la SPA anterior: la API nueva acepta las requests de la versión previa de la SPA hasta que termine el rollout. Coordinar con la estrategia de despliegue de ADR-CLD-003.
+- Durante un despliegue puede haber pestañas con la SPA anterior o recursos en caché: la API nueva acepta las requests de la versión previa de la SPA, también después del rollout, mientras esa versión siga dentro del período de convivencia. Un despliegue simultáneo no elimina esa ventana.
+- Un rollback de la API exige que la versión restaurada siga atendiendo a la SPA vigente: los cambios se publican como aditivos y las migraciones siguen expand/contract. Las pruebas de contrato cubren la versión anterior y la nueva. El mecanismo se coordina con ADR-CLD-003 y TDD-CLD-002.
 
 ### Contrato OpenAPI
 
@@ -307,7 +365,7 @@ Se propone [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457) (`application/prob
 
 - Deny by default: ningún endpoint se publica sin política declarada en el catálogo de TDD-SW-004. Una prueba de arquitectura compara el registro de rutas con el de políticas.
 - Recurso fuera del alcance → `404`; operación no permitida sobre un recurso visible → `403`.
-- Tokens sólo en `Authorization`; el encabezado se enmascara en logs. Ningún token ni dato personal va en la URL ni en query strings.
+- Tokens sólo en `Authorization`; el encabezado se enmascara en logs. Ningún token ni dato personal va en rutas ni en query strings. El token de invitación sigue su [recorrido propio](#token-de-invitación-de-productor).
 - Cada listado proyecta sólo las columnas que su pantalla de F2 necesita. La vista del Productor se limita al expediente autorizado.
 - Los errores no incluyen PII. `traceId` permite al soporte correlacionar sin exponer datos.
 - Mismo host para SPA y API según ADR-CLD-001: sin CORS en staging/production. Desarrollo local puede requerir una lista explícita de orígenes, nunca comodín. Si ADR-CLD-001 cambia hacia otro host para la API, CORS pasa a lista explícita por ambiente.
@@ -317,17 +375,23 @@ Se propone [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457) (`application/prob
 ## Operación y observabilidad
 
 - Métricas por endpoint usando la plantilla de ruta (`/api/v1/me/requests/{requestId}`), nunca la ruta con IDs: volumen, latencia, familia de status y conteo por `code`. Coinciden con las señales de TDD-SW-003/004.
-- `traceId` en cada respuesta de error y en los logs. Se propaga el contexto de trazas W3C (`traceparent`) que llegue desde el borde (TDD-CLD-007).
+- `traceId` en cada respuesta de error y en los logs. Permite localizar una operación, pero no acredita su resultado ni reemplaza la auditoría.
+- El contexto W3C (`traceparent`) se propaga a workers y Outbox. Un valor enviado por un cliente no es confiable: se valida su formato, no se usa para autorizar y TDD-CLD-007 define si se reemplaza en el borde.
+- Señales del registro de idempotencia: tamaño, repeticiones y conflictos.
 - Logs sin cuerpos de request ni respuesta; sólo metadatos y códigos.
-- Health checks: la ruta y su exposición las define Cloud (TDD-CLD-002). Como `/api/*` es público por el balanceador, el health check no debe exponer detalle interno.
+- Health checks: la ruta y su exposición las define Cloud (TDD-CLD-002), distinguiendo proceso vivo de instancia lista para recibir tráfico, de modo que una falla transitoria de PostgreSQL o del proveedor de identidad no provoque reinicios innecesarios. Como `/api/*` es público por el balanceador, el health check no debe exponer detalle interno.
 
 ## Pruebas y criterios de fallo
 
 - **Contrato:** cada ruta implementada está en OpenAPI y viceversa; las respuestas validan contra sus esquemas; CI falla ante un cambio incompatible no declarado.
 - **Errores:** cada código de la tabla produce su status y un cuerpo `problem+json` válido; un error inesperado produce `500` sin detalle.
+- **Identidad sin cuenta:** `GET /me` responde `200` con `SIN_CUENTA` y `role: null`; token inválido responde `401`; cuenta en `BAJA`, `403 CUENTA_INACTIVA`; cualquier endpoint que requiere cuenta, `403 REGISTRO_PENDIENTE`.
+- **Invitación:** la SPA borra el fragmento antes de cualquier request a la API o a terceros, el token no aparece en logs ni en reportes de error, y la ruta responde con `Referrer-Policy: no-referrer`.
+- **`CreateDraft`:** con la respuesta perdida después del commit, la SPA encuentra el BORRADOR y ofrece retomarlo sin crear otro; un duplicado se puede descartar.
 - **Autorización por endpoint:** matriz endpoint × actor derivada del catálogo de políticas de TDD-SW-004. El Productor recibe `403` en cualquier escritura y `404` sobre solicitudes fuera de su alcance. Un Cliente recibe `404` sobre solicitudes ajenas.
 - **Idempotencia:** `Submit` repetido con la misma clave devuelve la misma respuesta con un solo efecto; misma clave con otro cuerpo da `422`; dos ejecuciones concurrentes con la misma clave terminan en una respuesta exitosa y un `409` o el mismo resultado, nunca dos snapshots; el reintento después de que la versión avanzó devuelve el resultado registrado y no `412`.
-- **Concurrencia:** sin `If-Match` da `428`; con versión vieja da `412` sin efectos.
+- **Concurrencia:** sin `If-Match` da `428`; con versión vieja da `412` sin efectos. Con PostgreSQL real: `RetryDelivery` con un `ETag` anterior a un resultado de entrega o a otro reintento da `412` y no crea intento; dos `RetryDelivery` concurrentes crean un solo intento.
+- **Clave vencida:** repetir un comando ya aplicado después de purgar su clave no produce un segundo efecto.
 - **Precio:** `ConfirmPrice` con `priceRef` viejo da `409` con `currentPrice`; `Submit` tras un cambio de precio no reconfirmado da `409 PRECIO_NO_CONFIRMADO`.
 - **Paginación:** `pageSize` mayor al máximo da `400`; filtros fuera de la lista dan `400`; los totales no cuentan registros fuera del `AccessScope`.
 - **Privacidad:** con datos de prueba que contienen emails y nombres, ningún log ni error los contiene.
@@ -347,17 +411,18 @@ Se propone [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457) (`application/prob
 
 El scaffold actual de `apps/api` se reorganiza antes de F4 según [ADR-SW-001](../../adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-001-monolito-modular-y-limites.md). No se crean Epic/Issues F4 desde este documento.
 
-## Revisión cruzada Cloud requerida
+## Dependencias Cloud
 
-Pendiente con Santiago Talavera:
+La revisión cruzada del 2026-10-30 es favorable al enfoque. Lo que afecta al contrato Software se incorporó a este documento; lo operativo queda en su artefacto responsable y no bloquea integrar este borrador:
 
-1. Mismo host para SPA y API con `/api/*` (ADR-CLD-001) y consecuencia de no requerir CORS fuera de desarrollo.
-2. Transporte del token como `Authorization: Bearer` y su validación (ADR-CLD-007, TDD-CLD-006).
-3. Límite de cuerpo de 1 MiB y tiempos máximos de request frente a los del balanceador y Cloud Run.
-4. Ruta y exposición de health checks (TDD-CLD-002).
-5. Autenticación e idempotencia del webhook del proveedor de email (TDD-CLD-005).
-6. Retención de 24 horas de claves de idempotencia y job de purga (ADR-CLD-003).
-7. Propagación de `traceparent` y uso de plantillas de ruta en métricas (TDD-CLD-007).
+| Tema | Artefacto |
+| --- | --- |
+| Routing, TLS, encabezados reenviados, caché por ruta, CORS y antiabuso | ADR-CLD-001, TDD-CLD-001 |
+| Validación de tokens, sesión de la SPA, MFA y coordinación de invitaciones | ADR-CLD-007, TDD-CLD-006 |
+| Límites de borde y aplicación, timeouts, concurrencia, presupuesto de latencia, health checks, despliegue y rollback | ADR-CLD-003, TDD-CLD-002 |
+| Suficiencia de 24 horas, purga, índices y crecimiento del registro de idempotencia | TDD-CLD-003 |
+| Autenticidad, repetición, orden y reintentos del webhook; plantilla sin seguimiento de clics | TDD-CLD-005 |
+| Contexto de trazas entrante, cardinalidad de métricas y correlación | TDD-CLD-007 |
 
 ## Decisiones abiertas
 
@@ -366,7 +431,8 @@ Pendiente con Santiago Talavera:
 | Transporte del token: Bearer en encabezado (contrato actual, coherente con Identity Platform que propone ADR-CLD-007) o BFF con cookie | Software + Cloud | Contrato con Bearer | Aceptación de ADR-CLD-007 / TDD-CLD-006 |
 | Esquema de respuestas, consentimientos y edición de FormVersion | `PENDIENTE FUNCIONAL MAPS` (MAPS-96) | Rutas, comandos y errores | Contrato de formularios validado con 1–2 formularios reales |
 | Campos de registro, Mi perfil y edición de Clientes por Admin | `PENDIENTE FUNCIONAL MAPS` (MAPS-97) | Rutas y autorización | Lista de campos visibles/editables/obligatorios de MAPS |
-| Atributo `number` en el modelo y su formato | Software + UX | Contrato de la API con `number` | Enmienda de TDD-SW-001/003 en PR aparte; formato acordado con UX |
+| Atributo `number` en el modelo y su formato | Software + UX | Contrato de la API con `number` | Integración y ratificación de la enmienda de TDD-SW-001/003 ([PR #34](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/34)); formato acordado con UX |
+| Alineación de TDD-SW-004 con este contrato | Software | Este contrato define `REGISTRO_PENDIENTE`, la respuesta `SIN_CUENTA` y el recorrido del token | Al integrarse [PR #27](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/27): agregar el código a su tabla de errores y enlazar este recorrido desde el alta e invitación de Productor |
 | Retención de claves (24 h) y límite de cuerpo (1 MiB) | Cloud | Contrato con esos valores | Confirmación en la revisión cruzada Cloud |
 | Mensaje al usuario ante `412` en `SaveDraft` | UX | Contrato del error | Texto y comportamiento de F2 ([MAPS-106](https://santitalavera.atlassian.net/browse/MAPS-106)) |
 | Contadores de bandeja (`/summary`) | Software + UX | Endpoint propuesto | Confirmar con F2 qué contadores muestra la bandeja ([MAPS-106](https://santitalavera.atlassian.net/browse/MAPS-106)) |
@@ -381,6 +447,35 @@ Pendiente con Santiago Talavera:
 | `CONFLICTO_CONCURRENCIA` con `409` o `412` | Se mantiene | `412` sólo para `If-Match` desactualizado (RFC 9110); `409` para conflictos sin precondición o con ejecución en curso. La UI reacciona por `code` |
 | Número de solicitud legible | Se expone `number`, asignado al pasar a ENVIADA | F2 §7 muestra "Número" en CLI-05 y TDD-SW-001 no lo define. Requiere enmienda de TDD-SW-001/003 |
 | Paginación | Por número de página en el MVP | Coincide con la UI de F2; cursor sólo si las mediciones de F4 lo justifican |
+
+### Decisiones cerradas por el owner (2026-10-30)
+
+| Tema | Decisión | Motivo |
+| --- | --- | --- |
+| `ETag` del detalle de Admin | Compuesto por la versión de la solicitud y la del Assignment; `RetryDelivery` y los resultados de entrega incrementan `Assignment.version` | Un reintento no toca `InsuranceRequest.version`; con una sola versión, el comando podría aplicarse sobre una pantalla desactualizada |
+| Token de invitación | Fragmento del enlace, borrado por la SPA y enviado en el cuerpo | El fragmento no llega a servidores ni a `Referer` |
+| Identidad sin cuenta | `/me` responde `200` con `SIN_CUENTA`; los demás endpoints que requieren cuenta, `403 REGISTRO_PENDIENTE` | Distingue el onboarding de un token inválido, sin inventar rol ni permisos |
+| Recuperación de `CreateDraft` | Se mantiene sin idempotencia; la SPA busca el BORRADOR antes de crear otro | Respeta TDD-SW-003 y cubre la respuesta perdida, que la UI no puede evitar |
+
+## Seguimiento de revisión PR #33
+
+| Punto (2026-10-30) | Respuesta en este documento |
+| --- | --- |
+| Técnica 1: `number` | [Convenciones](#convenciones-generales) y [Decisiones abiertas](#decisiones-abiertas): condicionado a PR #34 |
+| Técnica 2: versiones de comandos Admin | [Concurrencia optimista](#concurrencia-optimista) y [TDD-SW-005](../MAPS-114-assignment-delivery-outbox/TDD-SW-005-assignment-delivery-y-coordinacion-outbox.md#reintento-manual-retrydelivery) |
+| Técnica 3 y Cloud 2.3: token de invitación | [Token de invitación](#token-de-invitación-de-productor) |
+| Técnica 4 y Cloud 2.5: `CreateDraft` | [Riesgo aceptado](#riesgo-aceptado-sin-idempotencia-en-createdraft-y-requestupload) |
+| Técnica 5: `/me` sin cuenta | [Identidad y cuenta](#mapa-de-recursos), [Modelo de errores](#modelo-de-errores) y [Clasificación de rutas](#clasificación-de-rutas) |
+| Cloud 2.1: entrada pública | [Clasificación de rutas](#clasificación-de-rutas) y [Dependencias Cloud](#dependencias-cloud) |
+| Cloud 2.2: transporte del token | [Autenticación](#autenticación-y-transporte-del-token): CSRF limitado al supuesto Bearer |
+| Cloud 2.4: límites y tiempos | [Respuestas exitosas](#respuestas-exitosas): timeout no implica rollback. Resto en [Dependencias Cloud](#dependencias-cloud) |
+| Cloud 2.5: idempotencia | [Idempotencia](#idempotencia): persistencia, respuesta perdida, clave vencida y purga |
+| Cloud 2.6: health checks | [Operación](#operación-y-observabilidad) y TDD-CLD-002 |
+| Cloud 2.7: webhook | [Entrada técnica](#mapa-de-recursos) y TDD-CLD-005 |
+| Cloud 2.8: trazas | [Operación](#operación-y-observabilidad) y TDD-CLD-007 |
+| Cloud 2.9: compatibilidad | [Versionado](#versionado-y-compatibilidad) |
+
+Este documento sigue en `BORRADOR`.
 
 ## Referencias y trazabilidad
 

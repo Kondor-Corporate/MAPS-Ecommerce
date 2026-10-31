@@ -183,11 +183,15 @@ El procesador **no** decide transiciones: sólo reporta. Ver [Aplicar el resulta
 
 **Rebote posterior.** Si el proveedor informa un rebote después de `DERIVADA` (webhook), el `DeliveryAttempt` pasa a `REBOTADO` y **no** revierte la solicitud: no hay transición de salida desde DERIVADA (ADR-SW-004). La baseline no define qué puede hacer el Admin en ese caso: F2 §6 y ADM-04 sólo prevén reintentar o reasignar en ASIGNADA. Este documento registra el rebote y lo deja consultable, pero no inventa una acción; ver decisiones abiertas 1 y 6. **Mientras la decisión 6 no esté cerrada, esta incidencia no tiene tratamiento en el diseño y se mantiene como bloqueante, no como resuelta.**
 
+**Versión del Assignment.** Todo resultado aplicado sobre un Assignment no cerrado incrementa `Assignment.version`, incluidos el fallo y el rebote posterior, aunque el estado del Assignment no cambie. Así, el Admin no puede reintentar ni reasignar sobre una pantalla anterior a ese resultado. Un fallo o un rebote no compite con la vista del Admin: se aplica sobre la versión vigente, bajo el bloqueo de la fila. Un resultado obsoleto no muta el Assignment `CERRADO`.
+
 **Idempotencia del resultado.** Aplicar dos veces el mismo `(attemptId, resultado)` no cambia nada. La transición `ASIGNADA → DERIVADA` sólo ocurre si la solicitud sigue ASIGNADA y el Assignment sigue `PENDIENTE_ENTREGA`.
 
 ### Reintento manual (`RetryDelivery`)
 
 Permitido cuando el último `DeliveryAttempt` es `FALLIDO` (o `REBOTADO` informado antes de acreditar la entrega) y el Assignment sigue `PENDIENTE_ENTREGA`, con solicitud ASIGNADA o con DERIVADA en reasignación por baja. No aplica a un Assignment `EFECTIVO`. Crea `DeliveryAttempt` con `numero + 1` y un `OutboxEvent` nuevo con su propia clave. **No reactiva** el evento agotado (ADR-SW-004 §5).
+
+El comando llega con la `version` del Assignment que vio el Admin (TDD-SW-008) y, en la misma unidad de trabajo, la incrementa con `UPDATE ... WHERE version = :leida AND estado = 'PENDIENTE_ENTREGA'`. Si no afecta una fila, falla con `CONFLICTO_CONCURRENCIA` sin crear intento ni evento. `InsuranceRequest.version` no cambia.
 
 ### Reasignar ASIGNADA (`ASIGNADA → ASIGNADA`)
 
@@ -281,6 +285,7 @@ Cada flujo de la sección [Contratos y flujos](#contratos-y-flujos) es una unida
 Las garantías se apoyan en la base de datos, no en locks locales al proceso:
 
 - **Transición atómica a efectivo.** `PENDIENTE_ENTREGA → EFECTIVO` es un `UPDATE` condicionado por `version` y `estado`; si no afecta una fila, el resultado se descarta como obsoleto.
+- **Versión visible para el Admin.** Toda escritura sobre un Assignment no cerrado o sobre sus `DeliveryAttempt` incrementa `Assignment.version`. El `ETag` del detalle de Admin la combina con `InsuranceRequest.version` (TDD-SW-008), porque `RetryDelivery` y los resultados fallidos no pasan por Requests.
 - **Claim del outbox.** Dos workers con el lease vencido no pueden procesar el mismo evento a la vez: el reclamo del evento usa un token de lease que se verifica al registrar el resultado (TDD-CLD-005 define tiempos).
 - **Acciones Admin concurrentes.** Dos reasignaciones o un reintento y una cancelación sobre la misma solicitud: la segunda recibe `CONFLICTO_CONCURRENCIA` o `TRANSICION_INVALIDA` por la condición de versión y el índice único parcial.
 - **Resultado tardío.** Un resultado que llega tras baja o cancelación se registra y no muta el Assignment cerrado.
@@ -332,6 +337,8 @@ De aplicación (con dobles de puertos):
 - Reasignar DERIVADA: el Productor anterior pierde acceso en el mismo commit; el nuevo no lo tiene hasta el éxito.
 - Cancelación aprobada de DERIVADA durante una reasignación pendiente: cierra el Assignment `PENDIENTE_ENTREGA`; un resultado posterior queda obsoleto y no restaura acceso.
 - Reintento manual crea intento y clave nuevos; no reactiva el evento agotado.
+- Reintento manual con una `version` de Assignment anterior a un resultado o a otro reintento: `CONFLICTO_CONCURRENCIA` sin crear intento.
+- Resultado de fallo o rebote: incrementa `Assignment.version` y no cambia `InsuranceRequest.version`.
 - Reintento automático o manual luego de un cambio de email: resuelve la dirección vigente, conserva sólo su máscara y referencia/version en la auditoría, y no replica la dirección completa en Outbox ni DeliveryAttempt.
 - Cancelar ASIGNADA produce un único aviso.
 - Rechazo de cancelación DERIVADA no cambia el Assignment.
