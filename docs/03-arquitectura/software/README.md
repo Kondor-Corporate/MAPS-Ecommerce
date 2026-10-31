@@ -28,7 +28,7 @@ El área diseña límites de módulos, dominio, transacciones, persistencia desd
 | 3 | TDD-SW-005 | Assignment, Delivery y Outbox. |
 | 3 | TDD-SW-006 | Adjuntos y documentos. |
 | 4 | TDD-SW-007 | Auditoría y analytics. |
-| 4 | TDD-SW-008 | Contrato API. |
+| 4 | [TDD-SW-008](./tdd/MAPS-115-contrato-api/TDD-SW-008-contrato-api.md) (`BORRADOR`) | Contrato API. |
 
 Los IDs de catálogo no sustituyen al work item real. Cada documento nuevo se crea dentro de una carpeta de unidad de trabajo bajo [adr/](./adr/) o [tdd/](./tdd/), con ID permanente independiente. Empezar con las plantillas compartidas de [ADR](../templates/ADR-template.md) y [TDD](../templates/TDD-template.md), y enlazar ADR/TDD cloud relacionados.
 
