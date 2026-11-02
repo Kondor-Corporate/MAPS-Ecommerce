@@ -1,6 +1,6 @@
 # Fase 3 — Arquitectura
 
-> **Estado:** estructura documental en uso durante F3. `ADR-SW-001/002/003/004/005` están `ACEPTADO` y `TDD-SW-001/003` están `APROBADO`; la revisión cruzada Cloud queda registrada brevemente en cada documento y desarrollada en comentarios individuales de la PR #24. `ADR-CLD-000` está `ACEPTADO` en `main` mediante la PR #16 para GCP como plataforma del MVP y su revisión cruzada quedó conforme el 2026-10-19. Los demás artefactos conservan el estado indicado en sus áreas. La aceptación/aprobación documental no implica que los diseños derivados estén concluidos. Esto no cierra F1/F2.
+> **Estado:** baseline documental F3 integrada en `main`. Software: `ADR-SW-001/002/003/004/005` `ACEPTADO`; `ADR-SW-006` `PROPUESTO`; `TDD-SW-001/003` `APROBADO`; `TDD-SW-002/004/005/006/007/008` `BORRADOR`. Cloud: `ADR-CLD-000` `ACEPTADO`; `ADR-CLD-001/002/003/007` `PROPUESTO`; `TDD-CLD-003/006` `BORRADOR`. La integración de PRs no cambia estados formales ni acepta servicios por sí sola. La baseline de identidad se encuentra en reconciliación controlada por una corrección Software posterior a la revisión de C2; la corrección cubre MFA fuera del MVP y Admin + Productor multirol, todavía no integrados. Esta documentación transversal se sincronizará con esa baseline antes de integrarse. Esto no cierra F1/F2.
 
 F3 traduce la [baseline funcional F0](../00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md), el [discovery F1](../01-producto/Fase_1__Discovery_y_Relevamiento.md) y el [Design Handoff F2](../02-diseno/Fase_2__Design_Handoff.md) en decisiones y diseños técnicos que permitan preparar un backlog implementable en F4. Si una propuesta contradice esas fuentes, debe señalar la contradicción y tramitarla como cambio controlado; no reinterpretarla silenciosamente.
 
@@ -13,10 +13,10 @@ F3 traduce la [baseline funcional F0](../00-proyecto/Fase_0__Kickoff__Gobierno_d
 | [Plantilla ADR](./templates/ADR-template.md) | Registrar qué decisión se propone o acepta, alternativas y consecuencias. |
 | [Plantilla TDD](./templates/TDD-template.md) | Diseñar cómo se materializa una decisión en MAPS. |
 | [Software y dominio](./software/README.md) | Alcance, ownership y catálogo previsto de ADR/TDD software. |
-| [Cloud y plataforma](./cloud/README.md) | Alcance, ownership y catálogo previsto de ADR/TDD cloud. |
+| [Cloud y plataforma](./cloud/README.md) | Alcance, ownership y catálogo de ADR/TDD Cloud existentes y previstos. |
 | [Cloud Strategy](./cloud/STRATEGY.md) | Principios y capacidades de plataforma; refleja GCP aceptado por ADR-CLD-000 sin aceptar servicios derivados. |
 
-La dirección de trabajo combina decisiones aceptadas y propuestas: Software acepta un monolito modular con límites hexagonales y TypeScript; Cloud acepta GCP como plataforma del MVP. Cloud Run, Cloud SQL PostgreSQL, Cloud Storage, Terraform, CI/CD y observabilidad siguen como candidatos sujetos a ADR/TDD. PostgreSQL histórico de MAPS sigue fuera como dependencia funcional del MVP. Ni Prisma, ni hosting frontend, ni topología de ambientes quedan aceptados por figurar aquí.
+La dirección de trabajo combina decisiones aceptadas y propuestas: Software acepta un monolito modular con límites hexagonales y TypeScript; Cloud acepta GCP como plataforma del MVP. Los ADR/TDD Cloud integrados conservan sus estados propios (`PROPUESTO` o `BORRADOR` donde corresponda); su integración no acepta automáticamente servicios ni topologías. Cloud Run, Cloud SQL PostgreSQL, Cloud Storage, Terraform, CI/CD y observabilidad no se consideran aceptados por figurar aquí. PostgreSQL histórico de MAPS sigue fuera como dependencia funcional del MVP. Ni Prisma, ni hosting frontend, ni topología de ambientes quedan aceptados por figurar aquí.
 
 ## Convenciones de documentos
 

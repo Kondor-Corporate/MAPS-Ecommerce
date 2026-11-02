@@ -69,7 +69,7 @@ Seleccioná una dependencia para consultar sus contratos, decisiones, límites y
 | Puede avanzar | C1 puede avanzar conexiones, concurrencia, migraciones y alternativas de base sobre el modelo lógico aceptado. |
 | Bloquea | Cierre de objetivos y parámetros finales de backup/HA/recovery que dependan de RPO/RTO. |
 | No bloquea | Evaluación del servicio de base y la mayor parte de TDD-CLD-003. |
-| ADR/TDD relacionados | [ADR-SW-003](./software/adr/MAPS-108-persistencia-fronteras-transaccionales/ADR-SW-003-persistencia-y-fronteras-transaccionales.md), [TDD-SW-001](./software/tdd/MAPS-109-modelo-dominio-datos/TDD-SW-001-modelo-de-dominio-y-datos.md), [TDD-SW-003](./software/tdd/MAPS-113-insurance-request-estados/TDD-SW-003-insurance-request-y-maquina-de-estados.md); previstos ADR-CLD-003, TDD-CLD-003. |
+| ADR/TDD relacionados | [ADR-SW-003](./software/adr/MAPS-108-persistencia-fronteras-transaccionales/ADR-SW-003-persistencia-y-fronteras-transaccionales.md), [TDD-SW-001](./software/tdd/MAPS-109-modelo-dominio-datos/TDD-SW-001-modelo-de-dominio-y-datos.md), [TDD-SW-003](./software/tdd/MAPS-113-insurance-request-estados/TDD-SW-003-insurance-request-y-maquina-de-estados.md); [ADR-CLD-003](./cloud/adr/MAPS-148-runtime-api-worker-jobs-migraciones/ADR-CLD-003-runtime-api-worker-jobs-migraciones.md) (`PROPUESTO`), [TDD-CLD-003](./cloud/tdd/MAPS-155-cloud-sql-conexiones-backups-migraciones/TDD-CLD-003-cloud-sql-conexiones-backups-migraciones.md) (`BORRADOR`). |
 | Jira verificado (estado) | [MAPS-120 Cloud SQL (En curso)](https://santitalavera.atlassian.net/browse/MAPS-120), [MAPS-155 TDD-CLD-003 (En curso)](https://santitalavera.atlassian.net/browse/MAPS-155). |
 | Siguiente acción | Continuar sizing de conexiones, migraciones y recuperación cualitativa; mantener objetivos cuantificados condicionados a DEP-15. |
 
@@ -85,8 +85,8 @@ Seleccioná una dependencia para consultar sus contratos, decisiones, límites y
 | Puede avanzar | C1 puede comparar alternativas de runtime API/worker/jobs y producir constraints; C4 consume C1/C2/C3 para topología. |
 | Bloquea | Cierre de topología y runtime materializado en TDD-CLD-001/002. |
 | No bloquea | La decisión de límites lógicos Software y la comparación de runtimes API/worker/jobs. |
-| ADR/TDD relacionados | [ADR-SW-001](./software/adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-001-monolito-modular-y-limites.md), [ADR-SW-002](./software/adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-002-arquitectura-hexagonal-y-capas.md); [ADR-CLD-000](./cloud/adr/MAPS-161-seleccion-plataforma-cloud/ADR-CLD-000-seleccion-plataforma-cloud.md) acepta GCP; previstos ADR-CLD-003, TDD-CLD-001/002. |
-| Jira verificado (estado) | [MAPS-118 runtime (En curso)](https://santitalavera.atlassian.net/browse/MAPS-118), [MAPS-119 topología (Por hacer)](https://santitalavera.atlassian.net/browse/MAPS-119), [MAPS-148 ADR-CLD-003 (En curso)](https://santitalavera.atlassian.net/browse/MAPS-148), [MAPS-153 TDD-CLD-001 (Por hacer)](https://santitalavera.atlassian.net/browse/MAPS-153), [MAPS-154 TDD-CLD-002 (Por hacer)](https://santitalavera.atlassian.net/browse/MAPS-154). |
+| ADR/TDD relacionados | [ADR-SW-001](./software/adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-001-monolito-modular-y-limites.md), [ADR-SW-002](./software/adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-002-arquitectura-hexagonal-y-capas.md); [ADR-CLD-000](./cloud/adr/MAPS-161-seleccion-plataforma-cloud/ADR-CLD-000-seleccion-plataforma-cloud.md) acepta GCP; [ADR-CLD-003](./cloud/adr/MAPS-148-runtime-api-worker-jobs-migraciones/ADR-CLD-003-runtime-api-worker-jobs-migraciones.md) (`PROPUESTO`); TDD-CLD-001/002 previstos para C4. |
+| Jira verificado (estado) | [MAPS-118 runtime (En curso)](https://santitalavera.atlassian.net/browse/MAPS-118), [MAPS-119 topología (Listo)](https://santitalavera.atlassian.net/browse/MAPS-119), [MAPS-148 ADR-CLD-003 (En curso)](https://santitalavera.atlassian.net/browse/MAPS-148), [MAPS-153 TDD-CLD-001 (Listo)](https://santitalavera.atlassian.net/browse/MAPS-153), [MAPS-154 TDD-CLD-002 (Listo)](https://santitalavera.atlassian.net/browse/MAPS-154). |
 | Siguiente acción | C1 documenta constraints de runtime; C4 resuelve topología/materialización cuando inputs C1/C2/C3 estén coordinados. |
 
 <a id="dep-03"></a>
@@ -101,8 +101,8 @@ Seleccioná una dependencia para consultar sus contratos, decisiones, límites y
 | Puede avanzar | C1 puede avanzar el runtime Outbox y su coordinación transaccional; definir límites de concurrencia y recuperación. |
 | Bloquea | Cierre de la integración de envío depende del contrato de Delivery de DEP-04. |
 | No bloquea | El trabajo de runtime Outbox y el resto de C1. |
-| ADR/TDD relacionados | [ADR-SW-004](./software/adr/MAPS-110-asincronia-outbox-idempotencia/ADR-SW-004-outbox-asincronia-e-idempotencia.md), [TDD-SW-003](./software/tdd/MAPS-113-insurance-request-estados/TDD-SW-003-insurance-request-y-maquina-de-estados.md); [TDD-SW-005](./software/tdd/MAPS-114-assignment-delivery-outbox/TDD-SW-005-assignment-delivery-y-coordinacion-outbox.md) `BORRADOR` en `main`; previstos ADR-CLD-003, TDD-CLD-005. |
-| Jira verificado (estado) | [MAPS-114 Assignment/Delivery/Outbox (En revisión)](https://santitalavera.atlassian.net/browse/MAPS-114), [MAPS-142 TDD-SW-005 (En revisión)](https://santitalavera.atlassian.net/browse/MAPS-142), [MAPS-125 worker/email (Por hacer)](https://santitalavera.atlassian.net/browse/MAPS-125), [MAPS-157 TDD-CLD-005 (Por hacer)](https://santitalavera.atlassian.net/browse/MAPS-157). |
+| ADR/TDD relacionados | [ADR-SW-004](./software/adr/MAPS-110-asincronia-outbox-idempotencia/ADR-SW-004-outbox-asincronia-e-idempotencia.md), [TDD-SW-003](./software/tdd/MAPS-113-insurance-request-estados/TDD-SW-003-insurance-request-y-maquina-de-estados.md); [TDD-SW-005](./software/tdd/MAPS-114-assignment-delivery-outbox/TDD-SW-005-assignment-delivery-y-coordinacion-outbox.md) `BORRADOR` en `main`; [ADR-CLD-003](./cloud/adr/MAPS-148-runtime-api-worker-jobs-migraciones/ADR-CLD-003-runtime-api-worker-jobs-migraciones.md) (`PROPUESTO`); TDD-CLD-005 previsto para C6. |
+| Jira verificado (estado) | [MAPS-114 Assignment/Delivery/Outbox (Listo)](https://santitalavera.atlassian.net/browse/MAPS-114), [MAPS-142 TDD-SW-005 (Listo)](https://santitalavera.atlassian.net/browse/MAPS-142), [MAPS-125 worker/email (Listo)](https://santitalavera.atlassian.net/browse/MAPS-125), [MAPS-157 TDD-CLD-005 (Listo)](https://santitalavera.atlassian.net/browse/MAPS-157). |
 | Siguiente acción | Diseñar claims, fencing, retry y recuperación como runtime; no asumir cerrada la semántica final de Delivery. |
 
 <a id="dep-04"></a>
@@ -118,7 +118,7 @@ Seleccioná una dependencia para consultar sus contratos, decisiones, límites y
 | Bloquea | La decisión 1 y las capacidades del proveedor bloquean que `TDD-SW-005` pase a `EN REVISIÓN` y el cierre de `TDD-CLD-005` / C6. Si se adopta A, la decisión funcional 6 de MAPS + Kondor también bloquea el cierre. |
 | No bloquea | Runtime Outbox de DEP-03, C1 y la máquina de estados aceptada; no se reabre DERIVADA. |
 | ADR/TDD relacionados | [ADR-SW-004](./software/adr/MAPS-110-asincronia-outbox-idempotencia/ADR-SW-004-outbox-asincronia-e-idempotencia.md); [TDD-SW-005](./software/tdd/MAPS-114-assignment-delivery-outbox/TDD-SW-005-assignment-delivery-y-coordinacion-outbox.md) `BORRADOR` en `main`; previsto TDD-CLD-005. |
-| Jira verificado (estado) | [MAPS-114 (En revisión)](https://santitalavera.atlassian.net/browse/MAPS-114), [MAPS-142 TDD-SW-005 (En revisión)](https://santitalavera.atlassian.net/browse/MAPS-142), [MAPS-125 (Por hacer)](https://santitalavera.atlassian.net/browse/MAPS-125), [MAPS-157 (Por hacer)](https://santitalavera.atlassian.net/browse/MAPS-157), [MAPS-167 Ronda MAPS A (Por hacer)](https://santitalavera.atlassian.net/browse/MAPS-167). |
+| Jira verificado (estado) | [MAPS-114 (Listo)](https://santitalavera.atlassian.net/browse/MAPS-114), [MAPS-142 TDD-SW-005 (Listo)](https://santitalavera.atlassian.net/browse/MAPS-142), [MAPS-125 (Listo)](https://santitalavera.atlassian.net/browse/MAPS-125), [MAPS-157 (Listo)](https://santitalavera.atlassian.net/browse/MAPS-157), [MAPS-167 Ronda MAPS A (Por hacer)](https://santitalavera.atlassian.net/browse/MAPS-167). |
 | Siguiente acción | Software + Cloud validan la decisión 1 contra las capacidades del proveedor en `TDD-CLD-005`; MAPS + Kondor resuelven la decisión 6 si se adopta A. |
 
 <a id="dep-05"></a>
@@ -126,14 +126,14 @@ Seleccioná una dependencia para consultar sus contratos, decisiones, límites y
 
 | Aspecto | Detalle |
 | --- | --- |
-| Contrato / input Software | RBAC y ownership son reglas de aplicación; `IAM Cloud != RBAC de aplicación`. `TDD-SW-004` está previsto. |
+| Contrato / input Software | RBAC y ownership son reglas de aplicación; `IAM Cloud != RBAC de aplicación`. `TDD-SW-004` está integrado en `main` como `BORRADOR`; su identidad/MFA/multirol baseline está bajo reconciliación Software separada y debe sincronizarse antes de integrar esta matriz. |
 | Decisión / diseño Cloud | C2 puede diseñar workload identities, service accounts, least privilege, Secret Manager como candidato, WIF/OIDC para workloads/pipelines cuando corresponda y trust boundaries. |
 | Input funcional MAPS | No se necesitan campos finales de perfil para diseñar IAM; ver DEP-06. |
 | Owner actual | Software para permisos funcionales; Cloud para seguridad/IAM |
 | Puede avanzar | C2 puede avanzar identidades de workload, secretos y límites de confianza sin resolver permisos funcionales. |
 | Bloquea | Cierre de autorización funcional corresponde a Software; materialización de IAM a TDD-CLD-006. |
 | No bloquea | Estrategia de ambientes, separación por ambiente y promotion strategy, que pertenecen a C3. |
-| ADR/TDD relacionados | [ADR-SW-005](./software/adr/MAPS-111-identidad-autorizacion/ADR-SW-005-identidad-y-autorizacion.md); previstos TDD-SW-004, ADR-CLD-007, TDD-CLD-006. |
+| ADR/TDD relacionados | [ADR-SW-005](./software/adr/MAPS-111-identidad-autorizacion/ADR-SW-005-identidad-y-autorizacion.md); [TDD-SW-004](./software/tdd/MAPS-111-identidad-rbac-ownership/TDD-SW-004-identidad-rbac-y-ownership.md) (`BORRADOR`), [ADR-CLD-007](./cloud/adr/MAPS-152-seguridad-cloud/ADR-CLD-007-seguridad-cloud.md) (`PROPUESTO`), [TDD-CLD-006](./cloud/tdd/MAPS-158-iam-secret-manager/TDD-CLD-006-iam-y-secret-manager.md) (`BORRADOR`). |
 | Jira verificado (estado) | [MAPS-123 seguridad/IAM (En curso)](https://santitalavera.atlassian.net/browse/MAPS-123), [MAPS-152 ADR-CLD-007 (En curso)](https://santitalavera.atlassian.net/browse/MAPS-152), [MAPS-158 TDD-CLD-006 (En curso)](https://santitalavera.atlassian.net/browse/MAPS-158). |
 | Siguiente acción | Avanzar C2 en identidades, mínimo privilegio, secretos candidatos, WIF/OIDC y trust boundaries; coordinar requisitos por ambiente con C3. |
 
@@ -149,7 +149,7 @@ Seleccioná una dependencia para consultar sus contratos, decisiones, límites y
 | Puede avanzar | Diseño general de autenticación y IAM puede continuar. |
 | Bloquea | Cierre del contrato de perfil y de la parte correspondiente de `TDD-SW-004`. |
 | No bloquea | IAM Cloud de C2, separación de ambientes y estrategia general de entrada pública. |
-| ADR/TDD relacionados | [ADR-SW-005](./software/adr/MAPS-111-identidad-autorizacion/ADR-SW-005-identidad-y-autorizacion.md); previsto TDD-SW-004. |
+| ADR/TDD relacionados | [ADR-SW-005](./software/adr/MAPS-111-identidad-autorizacion/ADR-SW-005-identidad-y-autorizacion.md); [TDD-SW-004](./software/tdd/MAPS-111-identidad-rbac-ownership/TDD-SW-004-identidad-rbac-y-ownership.md) (`BORRADOR`). |
 | Jira verificado (estado) | [MAPS-97 Mi perfil (En curso)](https://santitalavera.atlassian.net/browse/MAPS-97). |
 | Siguiente acción | Incluir en MAPS-167 los campos visibles/editables/obligatorios; no convertirlos en requisito de IAM. |
 
@@ -164,9 +164,9 @@ Seleccioná una dependencia para consultar sus contratos, decisiones, límites y
 | Owner actual | Kondor + MAPS definen alcance/secuencia funcional de baja RN-19; MAPS define RN-20; Software/Cloud resuelven sólo los mecanismos técnicos afectados. |
 | Puede avanzar | Mantener la baja lógica ya establecida y avanzar seguridad Cloud general; los mecanismos de revocación afectados se condicionan al cierre funcional. |
 | Bloquea | Confirmar alcance/secuencia de baja RN-19 (Kondor + MAPS) antes de `EN REVISIÓN`; el contrato aplicativo de RN-20 y los cambios de revocación que dependan de esa regla. |
-| No bloquea | Diseño base de C2 para IAM de workloads, secretos y trust boundaries; baja lógica ya establecida y diseños Cloud no afectados por la semántica de inhabilitación. Los mecanismos de revocación de identidad de usuario quedan sujetos al contrato aplicativo de RN-20. |
-| ADR/TDD relacionados | [ADR-SW-005](./software/adr/MAPS-111-identidad-autorizacion/ADR-SW-005-identidad-y-autorizacion.md), [TDD-SW-003](./software/tdd/MAPS-113-insurance-request-estados/TDD-SW-003-insurance-request-y-maquina-de-estados.md), [TDD-SW-005](./software/tdd/MAPS-114-assignment-delivery-outbox/TDD-SW-005-assignment-delivery-y-coordinacion-outbox.md) (`BORRADOR` en `main`); previstos ADR-CLD-007/TDD-CLD-006. |
-| Jira verificado (estado) | [MAPS-98 baja/inhabilitación (En revisión)](https://santitalavera.atlassian.net/browse/MAPS-98), [MAPS-123 seguridad/IAM (En curso)](https://santitalavera.atlassian.net/browse/MAPS-123), [MAPS-142 TDD-SW-005 (En revisión)](https://santitalavera.atlassian.net/browse/MAPS-142). |
+| No bloquea | Diseño base de C2 para IAM de workloads, secretos y trust boundaries; baja lógica ya establecida y diseños Cloud no afectados por la semántica de inhabilitación. Los mecanismos de revocación de identidad de usuario quedan sujetos al contrato aplicativo de RN-20 y a la corrección Software de MFA/multirol aún no integrada. |
+| ADR/TDD relacionados | [ADR-SW-005](./software/adr/MAPS-111-identidad-autorizacion/ADR-SW-005-identidad-y-autorizacion.md), [TDD-SW-003](./software/tdd/MAPS-113-insurance-request-estados/TDD-SW-003-insurance-request-y-maquina-de-estados.md), [TDD-SW-005](./software/tdd/MAPS-114-assignment-delivery-outbox/TDD-SW-005-assignment-delivery-y-coordinacion-outbox.md) (`BORRADOR` en `main`); [ADR-CLD-007](./cloud/adr/MAPS-152-seguridad-cloud/ADR-CLD-007-seguridad-cloud.md) (`PROPUESTO`) y [TDD-CLD-006](./cloud/tdd/MAPS-158-iam-secret-manager/TDD-CLD-006-iam-y-secret-manager.md) (`BORRADOR`). |
+| Jira verificado (estado) | [MAPS-98 baja/inhabilitación (En revisión)](https://santitalavera.atlassian.net/browse/MAPS-98), [MAPS-123 seguridad/IAM (En curso)](https://santitalavera.atlassian.net/browse/MAPS-123), [MAPS-142 TDD-SW-005 (Listo)](https://santitalavera.atlassian.net/browse/MAPS-142). |
 | Siguiente acción | Llevar sólo RN-20 a MAPS-167; confirmar RN-19 conjuntamente con Kondor + MAPS antes de pasar `TDD-SW-005` a `EN REVISIÓN`. |
 
 <a id="dep-08"></a>
@@ -174,15 +174,15 @@ Seleccioná una dependencia para consultar sus contratos, decisiones, límites y
 
 | Aspecto | Detalle |
 | --- | --- |
-| Contrato / input Software | `TDD-SW-008` está previsto; catálogo/FormVersion y contrato de caché/header requieren coordinación con `TDD-SW-002`. |
+| Contrato / input Software | `TDD-SW-008` está integrado en `main` como `BORRADOR`; el contrato API y los aspectos de caché/headers deben coordinarse con `TDD-SW-002`. La corrección Software de MFA/multirol pendiente debe integrarse antes de consolidar la frontera de identidad de usuario. |
 | Decisión / diseño Cloud | C3 define hosting frontend, public entry, DNS/TLS, routing/exposición, aislamiento de dev/staging/prod e integración de identities/secrets por ambiente con C2; promotion strategy a nivel de ambientes. C4 materializa topología en TDD-CLD-001/002. |
 | Input funcional MAPS | Ninguno para estrategia general; formularios reales afectan sólo detalles de caché, ver DEP-09. |
 | Owner actual | Cloud; coordinación C2/C4 y revisión Software |
 | Puede avanzar | C3 puede avanzar estrategia pública y de ambientes, límites de exposición y promoción; definir constraints para C4. |
 | Bloquea | Cierre de cache/headers y comportamiento API que dependan del contrato Software; topología materializada queda a C4. |
-| No bloquea | Estrategia general de public entry, DNS/TLS, routing, aislamiento y promoción de ambientes. |
-| ADR/TDD relacionados | Previstos `TDD-SW-008`, ADR-CLD-001/002; [TDD-SW-002](./software/tdd/MAPS-112-product-category-formularios/TDD-SW-002-product-category-y-formversion.md) `BORRADOR` en `main`; TDD-CLD-001/002 para C4. |
-| Jira verificado (estado) | [MAPS-116 entrada pública (En curso)](https://santitalavera.atlassian.net/browse/MAPS-116), [MAPS-117 ambientes (En curso)](https://santitalavera.atlassian.net/browse/MAPS-117), [MAPS-146 ADR-CLD-001 (En curso)](https://santitalavera.atlassian.net/browse/MAPS-146), [MAPS-147 ADR-CLD-002 (En curso)](https://santitalavera.atlassian.net/browse/MAPS-147), [MAPS-139 TDD-SW-002 (En revisión)](https://santitalavera.atlassian.net/browse/MAPS-139), [MAPS-153 TDD-CLD-001 (Por hacer)](https://santitalavera.atlassian.net/browse/MAPS-153), [MAPS-154 TDD-CLD-002 (Por hacer)](https://santitalavera.atlassian.net/browse/MAPS-154). |
+| No bloquea | Continuar el diseño propuesto de public entry, DNS/TLS, routing, aislamiento y promoción; ADR-CLD-001/002 siguen `PROPUESTO` y no equivalen a aceptación. |
+| ADR/TDD relacionados | [TDD-SW-008](./software/tdd/MAPS-115-contrato-api/TDD-SW-008-contrato-api.md) (`BORRADOR`), [ADR-CLD-001](./cloud/adr/MAPS-146-hosting-frontend-entrada-publica/ADR-CLD-001-hosting-frontend-y-entrada-publica.md) y [ADR-CLD-002](./cloud/adr/MAPS-147-estrategia-ambientes/ADR-CLD-002-estrategia-de-ambientes-aislamiento-y-promocion.md) (`PROPUESTO`); [TDD-SW-002](./software/tdd/MAPS-112-product-category-formularios/TDD-SW-002-product-category-y-formversion.md) `BORRADOR` en `main`; TDD-CLD-001/002 previstos para C4. |
+| Jira verificado (estado) | [MAPS-116 entrada pública (En curso)](https://santitalavera.atlassian.net/browse/MAPS-116), [MAPS-117 ambientes (En curso)](https://santitalavera.atlassian.net/browse/MAPS-117), [MAPS-146 ADR-CLD-001 (En curso)](https://santitalavera.atlassian.net/browse/MAPS-146), [MAPS-147 ADR-CLD-002 (En curso)](https://santitalavera.atlassian.net/browse/MAPS-147), [MAPS-139 TDD-SW-002 (Listo)](https://santitalavera.atlassian.net/browse/MAPS-139), [MAPS-153 TDD-CLD-001 (Listo)](https://santitalavera.atlassian.net/browse/MAPS-153), [MAPS-154 TDD-CLD-002 (Listo)](https://santitalavera.atlassian.net/browse/MAPS-154). |
 | Siguiente acción | Avanzar C3 en public entry y environments; luego C4 integra constraints de C1/C2/C3 y materializa topología. |
 
 <a id="dep-09"></a>
@@ -197,8 +197,8 @@ Seleccioná una dependencia para consultar sus contratos, decisiones, límites y
 | Puede avanzar | Puede avanzar el mecanismo de versionado, inmutabilidad, retiro y modelado del catálogo; obligatoriedad/cardinalidad Product–FormVersion queda condicionada a la decisión sobre Products sin formulario. |
 | Bloquea | Regla final de publicación/cardinalidad Product–FormVersion, propiedades/validaciones finales del formulario y detalles de caché que dependan de ellas. |
 | No bloquea | Selección de plataforma, runtime, topología y estrategia general de public entry. |
-| ADR/TDD relacionados | ADR-SW-001/003; [TDD-SW-002](./software/tdd/MAPS-112-product-category-formularios/TDD-SW-002-product-category-y-formversion.md) `BORRADOR` en `main`; Cloud ADR-CLD-001/TDD-CLD-001 sólo por impacto indirecto. |
-| Jira verificado (estado) | [MAPS-96 formularios reales (En curso)](https://santitalavera.atlassian.net/browse/MAPS-96), [MAPS-112 Product/formularios (En revisión)](https://santitalavera.atlassian.net/browse/MAPS-112), [MAPS-139 TDD-SW-002 (En revisión)](https://santitalavera.atlassian.net/browse/MAPS-139). |
+| ADR/TDD relacionados | ADR-SW-001/003; [TDD-SW-002](./software/tdd/MAPS-112-product-category-formularios/TDD-SW-002-product-category-y-formversion.md) `BORRADOR` en `main`; [ADR-CLD-001](./cloud/adr/MAPS-146-hosting-frontend-entrada-publica/ADR-CLD-001-hosting-frontend-y-entrada-publica.md) (`PROPUESTO`); TDD-CLD-001 previsto para C4 sólo por impacto indirecto. |
+| Jira verificado (estado) | [MAPS-96 formularios reales (En curso)](https://santitalavera.atlassian.net/browse/MAPS-96), [MAPS-112 Product/formularios (Listo)](https://santitalavera.atlassian.net/browse/MAPS-112), [MAPS-139 TDD-SW-002 (Listo)](https://santitalavera.atlassian.net/browse/MAPS-139). |
 | Siguiente acción | Llevar ambas preguntas —Products sin formulario como Incendio/Retiro y 1–2 formularios reales— a MAPS-167; no inferir una regla hasta validar el contrato funcional. |
 
 <a id="dep-10"></a>
@@ -206,15 +206,15 @@ Seleccioná una dependencia para consultar sus contratos, decisiones, límites y
 
 | Aspecto | Detalle |
 | --- | --- |
-| Contrato / input Software | ADR-SW-006/TDD-SW-006 están previstos; TDD-SW-001 modela `Document` como metadata y referencia a un archivo privado, deja el storage físico bajo ownership Cloud y reserva el detalle de documentos para TDD-SW-006. La consistencia detallada del flujo queda para TDD-SW-006. |
+| Contrato / input Software | [ADR-SW-006](./software/adr/MAPS-115-archivos-adjuntos/ADR-SW-006-archivos-y-adjuntos.md) (`PROPUESTO`) y [TDD-SW-006](./software/tdd/MAPS-115-adjuntos-documentos/TDD-SW-006-adjuntos-y-documentos.md) (`BORRADOR`) están integrados; TDD-SW-001 modela `Document` como metadata y referencia a un archivo privado, deja el storage físico bajo ownership Cloud y reserva el detalle de documentos para TDD-SW-006. La consistencia detallada del flujo queda para TDD-SW-006. |
 | Decisión / diseño Cloud | TDD-CLD-004 debe evaluar privacidad por defecto, aislamiento, autorización y modalidad de acceso; Storage sigue candidato. |
 | Input funcional MAPS | La retención/eliminación final se separa en DEP-11. |
 | Owner actual | Software define modelo/consistencia; Cloud almacenamiento/IAM |
 | Puede avanzar | Puede avanzar el análisis de almacenamiento privado, aislamiento, IAM, modalidades de acceso y alternativas de staging/cleanup, que deberán reconciliarse con TDD-SW-006. |
 | Bloquea | Cierre de lifecycle/eliminación y cualquier plazo sujeto a DEP-11; consistencia detallada del flujo documental hasta acordarla con TDD-SW-006. |
 | No bloquea | Diseño conceptual de almacenamiento privado, IAM y separación metadata/binario; no se acepta aquí un mecanismo de staging/cleanup. |
-| ADR/TDD relacionados | [TDD-SW-001](./software/tdd/MAPS-109-modelo-dominio-datos/TDD-SW-001-modelo-de-dominio-y-datos.md); previstos ADR-SW-006/TDD-SW-006, TDD-CLD-004, ADR-CLD-007. |
-| Jira verificado (estado) | [MAPS-124 Cloud Storage (Por hacer)](https://santitalavera.atlassian.net/browse/MAPS-124), [MAPS-156 TDD-CLD-004 (Por hacer)](https://santitalavera.atlassian.net/browse/MAPS-156), [MAPS-115 adjuntos/auditoría/analytics/API (Por hacer)](https://santitalavera.atlassian.net/browse/MAPS-115). |
+| ADR/TDD relacionados | [TDD-SW-001](./software/tdd/MAPS-109-modelo-dominio-datos/TDD-SW-001-modelo-de-dominio-y-datos.md); [ADR-SW-006](./software/adr/MAPS-115-archivos-adjuntos/ADR-SW-006-archivos-y-adjuntos.md) (`PROPUESTO`), [TDD-SW-006](./software/tdd/MAPS-115-adjuntos-documentos/TDD-SW-006-adjuntos-y-documentos.md) (`BORRADOR`), TDD-CLD-004 previsto, [ADR-CLD-007](./cloud/adr/MAPS-152-seguridad-cloud/ADR-CLD-007-seguridad-cloud.md) (`PROPUESTO`). |
+| Jira verificado (estado) | [MAPS-124 Cloud Storage (Listo)](https://santitalavera.atlassian.net/browse/MAPS-124), [MAPS-156 TDD-CLD-004 (Listo)](https://santitalavera.atlassian.net/browse/MAPS-156), [MAPS-115 adjuntos/auditoría/analytics/API (Listo)](https://santitalavera.atlassian.net/browse/MAPS-115). |
 | Siguiente acción | Evaluar alternativas de almacenamiento y acceso; coordinar staging/cleanup con Software antes de fijar mecanismos en TDD-SW-006/TDD-CLD-004. |
 
 <a id="dep-11"></a>
@@ -229,8 +229,8 @@ Seleccioná una dependencia para consultar sus contratos, decisiones, límites y
 | Puede avanzar | Preparar opciones y controles; separar borrado lógico, eliminación física y ciclo de backups. |
 | Bloquea | Cierre de lifecycle de TDD-CLD-004 y contrato de datos/adjuntos afectado. |
 | No bloquea | Diseño de almacenamiento privado y controles no dependientes de los plazos. |
-| ADR/TDD relacionados | Previsto ADR-SW-006/TDD-SW-006 y TDD-CLD-004; [TDD-SW-001](./software/tdd/MAPS-109-modelo-dominio-datos/TDD-SW-001-modelo-de-dominio-y-datos.md) no fija plazo funcional. |
-| Jira verificado (estado) | [MAPS-99 F1 — Definir retención, eliminación y SLA operativo de derivación (Por hacer)](https://santitalavera.atlassian.net/browse/MAPS-99), [MAPS-124 (Por hacer)](https://santitalavera.atlassian.net/browse/MAPS-124), [MAPS-156 (Por hacer)](https://santitalavera.atlassian.net/browse/MAPS-156). |
+| ADR/TDD relacionados | [ADR-SW-006](./software/adr/MAPS-115-archivos-adjuntos/ADR-SW-006-archivos-y-adjuntos.md) (`PROPUESTO`), [TDD-SW-006](./software/tdd/MAPS-115-adjuntos-documentos/TDD-SW-006-adjuntos-y-documentos.md) (`BORRADOR`) y TDD-CLD-004 previsto; [TDD-SW-001](./software/tdd/MAPS-109-modelo-dominio-datos/TDD-SW-001-modelo-de-dominio-y-datos.md) no fija plazo funcional. |
+| Jira verificado (estado) | [MAPS-99 F1 — Definir retención, eliminación y SLA operativo de derivación (Por hacer)](https://santitalavera.atlassian.net/browse/MAPS-99), [MAPS-124 (Listo)](https://santitalavera.atlassian.net/browse/MAPS-124), [MAPS-156 (Listo)](https://santitalavera.atlassian.net/browse/MAPS-156). |
 | Siguiente acción | Preguntar a MAPS plazos y conservación; traducir la respuesta en reglas de datos y lifecycle sin editar F1 silenciosamente. |
 
 <a id="dep-12"></a>
@@ -238,15 +238,15 @@ Seleccioná una dependencia para consultar sus contratos, decisiones, límites y
 
 | Aspecto | Detalle |
 | --- | --- |
-| Contrato / input Software | `TDD-SW-007` está previsto; separar auditoría de negocio, eventos de producto y telemetría operacional. |
+| Contrato / input Software | `TDD-SW-007` está integrado en `main` como `BORRADOR`; separar auditoría de negocio, eventos de producto y telemetría operacional. |
 | Decisión / diseño Cloud | Cloud puede definir métricas, logs, trazas, alertas, retención técnica y controles de PII operativa. |
 | Input funcional MAPS | No se requieren nuevos eventos de negocio para diseñar telemetría operacional. |
 | Owner actual | Software define eventos de negocio; Cloud telemetría |
 | Puede avanzar | C5 puede diseñar observabilidad operacional y minimización de datos. |
 | Bloquea | Cierre de taxonomía de eventos de negocio/analytics depende de Software y requisitos MAPS pertinentes. |
 | No bloquea | Alertas, métricas y trazas de operación que no dependan del catálogo funcional de eventos. |
-| ADR/TDD relacionados | Previstos TDD-SW-007, ADR-CLD-006/TDD-CLD-007. |
-| Jira verificado (estado) | [MAPS-122 observabilidad (Por hacer)](https://santitalavera.atlassian.net/browse/MAPS-122), [MAPS-151 ADR-CLD-006 (Por hacer)](https://santitalavera.atlassian.net/browse/MAPS-151), [MAPS-159 TDD-CLD-007 (Por hacer)](https://santitalavera.atlassian.net/browse/MAPS-159). |
+| ADR/TDD relacionados | [TDD-SW-007](./software/tdd/MAPS-115-auditoria-analytics/TDD-SW-007-auditoria-y-analytics.md) (`BORRADOR`); ADR-CLD-006/TDD-CLD-007 previstos. |
+| Jira verificado (estado) | [MAPS-122 observabilidad (Listo)](https://santitalavera.atlassian.net/browse/MAPS-122), [MAPS-151 ADR-CLD-006 (Listo)](https://santitalavera.atlassian.net/browse/MAPS-151), [MAPS-159 TDD-CLD-007 (Listo)](https://santitalavera.atlassian.net/browse/MAPS-159). |
 | Siguiente acción | Diseñar telemetría operacional con protección de datos; no inventar eventos de auditoría o producto. |
 
 <a id="dep-13"></a>
@@ -261,8 +261,8 @@ Seleccioná una dependencia para consultar sus contratos, decisiones, límites y
 | Puede avanzar | Wave 2 puede iniciar plantillas y pipeline una vez estabilizados los contratos principales de Wave 1. |
 | Bloquea | Cierre de despliegue reproducible hasta estabilizar topología, ambientes e IAM. |
 | No bloquea | Diseño de IaC/CI-CD inicial no dependiente de cada servicio final. |
-| ADR/TDD relacionados | Previstos ADR-CLD-004/005, TDD-CLD-008; coordinación con ADR-CLD-002/003/007. |
-| Jira verificado (estado) | [MAPS-121 IaC/CI-CD (Por hacer)](https://santitalavera.atlassian.net/browse/MAPS-121), [MAPS-149 ADR-CLD-004 (Por hacer)](https://santitalavera.atlassian.net/browse/MAPS-149), [MAPS-150 ADR-CLD-005 (Por hacer)](https://santitalavera.atlassian.net/browse/MAPS-150), [MAPS-160 TDD-CLD-008 (Por hacer)](https://santitalavera.atlassian.net/browse/MAPS-160). |
+| ADR/TDD relacionados | ADR-CLD-004/005 y TDD-CLD-008 previstos; coordinación con [ADR-CLD-002](./cloud/adr/MAPS-147-estrategia-ambientes/ADR-CLD-002-estrategia-de-ambientes-aislamiento-y-promocion.md), [ADR-CLD-003](./cloud/adr/MAPS-148-runtime-api-worker-jobs-migraciones/ADR-CLD-003-runtime-api-worker-jobs-migraciones.md) y [ADR-CLD-007](./cloud/adr/MAPS-152-seguridad-cloud/ADR-CLD-007-seguridad-cloud.md) (todos `PROPUESTO`). |
+| Jira verificado (estado) | [MAPS-121 IaC/CI-CD (Listo)](https://santitalavera.atlassian.net/browse/MAPS-121), [MAPS-149 ADR-CLD-004 (Listo)](https://santitalavera.atlassian.net/browse/MAPS-149), [MAPS-150 ADR-CLD-005 (Listo)](https://santitalavera.atlassian.net/browse/MAPS-150), [MAPS-160 TDD-CLD-008 (Listo)](https://santitalavera.atlassian.net/browse/MAPS-160). |
 | Siguiente acción | Iniciar Wave 2 con contratos estables; actualizar referencias tras definir runtime, ambientes y flujo de identidad. |
 
 <a id="dep-14"></a>
@@ -278,7 +278,7 @@ Seleccioná una dependencia para consultar sus contratos, decisiones, límites y
 | Bloquea | Umbrales/alertas de incumplimiento de negocio y cierre operacional de Delivery que dependan del SLA. |
 | No bloquea | Runtime Outbox, mecanismo de retry y observabilidad base. |
 | ADR/TDD relacionados | ADR-SW-004; [TDD-SW-005](./software/tdd/MAPS-114-assignment-delivery-outbox/TDD-SW-005-assignment-delivery-y-coordinacion-outbox.md) `BORRADOR` en `main`; previstos TDD-CLD-005/TDD-CLD-007. |
-| Jira verificado (estado) | [MAPS-99 F1 — Definir retención, eliminación y SLA operativo de derivación (Por hacer)](https://santitalavera.atlassian.net/browse/MAPS-99), [MAPS-125 worker/email (Por hacer)](https://santitalavera.atlassian.net/browse/MAPS-125), [MAPS-157 TDD-CLD-005 (Por hacer)](https://santitalavera.atlassian.net/browse/MAPS-157). |
+| Jira verificado (estado) | [MAPS-99 F1 — Definir retención, eliminación y SLA operativo de derivación (Por hacer)](https://santitalavera.atlassian.net/browse/MAPS-99), [MAPS-125 worker/email (Listo)](https://santitalavera.atlassian.net/browse/MAPS-125), [MAPS-157 TDD-CLD-005 (Listo)](https://santitalavera.atlassian.net/browse/MAPS-157). |
 | Siguiente acción | Preguntar expectativa temporal y consecuencias de incumplimiento en MAPS-167; mantener los retries sin un SLA inventado. |
 
 <a id="dep-15"></a>
@@ -293,7 +293,7 @@ Seleccioná una dependencia para consultar sus contratos, decisiones, límites y
 | Puede avanzar | Mayor parte de TDD-CLD-003, backups y análisis de alternativas puede avanzar cualitativamente. |
 | Bloquea | Cierre de objetivos de HA/recovery y parámetros finales de backup/restore. |
 | No bloquea | Diseño inicial de Cloud SQL, conexión, migraciones y análisis de opciones de recuperación. |
-| ADR/TDD relacionados | [ADR-SW-003](./software/adr/MAPS-108-persistencia-fronteras-transaccionales/ADR-SW-003-persistencia-y-fronteras-transaccionales.md); previsto TDD-CLD-003. |
+| ADR/TDD relacionados | [ADR-SW-003](./software/adr/MAPS-108-persistencia-fronteras-transaccionales/ADR-SW-003-persistencia-y-fronteras-transaccionales.md); [TDD-CLD-003](./cloud/tdd/MAPS-155-cloud-sql-conexiones-backups-migraciones/TDD-CLD-003-cloud-sql-conexiones-backups-migraciones.md) (`BORRADOR`). |
 | Jira verificado (estado) | [MAPS-167 Ronda MAPS A (Por hacer)](https://santitalavera.atlassian.net/browse/MAPS-167), [MAPS-120 Cloud SQL (En curso)](https://santitalavera.atlassian.net/browse/MAPS-120), [MAPS-155 TDD-CLD-003 (En curso)](https://santitalavera.atlassian.net/browse/MAPS-155). |
 | Siguiente acción | Obtener necesidades expresadas por MAPS en MAPS-167; no asignar números de RPO/RTO antes de esa respuesta. |
 
@@ -309,9 +309,9 @@ Seleccioná una dependencia para consultar sus contratos, decisiones, límites y
 
 ## Trabajo que puede avanzar ahora
 
-- **C1 — Runtime + Database (ADR-CLD-003 / TDD-CLD-003):** evaluar alternativas de runtime API/worker/jobs y Cloud SQL / PostgreSQL administrado; avanzar ejecución Outbox, concurrency/leases/fencing, conexiones/pooling, migraciones y backups/recovery cualitativo. C1 puede producir constraints para topología, pero no es el paquete de topología.
-- **C2 — Security / IAM (ADR-CLD-007 / TDD-CLD-006):** avanzar workload identities, service accounts, least privilege, Secret Manager como candidato, WIF/OIDC para workloads/pipelines cuando corresponda y trust boundaries. No asignar a C2 promotion ni estrategia de ambientes.
-- **C3 — Public Entry + Environments (ADR-CLD-001 / ADR-CLD-002):** avanzar frontend/public entry, DNS/TLS, routing, exposición, aislamiento dev/staging/prod, identities/secrets separados por ambiente en coordinación con C2 y promotion strategy de ambientes.
+- **C1 — Runtime + Database (ADR-CLD-003 `PROPUESTO` / TDD-CLD-003 `BORRADOR`):** evaluar alternativas de runtime API/worker/jobs y Cloud SQL / PostgreSQL administrado; avanzar ejecución Outbox, concurrency/leases/fencing, conexiones/pooling, migraciones y backups/recovery cualitativo. C1 puede producir constraints para topología, pero no es el paquete de topología.
+- **C2 — Security / IAM (ADR-CLD-007 `PROPUESTO` / TDD-CLD-006 `BORRADOR`):** avanzar workload identities, service accounts, least privilege, Secret Manager como candidato, WIF/OIDC para workloads/pipelines cuando corresponda y trust boundaries. La baseline de identidad de usuario sigue bajo reconciliación Software separada; esto no reabre el diseño base de IAM de workloads. No asignar a C2 promotion ni estrategia de ambientes.
+- **C3 — Public Entry + Environments (ADR-CLD-001/002 `PROPUESTO`):** avanzar frontend/public entry, DNS/TLS, routing, exposición, aislamiento dev/staging/prod, identities/secrets separados por ambiente en coordinación con C2 y promotion strategy de ambientes.
 - **C4 — Topology + materialized runtime (TDD-CLD-001 / TDD-CLD-002):** puede avanzar cuando integre principalmente constraints de C1, C2 y C3; materializa la topología, sin reinterpretar límites del monolito modular.
 
 La selección de servicios GCP sigue sujeta a los ADR/TDD correspondientes; esta matriz no acepta Cloud Run, Cloud SQL, Cloud Storage ni otra tecnología.
@@ -330,4 +330,4 @@ No se pregunta a MAPS por selección de servicios Cloud: las preguntas de esta r
 
 ## Regla de mantenimiento
 
-Actualizar esta matriz cuando se integre un ADR/TDD relevante; cambie su estado documental; MAPS resuelva un input; aparezca, cambie o se cierre una dependencia dura; antes de la revisión cruzada Cloud Wave 1 de [MAPS-165 (Por hacer)](https://santitalavera.atlassian.net/browse/MAPS-165); y antes del gate F3 → F4 Tranche 1 de [MAPS-169 (Por hacer)](https://santitalavera.atlassian.net/browse/MAPS-169). Al actualizar, revisar `main` como baseline, tratar las PR abiertas sólo como deltas hasta su integración y verificar por separado los estados Jira y documentales.
+Actualizar esta matriz cuando se integre un ADR/TDD relevante; cambie su estado documental; MAPS resuelva un input; aparezca, cambie o se cierre una dependencia dura; antes de la revisión cruzada Cloud Wave 1 de [MAPS-165 (Listo)](https://santitalavera.atlassian.net/browse/MAPS-165); y antes del gate F3 → F4 Tranche 1 de [MAPS-169 (Listo)](https://santitalavera.atlassian.net/browse/MAPS-169). Al actualizar, revisar `main` como baseline, tratar las PR abiertas sólo como deltas hasta su integración y verificar por separado los estados Jira y documentales.
