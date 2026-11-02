@@ -87,6 +87,10 @@ Tarjeta Jira (criterio de aceptación + documentos de contexto)
   → PR con plantilla  →  subagente revisor  →  review del otro dev  →  merge
 ```
 
+**Trazabilidad Jira ↔ GitHub (obligatoria):** la descripción del PR enlaza la tarjeta con su link
+completo, `[MAPS-<id> — título](https://santitalavera.atlassian.net/browse/MAPS-<id>)`, nunca sólo
+la clave. Y la tarjeta enlaza el PR en sus *Web links*.
+
 Detalle paso a paso: skill `nueva-historia` (`.claude/skills/nueva-historia/SKILL.md`).
 
 ## 8. Límites del agente

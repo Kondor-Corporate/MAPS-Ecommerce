@@ -16,5 +16,6 @@ Reglas de tu rol:
 4. Implementá lo mínimo para que pasen, respetando las reglas no negociables (AGENTS.md §5).
 5. Si fallás 3 veces con el mismo error, frená y reportá (AGENTS.md §8).
 6. Al terminar: actualizá el progreso, abrí el PR con la plantilla y declarás qué TDD-SW/ADR
-   aplicaste y qué te desviaste. **No te autoaprobás**: la revisión la hace el subagente `revisor`
+   aplicaste y qué te desviaste. El PR enlaza la tarjeta con su link completo
+   (`https://santitalavera.atlassian.net/browse/MAPS-<id>`) y la tarjeta enlaza el PR (AGENTS.md §7). **No te autoaprobás**: la revisión la hace el subagente `revisor`
    en un contexto nuevo.

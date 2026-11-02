@@ -40,5 +40,10 @@ lo que ya figura como hecho.
 ## 6. Entregar
 - Actualizá el progreso (estado, decisiones, pendientes, próximo paso).
 - Commits `tipo(scope): descripcion`. PR con la plantilla, completando la sección "Agentes".
+- En la sección **Jira** del PR va el link completo a la tarjeta, no sólo la clave:
+  `[MAPS-<id> — <título>](https://santitalavera.atlassian.net/browse/MAPS-<id>)`.
+- Después de abrir el PR, agregá su link en la tarjeta (*Web links*) con la herramienta de Jira
+  (`createJiraIssueRemoteIssueLink`); antes revisá que no esté ya, para no duplicarlo. Si no tenés
+  acceso a Jira, pedile al dev que lo agregue.
 - Pedí la revisión al subagente `revisor` en un contexto nuevo y pegá su veredicto en el PR.
 - No muevas la tarjeta a `Listo`: eso lo decide el equipo (CONTRIBUTING §9).

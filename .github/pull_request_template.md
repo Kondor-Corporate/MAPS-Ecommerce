@@ -6,9 +6,9 @@
 
 ## Jira
 
-<!-- Reemplazar por el work item real antes de publicar. No inventar ni dejar MAPS-XXX. Si la PR es parcial, indicar que entrega, que queda pendiente y si la Historia continua abierta. Ver CONTRIBUTING.md. -->
+<!-- Link a la tarjeta real, no sólo la clave: así se llega a Jira con un clic. No inventar ni dejar MAPS-XXX. Si la PR es parcial, indicar qué entrega, qué queda pendiente y si la Historia sigue abierta. Ver CONTRIBUTING.md §6. -->
 
-MAPS-XXX
+[MAPS-XXX — título de la historia](https://santitalavera.atlassian.net/browse/MAPS-XXX)
 
 ---
 
