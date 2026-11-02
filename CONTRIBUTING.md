@@ -79,10 +79,10 @@ No es obligatorio poner `MAPS-XXX` en todos los mensajes: la trazabilidad princi
 
 ## 6. Pull Requests
 
-Toda PR debe identificar el work item Jira real en la sección `Jira` del [template existente](./.github/pull_request_template.md). Indicar qué resultado cubre y, si sólo entrega una parte, qué continúa después. No dejar `MAPS-XXX` como referencia ficticia al publicar. Una PR puede ser parcial sin pasar la Historia a `En revisión` o `Listo`.
+Toda PR debe **enlazar** el work item Jira real en la sección `Jira` del [template existente](./.github/pull_request_template.md): el link completo a la tarjeta (`https://santitalavera.atlassian.net/browse/MAPS-<id>`), no sólo la clave. A la vuelta, la tarjeta lleva el link del PR en sus *Web links*, así la trazabilidad funciona en los dos sentidos. Indicar qué resultado cubre y, si sólo entrega una parte, qué continúa después. No dejar `MAPS-XXX` como referencia ficticia al publicar. Una PR puede ser parcial sin pasar la Historia a `En revisión` o `Listo`.
 
 ```text
-Jira: MAPS-107
+Jira: [MAPS-107 — Definir estilo arquitectónico](https://santitalavera.atlassian.net/browse/MAPS-107)
 Esta PR incorpora ADR-SW-001.
 ADR-SW-002 continuará en una PR posterior.
 La Historia no se cierra con esta PR.
