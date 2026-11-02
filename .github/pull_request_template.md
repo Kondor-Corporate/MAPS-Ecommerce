@@ -73,6 +73,18 @@ Notas:
 
 ---
 
+## Agentes
+
+<!-- Completar si el PR se hizo con un agente de código. Ver AGENTS.md §7. Si no aplica, borrar la sección. -->
+
+- Documentos aplicados (ADR / TDD-SW): 
+- Desvíos respecto de esos documentos (y dónde se actualizaron): 
+- Defaults configurables asumidos: 
+- Progreso: `.agents/progress/MAPS-<id>.md`
+- Veredicto del subagente `revisor` (pegar salida):
+
+---
+
 ## Riesgos y trade-offs
 
 <!-- Documentar decisiones relevantes, deuda aceptada, impactos o puntos a revisar. -->
