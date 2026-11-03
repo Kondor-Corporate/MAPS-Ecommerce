@@ -9,12 +9,18 @@
 - **Documentos aplicados:** ADR-SW-001 (mapa de módulos, reglas de límites), ADR-SW-002 (capas hexagonales, reglas de imports en lint), CONTRIBUTING §4-6
 
 ## Criterio de aceptación → tests
-- [ ] `GET /health` responde OK — `apps/api/tests/health.contract.test.ts`
-- [ ] El front muestra una página base que consume la API — `apps/web/src/app/routes/HomePage.test.tsx`
+- [x] `GET /health` responde OK — `apps/api/tests/health.contract.test.ts` (3 tests)
+- [x] El front muestra una página base que consume la API — `apps/web/src/app/routes/HomePage.test.tsx` (4 tests: ok, cargando, error HTTP, sin conexión)
 
 ## Hecho
 - PR #36: harness de agentes (parte previa de esta misma clave).
 - PR #37: sincroniza `development` con `main` (era un commit huérfano vacío). Mergeado como merge commit.
+- Tests escritos primero; fallaron por falta de implementación (`Cannot find module ../src/app.js`, `Failed to resolve ./HomePage`).
+- API Express 5 con `createApp()` + `main.ts`; carpetas hexagonales en los 8 módulos.
+- Web React + Vite con proxy `/api`; `HomePage` con estados cargando / ok / error.
+- Reglas de límites verificadas con imports prohibidos temporales (borrados): Express en domain, domain→application, application→adapters/out de otro módulo y domain→ports/in de otro módulo fallan; application→ports/in de otro módulo pasa.
+- Prueba manual: `npm run dev`, `curl :3000/health` y `:5173/api/v1/health` → 200 `{"status":"ok"}`; la página muestra "API operativa".
+- AGENTS.md §3/§4 y README actualizados.
 
 ## Decisiones y desvíos
 - Health montado en `/health` (sonda de plataforma, sin dependencias, PROTOCOL-CLD-000) y en `/api/v1/health` (lo consume la SPA vía proxy `/api`, base de TDD-SW-008 aún sin mergear). Sin CORS: mismo host, como ADR-CLD-001.
@@ -30,5 +36,10 @@
 ## Bloqueos / dudas
 - Ninguno.
 
+## Pendiente (fuera de esta historia)
+- `npm audit` reporta 12 vulnerabilidades moderadas en dependencias de desarrollo; sin tratar acá.
+- Logger/requestId y errores `problem+json` cuando se mergee TDD-SW-008.
+- Postgres/Prisma en A3.
+
 ## Próximo paso
-- Tests de API y web primero; luego implementación.
+- PR contra `development` → subagente `revisor` en contexto nuevo → review humana.

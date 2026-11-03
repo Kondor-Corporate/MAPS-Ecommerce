@@ -16,7 +16,18 @@ Fuera del MVP: Leads/Potenciales clientes e integración con Intranet, PostgreSQ
 
 ## Estado actual
 
-El repositorio mantiene estructura inicial de monorepo. Esta baseline es exclusivamente funcional y documental; no implementa arquitectura ni aplicaciones. El prototipo UX/UI es una referencia visual/interactiva y el Design Handoff de Fase 2 documenta su comportamiento funcional sin definir implementación.
+Fase 4 en curso. El monorepo tiene el esqueleto de la API (monolito modular con capas hexagonales, ADR-SW-001/002) y del front React, conectados por un healthcheck. Todavía no hay funcionalidad de negocio. El prototipo UX/UI es una referencia visual/interactiva y el Design Handoff de Fase 2 documenta su comportamiento funcional sin definir implementación.
+
+## Correr localmente
+
+Requiere Node ≥ 22.12.
+
+```bash
+npm install
+npm run dev        # API en http://localhost:3000 y web en http://localhost:5173
+```
+
+La web muestra "API operativa" cuando llega a `GET /api/v1/health`. Verificaciones: `npm run typecheck`, `npm run lint`, `npm run build`, `npm test`.
 
 ## Documentación vigente
 
@@ -33,4 +44,4 @@ Fase 3 organiza las decisiones y diseños técnicos a partir de F0/F1/F2. La est
 
 - Commits y PRs: `tipo(scope): descripcion`.
 - [Guía de contribución y workflow Jira → GitHub](./CONTRIBUTING.md): ramas, commits, PR, reviews y criterios de cierre de Historias.
-- Esta baseline no modifica `apps/web`, `apps/api` ni infraestructura.
+- Mapa del repo para personas y agentes de código: [AGENTS.md](./AGENTS.md).

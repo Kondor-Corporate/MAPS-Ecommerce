@@ -38,24 +38,36 @@ escribir tests antes del código la llamamos **"tests primero"**, nunca "TDD".
 
 ## 3. Stack y estructura
 
-Monorepo npm workspaces · TypeScript estricto · Node ≥ 20.
-API: Node + Express (`apps/api`) · Web: React + Vite (`apps/web`) · PostgreSQL · Prisma (candidato, ver A3).
+Monorepo npm workspaces · TypeScript estricto · Node ≥ 22.12.
+API: Node + Express 5 (`apps/api`) · Web: React + Vite (`apps/web`) · PostgreSQL · Prisma (candidato, ver A3).
+Tests con Vitest (API con supertest; web con Testing Library).
 
 ```
+apps/api/src/main.ts · app.ts     entrypoint y composition root HTTP
+apps/api/src/http/                endpoints técnicos transversales (health)
 apps/api/src/modules/<modulo>/   identity · catalog · forms · requests · assignment · documents · audit
 apps/api/src/modules/notifications/   mecanismo transversal de outbox (ADR-SW-004)
 apps/web/src/features/            auth · catalogo · solicitudes · admin · productor
 ```
 
+Los límites entre módulos y capas se controlan en el lint (`eslint.config.mjs`, `eslint-plugin-boundaries`):
+un import que rompe ADR-SW-001/002 hace fallar `npm run lint`.
+
 Reglas específicas: [apps/api/AGENTS.md](./apps/api/AGENTS.md) · [apps/web/AGENTS.md](./apps/web/AGENTS.md).
 
 ## 4. Comandos
 
-> Se completan en A2 (MAPS-179) cuando exista el scaffold. Nombres acordados por el template de PR:
+Desde la raíz:
 
 ```
+npm install         instala todo el monorepo
+npm run dev         API (:3000) y web (:5173) juntas; también dev:api / dev:web
 npm run typecheck   npm run lint   npm run build   npm test
 ```
+
+Un solo workspace: `npm test -w @maps/api` · `npm run dev -w @maps/web`.
+La web llama a la API por `/api/v1` (proxy de Vite en local, mismo host en los ambientes).
+`GET /health` y `GET /api/v1/health` responden `{ "status": "ok" }` sin dependencias.
 
 ## 5. Reglas no negociables
 
