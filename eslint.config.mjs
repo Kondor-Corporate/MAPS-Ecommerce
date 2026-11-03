@@ -12,6 +12,18 @@ const to = (type) => ({ to: { element: { type } } });
 const sameModule = (type) => ({
   to: { element: { type, captured: { module: '{{ from.element.captured.module }}' } } },
 });
+const ofModule = (type, module) => ({ to: { element: { type, captured: { module } } } });
+
+// Dirección entre módulos (sólo por ports/in del otro). Una dirección nueva se agrega
+// cuando un ADR/TDD-SW la fija, en el mismo PR (AGENTS.md §5.8).
+const MODULE_DEPENDENCIES = {
+  requests: ['catalog', 'forms', 'identity'], // ADR-SW-001
+  catalog: ['forms'], // ADR-SW-001, enmienda 2026-10-15 (sólo lectura)
+  assignment: ['requests', 'identity'], // ADR-SW-001
+  documents: ['requests', 'identity'], // TDD-SW-006
+};
+// Outbox: cualquier módulo solicita la escritura por el puerto estrecho de notifications (ADR-SW-004).
+const OUTBOX_MODULE = 'notifications';
 
 export default tseslint.config(
   { ignores: ['**/dist/**', '**/node_modules/**', '**/coverage/**', 'docs/**'] },
@@ -40,10 +52,16 @@ export default tseslint.config(
         { type: 'port-out', pattern: `${MODULE}/ports/out`, capture: ['module'] },
         { type: 'adapter-in', pattern: `${MODULE}/adapters/in`, capture: ['module'] },
         { type: 'adapter-out', pattern: `${MODULE}/adapters/out`, capture: ['module'] },
-        { type: 'platform', pattern: 'apps/api/src/*' },
+        // Archivos sueltos en la raíz de un módulo: nadie los importa (evita barrels que salteen capas).
+        { type: 'module-root', pattern: MODULE, capture: ['module'] },
+        { type: 'platform', pattern: 'apps/api/src/!(modules)' },
+        // Último: lo que queda directo en src/ (app.ts, main.ts).
+        { type: 'composition-root', pattern: 'apps/api/src' },
       ],
     },
     rules: {
+      'boundaries/no-unknown-dependencies': 'error',
+      'boundaries/no-unknown-files': 'error',
       'boundaries/dependencies': [
         'error',
         {
@@ -69,20 +87,31 @@ export default tseslint.config(
               from: from('adapter-out'),
               allow: [sameModule('domain'), sameModule('port-out'), to('platform')],
             },
-            // Entre módulos: sólo los ports/in del otro módulo.
-            { from: from('application', 'adapter-in'), allow: [to('port-in')] },
-            // Composition roots (app.ts, main.ts, http/, config/) cablean todo.
+            // Entre módulos: sólo ports/in, en la dirección fijada por los documentos.
+            ...Object.entries(MODULE_DEPENDENCIES).map(([module, deps]) => ({
+              from: { element: { types: ['application', 'adapter-in'], captured: { module } } },
+              allow: deps.map((dep) => ofModule('port-in', dep)),
+            })),
+            { from: from('application', 'adapter-in'), allow: [ofModule('port-in', OUTBOX_MODULE)] },
+            // Inversión de dependencias: Documents implementa AttachmentCheckPort de Requests (TDD-SW-006).
             {
-              from: from('platform'),
-              allow: ['platform', 'application', 'port-in', 'port-out', 'adapter-in', 'adapter-out'].map(to),
+              from: { element: { type: 'adapter-out', captured: { module: 'documents' } } },
+              allow: [ofModule('port-out', 'requests')],
             },
+            // Composition roots: app.ts y main.ts cablean todo; http/ y config/ son técnicos.
+            {
+              from: from('composition-root'),
+              allow: ['composition-root', 'platform', 'application', 'port-in', 'port-out', 'adapter-in', 'adapter-out'].map(to),
+            },
+            { from: from('platform'), allow: [to('platform')] },
           ],
         },
       ],
     },
   },
 
-  // El dominio no conoce infraestructura (ADR-SW-002).
+  // El dominio no importa librerías: sólo código propio por ruta relativa (ADR-SW-002).
+  // Si hace falta una librería pura (sin I/O), se agrega como excepción explícita.
   {
     files: ['apps/api/src/modules/*/domain/**/*.ts'],
     rules: {
@@ -91,8 +120,8 @@ export default tseslint.config(
         {
           patterns: [
             {
-              group: ['express', 'express/*', '@prisma/*', 'prisma', '@google-cloud/*', 'firebase-admin', 'firebase-admin/*', 'node:*'],
-              message: 'domain/ no importa infraestructura (ADR-SW-002).',
+              regex: '^(?!\\.{1,2}/)',
+              message: 'domain/ no importa librerías ni infraestructura (ADR-SW-002).',
             },
           ],
         },

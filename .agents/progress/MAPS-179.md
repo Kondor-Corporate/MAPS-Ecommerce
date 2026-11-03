@@ -23,9 +23,16 @@
 - AGENTS.md §3/§4 y README actualizados.
 
 ## Decisiones y desvíos
-- Health montado en `/health` (sonda de plataforma, sin dependencias, PROTOCOL-CLD-000) y en `/api/v1/health` (lo consume la SPA vía proxy `/api`, base de TDD-SW-008 aún sin mergear). Sin CORS: mismo host, como ADR-CLD-001.
+- Health montado en `/health` (sonda de plataforma, sin dependencias, PROTOCOL-CLD-000) y en `/api/v1/health` (lo consume la SPA vía proxy `/api`, base de TDD-SW-008, `BORRADOR` en `development`). Sin CORS: mismo host, como ADR-CLD-001.
 - El health vive en `apps/api/src/http/` (técnico y transversal), no en un módulo de negocio.
 - Reglas de imports de ADR-SW-002 con `eslint-plugin-boundaries`.
+- Revisor (PR #39): APROBAR con 5 menores, todos atendidos. Lint de límites endurecido:
+  `app.ts`/`main.ts` como composition root (nadie los importa); archivos sueltos en la raíz de un
+  módulo no se pueden importar; `domain/` sólo importa por ruta relativa; dirección entre módulos
+  según ADR-SW-001 (Requests→Catalog/Forms/Identity, Catalog→Forms, Assignment→Requests/Identity),
+  TDD-SW-006 (Documents→Requests/Identity; Documents implementa `AttachmentCheckPort` de Requests)
+  y ADR-SW-004 (cualquier módulo → `notifications/ports/in` para el outbox); nadie importa Audit.
+  `boundaries/no-unknown-files` y `no-unknown-dependencies` activos.
 - `engines.node` sube a `>=22.12`: Node 20 está fuera de soporte desde 2026-04 y Vitest/Vite actuales lo exigen. Actualiza AGENTS.md §3.
 - TypeScript 6.0 (typescript-eslint todavía no soporta 7.x).
 - `common/`, `database/`, `integrations/` de `apps/api/src` quedan intactos (A3 / fuera de alcance).
@@ -38,7 +45,8 @@
 
 ## Pendiente (fuera de esta historia)
 - `npm audit` reporta 12 vulnerabilidades moderadas en dependencias de desarrollo; sin tratar acá.
-- Logger/requestId y errores `problem+json` cuando se mergee TDD-SW-008.
+- Logger/requestId y errores `problem+json` de TDD-SW-008 (hoy `BORRADOR`).
+- La dirección `* → notifications/ports/in` interpreta ADR-SW-004 ("puerto estrecho" del outbox); TDD-SW-005 puede precisarla.
 - Postgres/Prisma en A3.
 
 ## Próximo paso
