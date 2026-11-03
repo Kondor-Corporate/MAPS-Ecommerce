@@ -84,14 +84,21 @@ Tarjeta Jira (criterio de aceptación + documentos de contexto)
   → .agents/progress/MAPS-<id>.md   (memoria entre sesiones)
   → tests desde el criterio de aceptación  →  STOP: aprobación humana
   → implementar hasta verde
-  → PR con plantilla  →  subagente revisor  →  review del otro dev  →  merge
+  → git add  →  revisor independiente sobre lo stageado  →  CAMBIOS: corregir y re-revisar (máx. 3)
+  → APROBAR  →  commit  →  push  →  PR con el veredicto  →  review del otro dev  →  merge
 ```
+
+**Nada se commitea sin que un revisor independiente apruebe exactamente ese contenido.** Los
+cambios que llegan después del PR vuelven a pasar por la revisión.
 
 **Trazabilidad Jira ↔ GitHub (obligatoria):** la descripción del PR enlaza la tarjeta con su link
 completo, `[MAPS-<id> — título](https://santitalavera.atlassian.net/browse/MAPS-<id>)`, nunca sólo
 la clave. Y la tarjeta enlaza el PR en sus *Web links*.
 
-Detalle paso a paso: skill `nueva-historia` (`.claude/skills/nueva-historia/SKILL.md`).
+Detalle paso a paso (fuente única del flujo): skill `nueva-historia` (`.claude/skills/nueva-historia/SKILL.md`).
+
+**Mejora continua:** lo que se escapó o se repitió se anota en [`.agents/aprendizajes.md`](./.agents/aprendizajes.md)
+y, si vuelve a pasar, se promueve de texto a checklist del revisor y de ahí a lint, test o hook.
 
 ## 8. Límites del agente
 
@@ -104,6 +111,6 @@ Detalle paso a paso: skill `nueva-historia` (`.claude/skills/nueva-historia/SKIL
 
 ## 9. Definición de terminado
 
-Criterio de aceptación cubierto por tests que pasan · typecheck/lint/build en verde · revisor sin
-hallazgos bloqueantes · documentos actualizados si hubo desvío · progreso y PR describen qué quedó
-pendiente. Una PR mergeada no cierra la Historia por sí sola (CONTRIBUTING §9).
+Criterio de aceptación cubierto por tests que pasan · typecheck/lint/build en verde · cada commit
+aprobado por el revisor antes de commitearse, sin hallazgos bloqueantes · documentos actualizados si
+hubo desvío · progreso y PR describen qué quedó pendiente. Una PR mergeada no cierra la Historia por sí sola (CONTRIBUTING §9).

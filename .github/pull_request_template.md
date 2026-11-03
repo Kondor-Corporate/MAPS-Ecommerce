@@ -81,7 +81,8 @@ Notas:
 - Desvíos respecto de esos documentos (y dónde se actualizaron): 
 - Defaults configurables asumidos: 
 - Progreso: `.agents/progress/MAPS-<id>.md`
-- Veredicto del subagente `revisor` (pegar salida):
+- [ ] Cada commit fue aprobado por el `revisor` **antes** de commitearse (skill `nueva-historia` §6)
+- Veredicto(s) del subagente `revisor` (pegar salida):
 
 ---
 
