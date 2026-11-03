@@ -29,6 +29,26 @@ npm run dev        # API en http://localhost:3000 y web en http://localhost:5173
 
 La web muestra "API operativa" cuando llega a `GET /api/v1/health`. Verificaciones: `npm run typecheck`, `npm run lint`, `npm run build`, `npm test`.
 
+## Estructura del código
+
+```
+apps/api/src/
+├── main.ts · app.ts       entrypoint y composition root HTTP
+├── http/ · config/        health y configuración técnica
+└── modules/<modulo>/      identity · catalog · forms · requests · assignment · documents · audit · notifications
+    ├── domain/            reglas de negocio, sin librerías
+    ├── application/       casos de uso
+    ├── ports/in · out     lo que el módulo ofrece / lo que necesita
+    └── adapters/in · out  HTTP, persistencia, proveedores
+apps/web/src/              React + Vite; llama a la API por /api/v1
+```
+
+`npm run lint` hace cumplir los límites de [ADR-SW-001](./docs/03-arquitectura/software/adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-001-monolito-modular-y-limites.md) y [ADR-SW-002](./docs/03-arquitectura/software/adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-002-arquitectura-hexagonal-y-capas.md) (`eslint.config.mjs`):
+
+- Dentro de un módulo, las dependencias van hacia adentro y `domain/` no importa librerías.
+- Entre módulos sólo se usa `ports/in`, en la dirección que fijan los documentos: Requests → Catalog, Forms, Identity · Catalog → Forms · Assignment → Requests, Identity · Documents → Requests, Identity · cualquiera → Notifications (outbox). Nadie importa Audit.
+- Una dirección nueva se agrega a `MODULE_DEPENDENCIES` en el mismo PR que actualiza el ADR/TDD-SW que la justifica.
+
 ## Documentación vigente
 
 - [Fase 0 — Baseline funcional vigente](./docs/00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md)
