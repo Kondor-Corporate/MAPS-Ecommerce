@@ -8,7 +8,7 @@ Owner de coordinación: Santiago Talavera
 
 Naturaleza: artefacto transversal de coordinación; no es ADR ni TDD
 
-Corte de estados consultados: 2026-10-26
+Corte de estados consultados: 2026-11-03
 
 `traceability.md` conserva la trazabilidad vertical F0/F1/F2 → ADR/TDD → F4. Esta matriz responde la pregunta horizontal: qué necesita cada frente de los demás para avanzar o cerrar sus diseños, qué puede continuar en paralelo y qué queda realmente condicionado. No reemplaza ni duplica la trazabilidad.
 
