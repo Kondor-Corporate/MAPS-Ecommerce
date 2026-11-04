@@ -81,6 +81,16 @@ const blocked: Record<string, Case> = {
     code: "const name = 'express';\nexport const lib: unknown = require(name);",
     fails: [SYNTAX],
   },
+  'application → import x = require(fs)': {
+    from: 'modules/requests/application',
+    code: "import fs = require('fs');\nexport const f = fs;",
+    fails: [LIBRARY],
+  },
+  'application → export * from express': {
+    from: 'modules/requests/application',
+    code: "export * from 'express';",
+    fails: [LIBRARY],
+  },
   'application → tipo inline import(express).Request': {
     from: 'modules/requests/application',
     code: "export type Req = import('express').Request;",
@@ -102,6 +112,11 @@ const blocked: Record<string, Case> = {
   'domain → application del mismo módulo': {
     from: 'modules/requests/domain',
     code: "import { submitRequest } from '../application/SubmitRequest.js';",
+    fails: [BOUNDARIES],
+  },
+  'domain → tipo inline import(../application).T': {
+    from: 'modules/requests/domain',
+    code: "export type T = typeof import('../application/SubmitRequest.js').submitRequest;",
     fails: [BOUNDARIES],
   },
   'domain → import() dinámico de application': {

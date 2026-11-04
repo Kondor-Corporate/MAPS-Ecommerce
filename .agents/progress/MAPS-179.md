@@ -18,7 +18,7 @@
 - Tests escritos primero; fallaron por falta de implementación (`Cannot find module ../src/app.js`, `Failed to resolve ./HomePage`).
 - API Express 5 con `createApp()` + `main.ts`; carpetas hexagonales en los 8 módulos.
 - Web React + Vite con proxy `/api`; `HomePage` con estados cargando / ok / error.
-- Reglas de límites probadas con fixtures automatizados: `apps/api/tests/architecture/boundaries.test.ts` (33 prohibidos + 7 permitidos), que usan las mismas reglas que el lint (`eslint/architecture.mjs`). Contra las reglas anteriores fallaban 15 (librerías en application/ports, import() dinámico, require, tipos inline y `* → notifications/ports/in`).
+- Reglas de límites probadas con fixtures automatizados: `apps/api/tests/architecture/boundaries.test.ts` (36 prohibidos + 7 permitidos), que usan las mismas reglas que el lint (`eslint/architecture.mjs`). Contra las reglas anteriores fallaban 15 (librerías en application/ports, import() dinámico, require, tipos inline y `* → notifications/ports/in`).
 - Prueba manual: `npm run dev`, `curl :3000/health` y `:5173/api/v1/health` → 200 `{"status":"ok"}`; la página muestra "API operativa".
 - AGENTS.md §3/§4 y README actualizados.
 
@@ -31,7 +31,8 @@
   módulo no se pueden importar; `domain/` sólo importa por ruta relativa; dirección entre módulos
   según ADR-SW-001 (Requests→Catalog/Forms/Identity, Catalog→Forms, Assignment→Requests/Identity),
   TDD-SW-006 (Documents→Requests/Identity; Documents implementa `AttachmentCheckPort` de Requests)
-  y ADR-SW-004 (cualquier módulo → `notifications/ports/in` para el outbox); nadie importa Audit.
+  y ADR-SW-004 (cualquier módulo → `notifications/ports/in` para el outbox, **reemplazado**: ver la
+  review de Santiago abajo); nadie importa Audit.
   `boundaries/no-unknown-files` y `no-unknown-dependencies` activos.
 - Review de Santiago (PR #39, REQUEST_CHANGES), atendida:
   - Bloqueante 1 (ADR-SW-002): `domain/`, `application/` y `ports/` sólo importan por ruta relativa

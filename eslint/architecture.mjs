@@ -33,7 +33,9 @@ const sameModule = (type) => ({
 const ofModule = (type, module) => ({ to: { element: { type, captured: { module } } } });
 
 // Todo specifier que no sea relativo ni una librería pura permitida.
-const nonRelative = `^(?!\\.{1,2}/${PURE_LIBRARIES.map((lib) => `|${lib}(/|$)`).join('')})`;
+// Los nombres se escapan para que un `.` o `+` del paquete no amplíe la excepción.
+const escapeRegex = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const nonRelative = `^(?!\\.{1,2}/${PURE_LIBRARIES.map((lib) => `|${escapeRegex(lib)}(/|$)`).join('')})`;
 const LAYER_MESSAGE =
   'domain/, application/ y ports/ no importan librerías, frameworks ni infraestructura: eso va en adapters/ (ADR-SW-002).';
 
