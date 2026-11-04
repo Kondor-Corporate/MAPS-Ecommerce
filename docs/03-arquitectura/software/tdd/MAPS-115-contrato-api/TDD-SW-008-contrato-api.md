@@ -271,11 +271,11 @@ Se propone [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457) (`application/prob
 | `415` | `TIPO_CONTENIDO_NO_SOPORTADO` |
 | `422` | `SOLICITUD_INCOMPLETA`, `MOTIVO_REQUERIDO`, `CAMPO_INVALIDO`, `TIPO_NO_PERMITIDO`, `TAMANO_EXCEDIDO`, `DOCUMENTO_INVALIDO`, `DISPOSICION_INCOMPLETA`, `INVITACION_INVALIDA`, `EMAIL_NO_COINCIDE`, `IDEMPOTENCIA_CONFLICTO` |
 | `428` | `PRECONDICION_REQUERIDA` (falta `If-Match` o `Idempotency-Key` donde son obligatorios) |
-| `429` | `LIMITE_SUBIDAS` y límites de frecuencia de aplicación, con `Retry-After` |
+| `429` | `LIMITE_SUBIDAS`; `LIMITE_FRECUENCIA` para los demás límites de frecuencia de aplicación (por ejemplo, rutas públicas anónimas). Ambos con `Retry-After` |
 | `500` | `ERROR_INTERNO`, sin detalle |
 | `503` | `SERVICIO_NO_DISPONIBLE` (base o proveedor de identidad no disponible), con `Retry-After` cuando se conozca |
 
-`NO_ENCONTRADO`, `PETICION_INVALIDA`, `CARGA_EXCEDIDA`, `TIPO_CONTENIDO_NO_SOPORTADO`, `PRECONDICION_REQUERIDA`, `ERROR_INTERNO` y `SERVICIO_NO_DISPONIBLE` son códigos de la capa HTTP. `REGISTRO_PENDIENTE` es nuevo y se incorpora a TDD-SW-004 (ver [Decisiones abiertas](#decisiones-abiertas)). El resto proviene de TDD-SW-002/003/004/005/006 sin cambios. Para `IDEMPOTENCIA_CONFLICTO` (`422`) y la ejecución concurrente con la misma clave (`409`) se sigue el borrador IETF del encabezado `Idempotency-Key`. `CONFLICTO_CONCURRENCIA` usa `412` sólo cuando falla la precondición `If-Match` (RFC 9110) y `409` en los demás conflictos; la UI reacciona por `code`, no por `status` (decisión del owner del 2026-10-29).
+`NO_ENCONTRADO`, `PETICION_INVALIDA`, `CARGA_EXCEDIDA`, `TIPO_CONTENIDO_NO_SOPORTADO`, `PRECONDICION_REQUERIDA`, `LIMITE_FRECUENCIA`, `ERROR_INTERNO` y `SERVICIO_NO_DISPONIBLE` son códigos de la capa HTTP. `LIMITE_FRECUENCIA` se incorporó con [MAPS-183](https://santitalavera.atlassian.net/browse/MAPS-183), que implementa el primer límite de rutas públicas. En `PETICION_INVALIDA` por parámetros de consulta, `errors` usa `{ "field": "<parámetro>", "code": "CAMPO_INVALIDO" }`. `REGISTRO_PENDIENTE` es nuevo y se incorpora a TDD-SW-004 (ver [Decisiones abiertas](#decisiones-abiertas)). El resto proviene de TDD-SW-002/003/004/005/006 sin cambios. Para `IDEMPOTENCIA_CONFLICTO` (`422`) y la ejecución concurrente con la misma clave (`409`) se sigue el borrador IETF del encabezado `Idempotency-Key`. `CONFLICTO_CONCURRENCIA` usa `412` sólo cuando falla la precondición `If-Match` (RFC 9110) y `409` en los demás conflictos; la UI reacciona por `code`, no por `status` (decisión del owner del 2026-10-29).
 
 ### Idempotencia
 

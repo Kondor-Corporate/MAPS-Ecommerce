@@ -24,3 +24,6 @@ Thumbs.db
 
 # Coverage / tests
 coverage/
+
+# Cliente Prisma generado (npm run db:generate -w @maps/api)
+apps/api/src/database/generated/
