@@ -26,7 +26,7 @@ const MODULE_DEPENDENCIES = {
 const OUTBOX_MODULE = 'notifications';
 
 export default tseslint.config(
-  { ignores: ['**/dist/**', '**/node_modules/**', '**/coverage/**', 'docs/**'] },
+  { ignores: ['**/dist/**', '**/node_modules/**', '**/coverage/**', 'docs/**', 'apps/api/src/database/generated/**'] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
 

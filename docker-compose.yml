@@ -1,0 +1,24 @@
+name: maps-portal
+
+# Postgres local para desarrollo y tests (MAPS-183). Sólo local: nunca apunta a Cloud SQL.
+# Crea dos bases: `maps` (desarrollo) y `maps_test` (tests de integración).
+services:
+  postgres:
+    image: postgres:17.6
+    environment:
+      POSTGRES_USER: maps
+      POSTGRES_PASSWORD: maps
+      POSTGRES_DB: maps
+    ports:
+      - '5433:5432'
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./infra/docker/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U maps -d maps']
+      interval: 2s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  postgres-data:
