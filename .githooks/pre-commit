@@ -1,0 +1,9 @@
+#!/bin/sh
+# En Codex, Git valida el índice al momento del commit aunque el shell invoque Git indirectamente.
+# Fuera de Codex conserva el flujo previo de commits de personas y Claude Code.
+if [ -z "${CODEX_THREAD_ID:-}${CODEX_SESSION_ID:-}" ]; then
+  exit 0
+fi
+
+raiz=$(git rev-parse --show-toplevel) || exit 1
+exec node "$raiz/.codex/hooks/validar-commit.mjs"

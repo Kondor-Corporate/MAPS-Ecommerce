@@ -88,14 +88,17 @@ Tarjeta Jira (criterio de aceptación + documentos de contexto)
   → APROBAR  →  commit  →  push  →  PR con el veredicto  →  review del otro dev  →  merge
 ```
 
-**Nada se commitea sin que un revisor independiente apruebe exactamente ese contenido.** Los
-cambios que llegan después del PR vuelven a pasar por la revisión.
+**Nada se commitea sin que un revisor independiente apruebe exactamente ese contenido.** El
+hook vigente exime los commits que sólo tocan `docs/` (trabajo documental de F3). Los cambios
+que llegan después del PR vuelven a pasar por la revisión.
 
 **Trazabilidad Jira ↔ GitHub (obligatoria):** la descripción del PR enlaza la tarjeta con su link
 completo, `[MAPS-<id> — título](https://santitalavera.atlassian.net/browse/MAPS-<id>)`, nunca sólo
 la clave. Y la tarjeta enlaza el PR en sus *Web links*.
 
-Detalle paso a paso (fuente única del flujo): skill `nueva-historia` (`.claude/skills/nueva-historia/SKILL.md`).
+Detalle paso a paso (fuente única del flujo): `.claude/skills/nueva-historia/SKILL.md`.
+Claude la descubre en `.claude/skills/`; Codex la descubre mediante el adaptador
+`.agents/skills/nueva-historia/`, que remite a la misma fuente.
 
 **Mejora continua:** lo que se escapó o se repitió se anota en [`.agents/aprendizajes.md`](./.agents/aprendizajes.md)
 y, si vuelve a pasar, se promueve de texto a checklist del revisor y de ahí a lint, test o hook.
@@ -107,10 +110,34 @@ y, si vuelve a pasar, se promueve de texto a checklist del revisor y de ahí a l
 - No inventes comportamiento funcional para destrabar algo pendiente de MAPS: usá un default
   configurable y declaralo en el PR.
 - No pushees a `main` ni a `development`, no fuerces push, no toques `.env`, no corras nada contra
-  bases que no sean locales o de test. (Además está bloqueado en `.claude/settings.json`.)
+  bases que no sean locales o de test. Claude agrega límites en `.claude/settings.json` y Codex
+  en `.codex/config.toml`, `.codex/rules/` y `.codex/hooks.json`.
 
 ## 9. Definición de terminado
 
 Criterio de aceptación cubierto por tests que pasan · typecheck/lint/build en verde · cada commit
 aprobado por el revisor antes de commitearse, sin hallazgos bloqueantes · documentos actualizados si
 hubo desvío · progreso y PR describen qué quedó pendiente. Una PR mergeada no cierra la Historia por sí sola (CONTRIBUTING §9).
+
+## 10. Uso con Codex
+
+- La sesión principal implementa con GPT-6.1 Sol (`.codex/config.toml`); para cada bloque stageado
+  convocá **un revisor nuevo** con GPT-6 Astra (`.codex/agents/revisor.toml`). El revisor sigue la
+  guía y el formato comunes de `.claude/agents/revisor.md`, registra la huella sólo con APROBAR y
+  la sesión principal hace el commit. En zonas sensibles, respetá antes el STOP humano de §6.
+- Al abrir este proyecto en Codex local, confiá en el proyecto y revisá/activá el hook en `/hooks`;
+  ejecutá `npm run prepare` para instalar también `.githooks/pre-commit` y verificá el modelo y
+  los permisos efectivos con `/status` o `/debug-config`. El hook de Codex da feedback antes de
+  ejecutar un comando; el de Git comprueba el índice real al commitear desde una sesión Codex,
+  incluso si el shell invoca Git indirectamente. Los commits humanos y de Claude conservan su
+  comportamiento previo. El perfil local
+  `maps-desarrollo` bloquea lecturas de `.env*` en las raíces de trabajo hasta profundidad 8;
+  en Linux/WSL/Windows los patrones se expanden al iniciar cada proceso, por lo que uno ya abierto
+  puede leer archivos creados después. Puede requerir aprobación para escribir la huella bajo
+  `.git/`. Si otro `sandbox_mode` está activo, el perfil beta no aplica.
+- Las reglas `.codex/rules/` controlan comandos que salen del sandbox, y el hook de Codex
+  intercepta los comandos shell; cotejan prefijos concretos, no todas las variantes de `git push`.
+  En Codex Cloud o al operar mediante conectores, los permisos y hooks locales pueden no aplicar:
+  respetá igualmente §8 y exigí protección de ramas, revisión humana y CI en GitHub.
+- Comprobá la adaptación con `node --test .codex/tests/flujo.test.mjs` y
+  `codex execpolicy check --rules .codex/rules/seguridad.rules -- <comando>`.

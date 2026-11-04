@@ -1,0 +1,19 @@
+{
+  "description": "Revisión independiente del índice antes de cada commit de Codex.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "^Bash$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$(git rev-parse --show-toplevel)/.codex/hooks/gate-commit.mjs\"",
+            "commandWindows": "powershell -NoProfile -Command \"node (Join-Path (git rev-parse --show-toplevel) '.codex/hooks/gate-commit.mjs'); exit $LASTEXITCODE\"",
+            "timeout": 30,
+            "statusMessage": "Comprobando aprobación del índice"
+          }
+        ]
+      }
+    ]
+  }
+}
