@@ -50,8 +50,9 @@ apps/api/src/modules/notifications/   mecanismo transversal de outbox (ADR-SW-00
 apps/web/src/features/            auth · catalogo · solicitudes · admin · productor
 ```
 
-Los límites entre módulos y capas se controlan en el lint (`eslint.config.mjs`, `eslint-plugin-boundaries`):
-un import que rompe ADR-SW-001/002 hace fallar `npm run lint`.
+Los límites entre módulos y capas se controlan en el lint (`eslint/architecture.mjs`, `eslint-plugin-boundaries`),
+con casos permitidos y prohibidos probados en `apps/api/tests/architecture/`. Un import que rompe
+ADR-SW-001/002 hace fallar `npm run lint`.
 
 Reglas específicas: [apps/api/AGENTS.md](./apps/api/AGENTS.md) · [apps/web/AGENTS.md](./apps/web/AGENTS.md).
 
