@@ -2,8 +2,8 @@
 
 - **Jira:** [MAPS-215](https://santitalavera.atlassian.net/browse/MAPS-215)
 - **Rama:** `chore/MAPS-215-codex-flujo-agentes`
-- **PR:** pendiente
-- **Estado:** en revisión
+- **PR:** [#41 — adaptación a Codex](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/41)
+- **Estado:** PR abierto; pendiente de revisión del equipo
 - **Documentos aplicados:** `AGENTS.md`, `CONTRIBUTING.md` §4–6, `.claude/skills/nueva-historia/SKILL.md`, `.claude/agents/revisor.md`, `.claude/settings.json` y `.claude/hooks/`.
 
 ## Criterio de aceptación → pruebas
@@ -44,6 +44,10 @@
   y bloqueaba la opción compacta `-qm` que Claude permitía. Se separó el gate estricto de Codex
   bajo `.codex/hooks/` y se restauraron sin cambios los hooks existentes de Claude. Los casos
   `exec` y `-qm` se agregaron a la suite; el pre-commit conserva la verificación del índice real.
+- Séptima revisión Astra: APROBAR sobre la huella `4678f479a861` (13 archivos). Se hizo el commit
+  y se publicó el mismo árbol en la rama remota; el commit remoto es `d71cea7` porque GitHub lo
+  creó mediante su conexión al no disponer de credenciales Git para el push de terminal.
+- Se abrió el PR #41 contra `development` y se agregó su enlace a *Web links* de MAPS-215.
 
 ## Decisiones y desvíos
 
@@ -56,9 +60,12 @@
 
 ## Bloqueos / dudas
 
-- Ninguno.
+- La denegación efectiva de lectura de `.env` no se pudo comprobar en este contenedor: el sandbox
+  falló al iniciar con `bwrap: NETLINK_ROUTE: Operation not permitted`. El perfil y sus límites
+  están documentados; verificar en una sesión Codex local con el sandbox disponible.
 
 ## Próximo paso
 
-- Stagear el diff completo, solicitar revisión Astra independiente sobre ese índice, corregir
-  hallazgos si los hay y registrar la huella antes de commitear. Abrir PR y enlazarlo a Jira.
+- Esperar la revisión del equipo sobre el PR #41. Si llegan correcciones, stagear el nuevo bloque
+  y convocar un revisor independiente antes de cada commit adicional. No mover MAPS-215 a `Listo`
+  hasta completar las revisiones e integración según CONTRIBUTING §9.
