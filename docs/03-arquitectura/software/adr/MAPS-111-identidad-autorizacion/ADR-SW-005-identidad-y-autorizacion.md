@@ -14,9 +14,9 @@
 | Decisiones relacionadas | [ADR-SW-001](../MAPS-107-estilo-arquitectonico-limites/ADR-SW-001-monolito-modular-y-limites.md); [ADR-SW-002](../MAPS-107-estilo-arquitectonico-limites/ADR-SW-002-arquitectura-hexagonal-y-capas.md); [ADR-SW-004](../MAPS-110-asincronia-outbox-idempotencia/ADR-SW-004-outbox-asincronia-e-idempotencia.md); [TDD-SW-001](../../tdd/MAPS-109-modelo-dominio-datos/TDD-SW-001-modelo-de-dominio-y-datos.md); [TDD-SW-003](../../tdd/MAPS-113-insurance-request-estados/TDD-SW-003-insurance-request-y-maquina-de-estados.md); TDD-SW-004, ADR-CLD-007 y TDD-CLD-006 (previstos, sin redactar) |
 | Depende de | [ADR-SW-001](../MAPS-107-estilo-arquitectonico-limites/ADR-SW-001-monolito-modular-y-limites.md), [ADR-SW-002](../MAPS-107-estilo-arquitectonico-limites/ADR-SW-002-arquitectura-hexagonal-y-capas.md); proveedor de identidad a confirmar con ADR-CLD-007 |
 | Reemplaza | No aplica |
-| Reemplazado por | No aplica |
+| Reemplazado por | No aplica (reemplazo propuesto: [ADR-SW-007](../MAPS-216-identidad-multirol-mfa/ADR-SW-007-identidad-multirol-y-mfa-fuera-del-mvp.md), `PROPUESTO`; este campo se completa al aceptarlo) |
 
-> Estados válidos: `PROPUESTO`, `ACEPTADO`, `RECHAZADO`, `REEMPLAZADO`.
+> Estados válidos: `PROPUESTO`, `ACEPTADO`, `RECHAZADO`, `REEMPLAZADO`. Este ADR sigue `ACEPTADO` y vigente hasta que se acepte ADR-SW-007; en ese momento pasa a `REEMPLAZADO`. Su decisión histórica no se edita.
 
 ## Contexto y problema
 
@@ -198,6 +198,7 @@ Revisar si aparecen roles adicionales o sub-roles de Admin, cuentas con más de 
 | --- | --- | --- | --- |
 | 2026-10-14 | `PROPUESTO` | Joaquin Rodriguez (owner de software) | Propuesto en el PR #17 (modelo de identidad, políticas de acceso y efectos de baja de RN-18/RN-19). La revisión cruzada cloud de Santiago Talavera (2026-10-14) dictaminó favorable al enfoque con cambios solicitados; su conformidad y la aceptación se registran cuando se cierren |
 | 2026-10-22 | `ACEPTADO` | Formalización documental basada en PR #17 | Se registra el estado resultante de la aceptación explícita y de las correcciones incorporadas en PR #17. No se atribuye al owner una nueva intervención ni al reviewer Cloud la autoría de la decisión Software. |
+| 2026-11-04 | Reemplazo propuesto | Joaquin Rodriguez (owner de software) | [ADR-SW-007](../MAPS-216-identidad-multirol-mfa/ADR-SW-007-identidad-multirol-y-mfa-fuera-del-mvp.md) (`PROPUESTO`) lo reemplazaría al aceptarse, por dos decisiones de alcance del MVP del 2026-11-01 ([PR #30](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/30)): cuenta con roles múltiples y MFA del Portal fuera del MVP. Este ADR conserva su estado y su texto hasta entonces |
 
 ## Referencias y trazabilidad
 
