@@ -14,7 +14,7 @@
 | Decisiones relacionadas | [ADR-SW-001](../MAPS-107-estilo-arquitectonico-limites/ADR-SW-001-monolito-modular-y-limites.md); [ADR-SW-002](../MAPS-107-estilo-arquitectonico-limites/ADR-SW-002-arquitectura-hexagonal-y-capas.md); [ADR-SW-004](../MAPS-110-asincronia-outbox-idempotencia/ADR-SW-004-outbox-asincronia-e-idempotencia.md); [TDD-SW-001](../../tdd/MAPS-109-modelo-dominio-datos/TDD-SW-001-modelo-de-dominio-y-datos.md); [TDD-SW-003](../../tdd/MAPS-113-insurance-request-estados/TDD-SW-003-insurance-request-y-maquina-de-estados.md); TDD-SW-004, ADR-CLD-007 y TDD-CLD-006 (previstos, sin redactar) |
 | Depende de | [ADR-SW-001](../MAPS-107-estilo-arquitectonico-limites/ADR-SW-001-monolito-modular-y-limites.md), [ADR-SW-002](../MAPS-107-estilo-arquitectonico-limites/ADR-SW-002-arquitectura-hexagonal-y-capas.md); proveedor de identidad a confirmar con ADR-CLD-007 |
 | Reemplaza | No aplica |
-| Reemplazado por | [ADR-SW-007](../MAPS-216-identidad-multirol-mfa/ADR-SW-007-identidad-multirol-y-mfa-fuera-del-mvp.md) (`PROPUESTO`): cuenta con roles múltiples (Admin + Productor) y MFA del Portal fuera del MVP |
+| Reemplazado por | No aplica (reemplazo propuesto: [ADR-SW-007](../MAPS-216-identidad-multirol-mfa/ADR-SW-007-identidad-multirol-y-mfa-fuera-del-mvp.md), `PROPUESTO`; este campo se completa al aceptarlo) |
 
 > Estados válidos: `PROPUESTO`, `ACEPTADO`, `RECHAZADO`, `REEMPLAZADO`. Este ADR sigue `ACEPTADO` y vigente hasta que se acepte ADR-SW-007; en ese momento pasa a `REEMPLAZADO`. Su decisión histórica no se edita.
 

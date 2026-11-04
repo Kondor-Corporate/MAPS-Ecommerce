@@ -11,7 +11,7 @@
 | Work item | [MAPS-111](https://santitalavera.atlassian.net/browse/MAPS-111) · subtarea [MAPS-216](https://santitalavera.atlassian.net/browse/MAPS-216) |
 | URL del work item | https://santitalavera.atlassian.net/browse/MAPS-111 |
 | Fase origen | [F1 §3/5, RN-02/04/05/14/15/16/17/18/19/20, RF-CLI-01, RF-PRODUCER-01/02/03, RNF-SEC-01](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md), [F2 §6/11/12/13](../../../../02-diseno/Fase_2__Design_Handoff.md) |
-| Decisiones relacionadas | [ADR-SW-001](../MAPS-107-estilo-arquitectonico-limites/ADR-SW-001-monolito-modular-y-limites.md); [ADR-SW-002](../MAPS-107-estilo-arquitectonico-limites/ADR-SW-002-arquitectura-hexagonal-y-capas.md); [ADR-SW-004](../MAPS-110-asincronia-outbox-idempotencia/ADR-SW-004-outbox-asincronia-e-idempotencia.md); [TDD-SW-001](../../tdd/MAPS-109-modelo-dominio-datos/TDD-SW-001-modelo-de-dominio-y-datos.md); [TDD-SW-003](../../tdd/MAPS-113-insurance-request-estados/TDD-SW-003-insurance-request-y-maquina-de-estados.md); [TDD-SW-004](../../tdd/MAPS-111-identidad-rbac-ownership/TDD-SW-004-identidad-rbac-y-ownership.md) (`BORRADOR`); [TDD-SW-005](../../tdd/MAPS-114-assignment-delivery-outbox/TDD-SW-005-assignment-delivery-y-coordinacion-outbox.md) (`BORRADOR`); [TDD-SW-007](../../tdd/MAPS-115-auditoria-analytics/TDD-SW-007-auditoria-y-analytics.md) (`BORRADOR`); [TDD-SW-008](../../tdd/MAPS-115-contrato-api/TDD-SW-008-contrato-api.md) (`BORRADOR`); ADR-CLD-007 y TDD-CLD-006 ([PR #30](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/30), `PROPUESTO` / `BORRADOR`) |
+| Decisiones relacionadas | [ADR-SW-001](../MAPS-107-estilo-arquitectonico-limites/ADR-SW-001-monolito-modular-y-limites.md); [ADR-SW-002](../MAPS-107-estilo-arquitectonico-limites/ADR-SW-002-arquitectura-hexagonal-y-capas.md); [ADR-SW-004](../MAPS-110-asincronia-outbox-idempotencia/ADR-SW-004-outbox-asincronia-e-idempotencia.md); [TDD-SW-001](../../tdd/MAPS-109-modelo-dominio-datos/TDD-SW-001-modelo-de-dominio-y-datos.md); [TDD-SW-003](../../tdd/MAPS-113-insurance-request-estados/TDD-SW-003-insurance-request-y-maquina-de-estados.md); [TDD-SW-004](../../tdd/MAPS-111-identidad-rbac-ownership/TDD-SW-004-identidad-rbac-y-ownership.md) (`BORRADOR`); [TDD-SW-005](../../tdd/MAPS-114-assignment-delivery-outbox/TDD-SW-005-assignment-delivery-y-coordinacion-outbox.md) (`BORRADOR`); [TDD-SW-007](../../tdd/MAPS-115-auditoria-analytics/TDD-SW-007-auditoria-y-analytics.md) (`BORRADOR`); [TDD-SW-008](../../tdd/MAPS-115-contrato-api/TDD-SW-008-contrato-api.md) (`BORRADOR`); [ADR-CLD-007](../../../cloud/adr/MAPS-152-seguridad-cloud/ADR-CLD-007-seguridad-cloud.md) (`PROPUESTO`) y [TDD-CLD-006](../../../cloud/tdd/MAPS-158-iam-secret-manager/TDD-CLD-006-iam-y-secret-manager.md) (`BORRADOR`) |
 | Depende de | ADR-SW-001 y ADR-SW-002 (`ACEPTADO`); alineación Cloud con ADR-CLD-007 y TDD-CLD-006; RN-20 y campos de Mi perfil (`PENDIENTE FUNCIONAL MAPS`) |
 | Reemplaza | [ADR-SW-005](../MAPS-111-identidad-autorizacion/ADR-SW-005-identidad-y-autorizacion.md) |
 | Reemplazado por | No aplica |
@@ -27,7 +27,7 @@
 
 En la revisión de seguridad Cloud ([PR #30](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/30), comentarios del 2026-10-29 y del 2026-11-01) el owner de Software confirmó dos decisiones de alcance del MVP:
 
-- **MFA del Portal queda fuera del MVP.** No se difiere la implementación: la decisión es postergarlo a una etapa posterior. Alcanza sólo al acceso al Portal; no retira controles de acceso a GCP ni a CI/CD.
+- **MFA del Portal queda fuera del MVP.** La decisión es postergar el MFA a una etapa posterior; no queda pendiente decidir si se implementa ahora. Alcanza sólo al acceso al Portal; no retira controles de acceso a GCP ni a CI/CD.
 - **Admin + Productor en una misma cuenta individual forma parte del MVP.** Los administradores también atienden clientes como Productores y necesitan un único login. Cliente sigue con cuenta y correo separados; no hay cuentas administrativas compartidas.
 
 Cloud respetó el contrato vigente en lugar de modificarlo unilateralmente (ADR-CLD-007 y TDD-CLD-006 conservan hoy MFA de Admin y rol único) y dejó explícito el delta de Software que debía formalizarse: retiro de cada rol, baja total, reactivación sin restitución automática de roles y tratamiento de Assignments. ADR-SW-005 es `ACEPTADO` y su criterio de revisión futura exige crear un ADR nuevo si cambia; no se edita su decisión histórica.
@@ -81,16 +81,16 @@ El resto de ADR-SW-005 se conserva sin cambios de fondo y se reproduce abajo par
 
 ## Decisión
 
-Esta es la opción propuesta. Se **decide**:
+Esta es la opción propuesta. Se **propone decidir**:
 
 ### 1. Modelo de cuenta y roles
 
 - La cuenta del Portal (`UserIdentity`) tiene un **conjunto de roles** del que forman parte `CLIENTE`, `PRODUCTOR` y `ADMIN`. Es la fuente de verdad de roles, estado de cuenta y vínculos con Customer/Producer. Se vincula con la identidad externa por `issuer + subject`; el email no es vínculo, y un mismo `issuer + subject` no puede vincularse a dos cuentas.
 - Combinaciones válidas: `{CLIENTE}`, `{PRODUCTOR}`, `{ADMIN}` y `{ADMIN, PRODUCTOR}`. **`CLIENTE` no se combina con otro rol:** el Cliente conserva cuenta y correo propios.
 - **No existe un rol `ADMIN_PRODUCTOR`.** Cada rol es independiente; que una cuenta tenga ambos no crea un permiso nuevo.
-- Cada rol tiene su propio registro de concesión y retiro: estado `ACTIVO` o `RETIRADO`, fecha, quién y motivo. Una cuenta `ACTIVA` tiene al menos un rol `ACTIVO`; retirar el único rol activo equivale a dar de baja la cuenta.
+- Cada rol tiene su propio registro de concesión y retiro: estado `ACTIVO` o `RETIRADO`, fecha, quién y motivo. Una cuenta `ACTIVA` tiene al menos un rol `ACTIVO`. **Un rol sólo se retira si la cuenta conserva otro rol activo.** Si es su único rol activo, la operación es la baja de cuenta, que deja el rol `ACTIVO` para que la reactivación lo recupere (RN-19: la baja es reversible).
 - Los vínculos del modelo no cambian: `UserIdentity → Customer 0..1` y `UserIdentity → Producer 0..1` ([TDD-SW-001](../../tdd/MAPS-109-modelo-dominio-datos/TDD-SW-001-modelo-de-dominio-y-datos.md)). `ADMIN` sigue sin vínculo con Customer ni Producer; el vínculo con `Producer` lo aporta el rol `PRODUCTOR`.
-- El Cliente se registra por sí mismo. El Productor no tiene autorregistro: el Admin lo da de alta mediante invitación. `ADMIN` se concede por un procedimiento controlado fuera del flujo público, que puede crear la cuenta o agregar el rol a una cuenta que ya es `PRODUCTOR`, nunca a una `CLIENTE`.
+- El Cliente se registra por sí mismo. El Productor no tiene autorregistro: el Admin lo da de alta mediante invitación. `ADMIN` se concede por un procedimiento controlado fuera del flujo público, que crea la cuenta; agregarlo a una cuenta que ya es `PRODUCTOR` (nunca a una `CLIENTE`) es una **propuesta de Kondor sujeta a confirmación**, porque el owner pidió la dirección inversa (la invitación de Productor a un Admin).
 
 ### 2. Autorización por rol y capacidad, más ownership
 
@@ -122,9 +122,9 @@ Estados de cuenta: `ACTIVA` y `BAJA` (reversible). Pertenecen a la cuenta, no mo
 | Evento | Efecto |
 | --- | --- |
 | **Baja de cuenta** | Cuenta `BAJA`: ningún rol puede operar desde la siguiente request, sin perder el registro de qué roles estaban `ACTIVO`. Revocación de sesión en el IdP cuando lo permita. Aviso por outbox ([ADR-SW-004](../MAPS-110-asincronia-outbox-idempotencia/ADR-SW-004-outbox-asincronia-e-idempotencia.md)) y auditoría. Si la cuenta tiene `PRODUCTOR` `ACTIVO`, se aplica antes la baja guiada de ese rol (abajo) |
-| **Retiro del rol `ADMIN`** | Se retira sólo esa capacidad: la cuenta puede seguir como Productor. Sin efecto sobre Assignments. Auditoría. Se ejecuta por un procedimiento de operación Kondor, porque la gestión de Admins desde el Portal está fuera del MVP |
-| **Retiro del rol `PRODUCTOR`** (baja de Productor, RN-19) | Se retira sólo esa capacidad. El Admin trata antes toda ASIGNADA o DERIVADA afectada con la baja guiada de TDD-SW-005: reasignación mediante una nueva asignación, efectiva tras entrega exitosa, y corte de acceso de inmediato. Si `PRODUCTOR` era el único rol activo, la cuenta pasa a `BAJA` en la misma unidad de trabajo; si tenía `ADMIN`, la cuenta sigue `ACTIVA` como Admin. El Productor permanece en historial y auditoría. Aviso y auditoría |
-| **Reactivación de cuenta** | La cuenta vuelve a `ACTIVA` por acción del Admin, con auditoría y aviso. **No restaura roles retirados** ni acceso a solicitudes ya reasignadas: recupera sólo los roles que seguían `ACTIVO` al momento de la baja |
+| **Retiro del rol `ADMIN`** | Se retira sólo esa capacidad y sólo si la cuenta conserva `PRODUCTOR` activo; si `ADMIN` es su único rol, corresponde la baja de cuenta. Sin efecto sobre Assignments. Auditoría. Se ejecuta por un procedimiento de operación Kondor (propuesta sujeta a confirmación), porque según TDD-SW-004 la gestión de Admins desde el Portal está fuera del MVP |
+| **Retiro del rol `PRODUCTOR`** (baja de Productor, RN-19) | Se retira sólo esa capacidad. El Admin trata antes toda ASIGNADA o DERIVADA afectada con la baja guiada de TDD-SW-005: reasignación mediante una nueva asignación, efectiva tras entrega exitosa, y corte de acceso de inmediato. **Si la cuenta conserva `ADMIN` `ACTIVO`:** el rol `PRODUCTOR` pasa a `RETIRADO` y la cuenta sigue `ACTIVA` como Admin. **Si `PRODUCTOR` es su único rol activo:** la baja de Productor es la baja de cuenta (`BAJA`) con el rol aún `ACTIVO`, y se revierte con la reactivación (RN-19). El Productor permanece en historial y auditoría. Aviso y auditoría |
+| **Reactivación de cuenta** | La cuenta de un Cliente o de un Productor vuelve a `ACTIVA` por acción del Admin, con auditoría y aviso. La baja y la reactivación de una cuenta con `ADMIN` no están definidas (ver pendientes). **No restaura roles retirados** ni acceso a solicitudes ya reasignadas: recupera sólo los roles que seguían `ACTIVO` al momento de la baja |
 | **Reconceder un rol retirado** | Acción explícita y nueva: para `PRODUCTOR`, una invitación del Admin; para `ADMIN`, el procedimiento de operación. No ocurre como efecto de reactivar la cuenta |
 | Solicitud de alta de Cliente en `BAJA` | Sin cambios respecto de ADR-SW-005: journey diferido fuera del MVP por decisión de alcance Kondor (RN-18) |
 
@@ -175,7 +175,8 @@ Este ADR no elige proveedor de identidad, formato de token ni duración de sesi�
 | --- | --- | --- |
 | Alinear ADR-CLD-007 y TDD-CLD-006 (MFA de Admin, rol único, *spike* de MFA por rol) | Cloud + Software | Una vez aceptado este ADR, Cloud actualiza sus referencias; hasta entonces sus documentos contradicen esta propuesta |
 | Hito de revisión del riesgo de no tener MFA | Kondor + MAPS | Confirmar el hito propuesto (antes del primer despliegue con datos reales) |
-| Autoasignación de un Admin que también es Productor | Kondor + MAPS | Decidir si se permite, se registra con una marca de auditoría o se prohíbe; este ADR no lo restringe |
+| Autoasignación de un Admin que también es Productor | Kondor + MAPS | Decidir si se permite, se registra con una marca de auditoría o se prohíbe; este ADR no la restringe, así que queda permitida por defecto |
+| Baja y reactivación de una cuenta con `ADMIN` (¿puede un Admin hacerlo a otro Admin o a sí mismo?) y quién solicita `create-admin` y su retiro | Kondor + MAPS | Sin política definida: deny by default hasta decidirlo | Decidir el procedimiento y registrarlo en TDD-SW-004 |
 | Retiro o baja del último Admin activo | Kondor | Decidir si se bloquea; hoy TDD-SW-004 prevé dos o tres Admins y gestión por operación |
 | Procedimiento de operación para agregar y retirar `ADMIN` | Software + Cloud | Se detalla en TDD-SW-004 (`create-admin` y su complemento de retiro) |
 | Aceptación de este ADR | Joaquin Rodriguez + Santiago Talavera | Revisión cruzada Cloud/seguridad favorable y conformidad del owner |
@@ -183,6 +184,10 @@ Este ADR no elige proveedor de identidad, formato de token ni duración de sesi�
 | Journey de "solicitud de alta" de Cliente dado de baja | Kondor + MAPS | Diferido fuera del MVP (RN-18); no condiciona este ADR |
 | Campos de Mi perfil | `PENDIENTE FUNCIONAL MAPS` | Se cierran en TDD-SW-004 |
 | Factibilidad de varios roles por cuenta frente al IdP | Software + Cloud | El Portal es la fuente de verdad de roles y el IdP autentica una sola identidad; ADR-CLD-007 lo confirma |
+
+### Documentos que se ajustan al aceptar este ADR
+
+Mientras este ADR esté `PROPUESTO`, estos textos siguen en su redacción actual y deben revisarse al aceptarlo: [TDD-SW-003](../../tdd/MAPS-113-insurance-request-estados/TDD-SW-003-insurance-request-y-maquina-de-estados.md) (`APROBADO`; `PRODUCTOR_NO_DISPONIBLE`: la elegibilidad pasa a ser cuenta `ACTIVA` con rol `PRODUCTOR` `ACTIVO`) y [TDD-SW-006](../../tdd/MAPS-115-adjuntos-documentos/TDD-SW-006-adjuntos-y-documentos.md) (acceso del Productor a documentos, mismo criterio). TDD-SW-004, TDD-SW-005, TDD-SW-007 y TDD-SW-008 (`BORRADOR`) ya siguen esta propuesta, pero no pasan a `EN REVISIÓN` ni `APROBADO` hasta que este ADR esté `ACEPTADO`.
 
 ## Criterios de revisión futura
 

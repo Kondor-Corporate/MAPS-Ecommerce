@@ -46,7 +46,7 @@ No fija nombres definitivos de tablas ni el esquema de campos de formularios, qu
 
 | Entidad | Módulo owner | Responsabilidad |
 | --- | --- | --- |
-| UserIdentity | Identity | Cuenta, credenciales/sesión, roles (Cliente, Admin, Productor; [enmienda 2026-11-04](#enmienda-2026-11-04-roles-de-la-cuenta)) y estado de cuenta |
+| UserIdentity | Identity | Cuenta, credenciales/sesión, rol (Cliente, Admin, Productor; la [enmienda 2026-11-04](#enmienda-2026-11-04-roles-de-la-cuenta) propone un conjunto de roles y no rige hasta aceptar ADR-SW-007) y estado de cuenta |
 | Customer | Identity | Datos del Cliente y perfil autogestionable habilitado |
 | Producer | Identity | Datos del Productor, email verificado y disponibilidad para nuevas asignaciones |
 | Category | Catalog | Agrupación de productos (ABM) |
