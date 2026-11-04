@@ -26,6 +26,10 @@ Cuanto más se repite, más dura la corrección:
 - 2026-11-03 · MAPS-179 · el `revisor` corría después del commit, el push y el PR: el flujo estaba
   escrito así en AGENTS.md §7, la skill y `implementador.md`, y nada lo hacía cumplir · revisión
   previa sobre lo stageado (skill §6) + hook `gate-commit.mjs` + flujo con fuente única en la skill.
+- 2026-11-03 · MAPS-215 · el gate previo omitía commits con opciones globales y construcciones de
+  shell, y bloqueaba algunas búsquedas o mensajes legítimos; la revisión superó tres rondas ·
+  análisis de comandos, validación del índice en Git pre-commit para Codex y casos de regresión
+  en `.codex/tests/flujo.test.mjs`.
 
 ## Pendientes de evaluar
 

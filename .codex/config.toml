@@ -1,0 +1,25 @@
+# La sesión principal implementa; el agente revisor tiene su propio modelo.
+model = "gpt-6.1-sol"
+model_reasoning_effort = "high"
+approval_policy = "on-request"
+default_permissions = "maps-desarrollo"
+
+[features]
+hooks = true
+
+# Perfil local beta: conserva la protección de :workspace y oculta .env en las raíces activas.
+# No combinar con sandbox_mode ni sandbox_workspace_write en otras capas de configuración.
+[permissions.maps-desarrollo]
+extends = ":workspace"
+
+[permissions.maps-desarrollo.filesystem]
+glob_scan_max_depth = 8
+
+[permissions.maps-desarrollo.filesystem.":workspace_roots"]
+".env" = "deny"
+".env.*" = "deny"
+"**/.env" = "deny"
+"**/.env.*" = "deny"
+
+[permissions.maps-desarrollo.network]
+enabled = false

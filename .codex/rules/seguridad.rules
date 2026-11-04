@@ -1,0 +1,20 @@
+# Reglas para comandos que solicitan salir del sandbox local de Codex.
+# AGENTS.md §8 sigue rigiendo también dentro del sandbox y para conectores.
+prefix_rule(pattern = ["npm", "install"], decision = "prompt", justification = "Confirmar instalación de dependencias.")
+prefix_rule(pattern = ["npm", "i"], decision = "prompt", justification = "Confirmar instalación de dependencias.")
+prefix_rule(pattern = ["npx", "prisma", "migrate"], decision = "prompt", justification = "Confirmar migración de base de datos.")
+prefix_rule(pattern = ["npx", "prisma", "db"], decision = "prompt", justification = "Confirmar operación de base de datos.")
+prefix_rule(pattern = ["docker"], decision = "prompt", justification = "Confirmar operación de Docker.")
+prefix_rule(pattern = ["gcloud"], decision = "prompt", justification = "Confirmar operación de GCP.")
+prefix_rule(pattern = ["git", "push"], decision = "prompt", justification = "Confirmar publicación sólo de la rama de trabajo.")
+prefix_rule(pattern = ["gh", "pr", "merge"], decision = "prompt", justification = "El merge requiere decisión del equipo.")
+
+prefix_rule(pattern = ["git", "push", "--force"], decision = "forbidden", justification = "No fuerces push; publicá la rama con git push normal.")
+prefix_rule(pattern = ["git", "push", "-f"], decision = "forbidden", justification = "No fuerces push; publicá la rama con git push normal.")
+prefix_rule(pattern = ["git", "push", "--force-with-lease"], decision = "forbidden", justification = "No fuerces push; publicá la rama con git push normal.")
+prefix_rule(pattern = ["git", "push", "origin", ["main", "development"]], decision = "forbidden", justification = "Abrí un PR desde una rama de trabajo.")
+prefix_rule(pattern = ["git", "reset", "--hard"], decision = "forbidden", justification = "Preservá los cambios locales.")
+prefix_rule(pattern = ["git", "commit", "--no-verify"], decision = "forbidden", justification = "Usá el commit normal tras la revisión.")
+prefix_rule(pattern = ["rm", "-rf"], decision = "forbidden", justification = "Evitá borrados recursivos irreversibles.")
+prefix_rule(pattern = ["npx", "prisma", "migrate", ["reset", "deploy"]], decision = "forbidden", justification = "No corras migraciones destructivas o de despliegue.")
+prefix_rule(pattern = ["gcloud", "sql"], decision = "forbidden", justification = "No operes Cloud SQL desde el agente.")
