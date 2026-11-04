@@ -129,8 +129,8 @@ Riesgo residual: un script malicioso en la SPA podría leer el token mientras ex
 | Clase | Rutas | Regla |
 | --- | --- | --- |
 | Pública anónima | `GET /api/v1/catalog/*`, `POST .../views` | Sin sesión; límites de frecuencia en la API y en el borde |
-| Autenticada sin cuenta | `GET /api/v1/me`, `POST /registrations`, `POST /producer-invitations/acceptance` | Únicos endpoints, además de los públicos, que admiten una identidad sin `UserIdentity`. La aceptación de la invitación también la usa una cuenta Admin para agregar el rol `PRODUCTOR` |
-| Autenticada con cuenta | `/api/v1/me/*`, `/api/v1/admin/*`, `/api/v1/producer/*`, `/api/v1/documents/*` | Política del caso de uso y `AccessScope`. Una identidad sin cuenta recibe `403 REGISTRO_PENDIENTE` |
+| Autenticada, admite identidad sin cuenta | `GET /api/v1/me`, `POST /registrations`, `POST /producer-invitations/acceptance` | Únicos endpoints, además de los públicos, que admiten una identidad válida sin `UserIdentity`; no son exclusivos de ella. Cada caso de uso decide: el registro exige no tener cuenta (`REGISTRO_YA_COMPLETO`), la aceptación de la invitación admite una identidad sin cuenta o una cuenta Admin a la que agrega `PRODUCTOR`, y `/me` responde a ambas |
+| Autenticada, requiere cuenta | `/api/v1/me/*`, `/api/v1/admin/*`, `/api/v1/producer/*`, `/api/v1/documents/*` | Política del caso de uso y `AccessScope`. Una identidad sin cuenta recibe `403 REGISTRO_PENDIENTE` |
 | Máquina a máquina | `POST /api/v1/webhooks/*` | Sin sesión de usuario; autenticidad del mensaje según TDD-CLD-005 |
 | Operativa | Health checks y diagnóstico | Fuera de este contrato (TDD-CLD-002). Ningún endpoint de diagnóstico público expone configuración, topología ni conectividad detallada |
 
