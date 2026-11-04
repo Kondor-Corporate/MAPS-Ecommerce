@@ -1,0 +1,78 @@
+// Esquema del Portal MAPS (ADR-SW-003, TDD-SW-001).
+// MAPS-183 agrega sólo las tablas del catálogo (TDD-SW-002). Cloud SQL, pipeline y el resto de las
+// tablas los suma MAPS-180 (A3).
+
+generator client {
+  provider               = "prisma-client"
+  output                 = "../src/database/generated/prisma"
+  runtime                = "nodejs"
+  moduleFormat           = "esm"
+  importFileExtension    = "js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// Category: agrupación ABM (RF-CAT-01). `slug` único e inmutable (TDD-SW-002).
+model Category {
+  id        String    @id @default(uuid()) @db.Uuid
+  name      String
+  slug      String    @unique
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  products  Product[]
+
+  @@map("category")
+}
+
+// Product: publicación y referencia al precio vigente (TDD-SW-002). La disponibilidad no se guarda.
+model Product {
+  id                     String                 @id @default(uuid()) @db.Uuid
+  name                   String
+  summary                String
+  categoryId             String                 @map("category_id") @db.Uuid
+  category               Category               @relation(fields: [categoryId], references: [id])
+  published              Boolean                @default(false)
+  currentPriceRevisionId String?                @unique @map("current_price_revision_id") @db.Uuid
+  currentPriceRevision   ProductPriceRevision?  @relation("CurrentPrice", fields: [currentPriceRevisionId], references: [id])
+  priceRevisions         ProductPriceRevision[] @relation("PriceHistory")
+  attributes             ProductAttribute[]
+  imageRef               String?                @map("image_ref")
+  version                Int                    @default(0)
+  createdAt              DateTime               @default(now()) @map("created_at")
+  updatedAt              DateTime               @updatedAt @map("updated_at")
+
+  @@index([categoryId])
+  @@map("product")
+}
+
+// Ficha del producto ("Qué cubre", "Respaldo", …). La muestra el detalle (B2).
+model ProductAttribute {
+  id          String  @id @default(uuid()) @db.Uuid
+  productId   String  @map("product_id") @db.Uuid
+  product     Product @relation(fields: [productId], references: [id])
+  name        String
+  description String
+  sortOrder   Int     @map("sort_order")
+
+  @@index([productId])
+  @@map("product_attribute")
+}
+
+// Revisión de precio inmutable: cambiar el precio inserta una nueva (TDD-SW-002, RN-09).
+// El trigger de la migración rechaza UPDATE; monto > 0 y moneda ARS por CHECK.
+model ProductPriceRevision {
+  id            String   @id @default(uuid()) @db.Uuid
+  productId     String   @map("product_id") @db.Uuid
+  product       Product  @relation("PriceHistory", fields: [productId], references: [id])
+  currentFor    Product? @relation("CurrentPrice")
+  amount        Decimal  @db.Decimal(12, 2)
+  currency      String   @default("ARS") @db.Char(3)
+  effectiveFrom DateTime @map("effective_from")
+  createdBy     String   @map("created_by")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@index([productId])
+  @@map("product_price_revision")
+}
