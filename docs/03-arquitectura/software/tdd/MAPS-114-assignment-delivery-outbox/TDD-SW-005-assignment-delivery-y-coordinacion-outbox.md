@@ -12,7 +12,7 @@
 | URL del work item | https://santitalavera.atlassian.net/browse/MAPS-114 |
 | Fase origen | [F0 §0.4/0.5](../../../../00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md), [F1 §3/5, RN-04/05/06/07/10/16/19, RF-DELIVERY-01, RF-ADM-01, RF-PRODUCER-02](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md), [F2 §5/6/12](../../../../02-diseno/Fase_2__Design_Handoff.md) |
 | Decisiones relacionadas | [ADR-SW-003](../../adr/MAPS-108-persistencia-fronteras-transaccionales/ADR-SW-003-persistencia-y-fronteras-transaccionales.md); [ADR-SW-004](../../adr/MAPS-110-asincronia-outbox-idempotencia/ADR-SW-004-outbox-asincronia-e-idempotencia.md); [ADR-SW-005](../../adr/MAPS-111-identidad-autorizacion/ADR-SW-005-identidad-y-autorizacion.md); [TDD-SW-001](../MAPS-109-modelo-dominio-datos/TDD-SW-001-modelo-de-dominio-y-datos.md); [TDD-SW-003](../MAPS-113-insurance-request-estados/TDD-SW-003-insurance-request-y-maquina-de-estados.md); ADR-CLD-003, TDD-CLD-003, TDD-CLD-005 (previstos, sin redactar) |
-| Depende de | ADR-SW-003 (`ACEPTADO`); ADR-SW-004 y ADR-SW-005 (`ACEPTADO`); TDD-SW-003 (`APROBADO`). Estado técnico que acredita la entrega: decisión abierta 1 |
+| Depende de | ADR-SW-003 (`ACEPTADO`); ADR-SW-004 y ADR-SW-005 (`ACEPTADO`); [ADR-SW-007](../../adr/MAPS-216-identidad-multirol-mfa/ADR-SW-007-identidad-multirol-y-mfa-fuera-del-mvp.md) (`PROPUESTO`, reemplaza a ADR-SW-005: el retiro de `PRODUCTOR` puede dejar la cuenta activa como Admin); TDD-SW-003 (`APROBADO`). Estado técnico que acredita la entrega: decisión abierta 1 |
 | Reemplaza | No aplica |
 | Reemplazado por | No aplica |
 
@@ -56,7 +56,7 @@ Assignment (owner de Assignment y DeliveryAttempt)
 │   ├── ReassignProducer         reasignación de ASIGNADA y de DERIVADA
 │   ├── RetryDelivery            reintento manual del Admin
 │   ├── CancelAssignment         coordina cancelación de ASIGNADA y decisión sobre DERIVADA
-│   ├── DeactivateProducer       baja guiada de Productor: reasigna sus casos y da de baja la cuenta (iniciador)
+│   ├── DeactivateProducer       baja guiada de Productor: reasigna sus casos y retira el rol PRODUCTOR; la cuenta pasa a BAJA si era su único rol activo (iniciador)
 │   ├── RecordDeliveryResult     recibe el resultado del procesador y aplica la regla de entrega
 │   └── DerivationEventHandler   handler de delivery.derivation_requested.v1
 ├── ports/in/
@@ -65,7 +65,7 @@ Assignment (owner de Assignment y DeliveryAttempt)
 └── ports/out/
     ├── InsuranceRequestAssignmentPort   puerto de Requests (ports/in de Requests, TDD-SW-003)
     ├── ProducerAccountPort              consulta de elegibilidad de la cuenta de Productor (Identity, sólo lectura, con bloqueo compartido)
-    ├── ProducerAccountCommandPort       pasa la cuenta a BAJA dentro de la baja guiada (ports/in de Identity, TDD-SW-004)
+    ├── ProducerAccountCommandPort       retira el rol PRODUCTOR dentro de la baja guiada, con la cuenta a BAJA si era su único rol activo (ports/in de Identity, TDD-SW-004)
     ├── ProducerDeliveryContactPort      resuelve transitoriamente la dirección vigente y la referencia de contacto (Identity, sólo lectura)
     ├── EmailProviderPort                envío con clave de idempotencia (adaptador cloud)
     ├── OutboxPort                       escritura de OutboxEvent en la misma unidad de trabajo (ADR-SW-004)
@@ -149,7 +149,7 @@ Los reintentos automáticos de transporte **no** crean nuevos `DeliveryAttempt`:
 Una unidad de trabajo iniciada por Assignment:
 
 1. Verificar que el actor es Admin (ADR-SW-005) y que no hay un Assignment no cerrado para la solicitud.
-2. Verificar elegibilidad del Productor con `ProducerAccountPort`: cuenta `ACTIVA` (`PRODUCTOR_NO_DISPONIBLE` si no), leída con bloqueo compartido hasta el commit (ver [Baja de Productor](#baja-de-productor)). ADR-SW-005 no modela todavía un estado de inhabilitación separado porque RN-20 sigue pendiente de MAPS; si MAPS lo confirma, la elegibilidad lo incorpora en Identity sin cambiar este flujo.
+2. Verificar elegibilidad del Productor con `ProducerAccountPort`: cuenta `ACTIVA` con rol `PRODUCTOR` `ACTIVO` (`PRODUCTOR_NO_DISPONIBLE` si no), leída con bloqueo compartido hasta el commit (ver [Baja de Productor](#baja-de-productor)). ADR-SW-005 no modela todavía un estado de inhabilitación separado porque RN-20 sigue pendiente de MAPS; si MAPS lo confirma, la elegibilidad lo incorpora en Identity sin cambiar este flujo.
 3. Insertar `Assignment` en `PENDIENTE_ENTREGA`.
 4. Llamar a `InsuranceRequestAssignmentPort.asignar(requestId, versionLeida)` para pasar a ASIGNADA (TDD-SW-003, `Assign`).
 5. Insertar `DeliveryAttempt` `PENDIENTE` con `numero = 1`.
@@ -245,11 +245,11 @@ Un resultado de entrega posterior se descarta por la revalidación previa y la g
 
 ### Baja de Productor
 
-La baja es una **operación guiada única** (`DeactivateProducer`), iniciada por Assignment: el corte de acceso y la reasignación de los casos ocurren en el mismo momento, en una sola unidad de trabajo. Es la decisión de alcance Kondor del 2026-10-28 para RN-19, compartida con [TDD-SW-004](../MAPS-111-identidad-rbac-ownership/TDD-SW-004-identidad-rbac-y-ownership.md), y queda sujeta a la confirmación conjunta con MAPS (decisión 2): no está validada por MAPS y es un pendiente funcional, no un defecto técnico. Cumple ADR-SW-005 §4: el Admin trata toda ASIGNADA o DERIVADA antes de que la baja se complete, y el acceso se corta en el commit.
+La baja es una **operación guiada única** (`DeactivateProducer`), iniciada por Assignment: el corte de acceso y la reasignación de los casos ocurren en el mismo momento, en una sola unidad de trabajo. Es la decisión de alcance Kondor del 2026-10-28 para RN-19, compartida con [TDD-SW-004](../MAPS-111-identidad-rbac-ownership/TDD-SW-004-identidad-rbac-y-ownership.md), y queda sujeta a la confirmación conjunta con MAPS (decisión 2): no está validada por MAPS y es un pendiente funcional, no un defecto técnico. Cumple ADR-SW-005 §4: el Admin trata toda ASIGNADA o DERIVADA antes de que la baja se complete, y el acceso se corta en el commit. Con [ADR-SW-007](../../adr/MAPS-216-identidad-multirol-mfa/ADR-SW-007-identidad-multirol-y-mfa-fuera-del-mvp.md) (`PROPUESTO`, reemplaza a ADR-SW-005), la operación retira el rol `PRODUCTOR`: si la cuenta también tiene `ADMIN` `ACTIVO`, sigue `ACTIVA` como Admin; si no, pasa a `BAJA`. El tratamiento de los casos es el mismo en ambos.
 
 1. **Preparación (sin escrituras).** `AssignmentQueryPort.asignacionesAbiertas(producerId)` lista los Assignment abiertos del Productor con el estado de su solicitud. Toda `CancellationRequest` `SOLICITADA` se decide antes (`CANCELACION_PENDIENTE` si no). El Admin elige, por cada caso, un Productor destino distinto con cuenta `ACTIVA` y un motivo. Mientras tanto el Productor conserva su acceso. La preparación sólo arma la propuesta, junto con la `version` leída de cada Assignment y solicitud; no garantiza nada al confirmar.
 2. **Confirmación (una unidad de trabajo).** Primero se serializa con las operaciones concurrentes (ver abajo). Luego, por cada ASIGNADA, el flujo de [Reasignar ASIGNADA](#reasignar-asignada-asignada--asignada) con `motivoCierre = BAJA_PRODUCTOR`; por cada DERIVADA, el de [Reasignar DERIVADA](#reasignar-derivada-rn-19-decisión-de-alcance-kondor). Luego `ProducerAccountCommandPort.darDeBaja(producerId, admin, motivo)` pasa la cuenta a `BAJA` en Identity. Se registran el aviso al Productor por outbox y la auditoría.
-3. **Efectos.** En el commit el Productor pierde el acceso (cuenta `BAJA` y Assignments `CERRADO`). Cada nuevo Productor obtiene acceso cuando su entrega es exitosa. Las derivaciones pendientes hacia el Productor dado de baja quedan `DESCARTADO` al procesarse.
+3. **Efectos.** En el commit el Productor pierde el acceso como Productor (rol `PRODUCTOR` retirado y Assignments `CERRADO`; cuenta `BAJA` si era su único rol activo). Cada nuevo Productor obtiene acceso cuando su entrega es exitosa. Las derivaciones pendientes hacia el Productor dado de baja quedan `DESCARTADO` al procesarse.
 
 Reglas:
 
