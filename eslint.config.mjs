@@ -140,4 +140,10 @@ export default tseslint.config(
     files: ['apps/web/vite.config.ts'],
     languageOptions: { globals: globals.node },
   },
+
+  // Hooks y tests del flujo de agentes (.claude/, .codex/): scripts de Node.
+  {
+    files: ['.claude/**/*.mjs', '.codex/**/*.mjs'],
+    languageOptions: { globals: globals.node },
+  },
 );
