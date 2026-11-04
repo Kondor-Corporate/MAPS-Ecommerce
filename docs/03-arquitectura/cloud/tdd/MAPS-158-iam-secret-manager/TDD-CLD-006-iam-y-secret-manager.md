@@ -210,7 +210,7 @@ Mínimas señales que C5/operación debe considerar, sin diseñar dashboards com
 | --- | --- | --- |
 | IAM | cambios de policy, grants de roles básicos, key creation/upload, impersonations, WIF rejection | Alertar cambios inesperados; mantener actor y recurso; no guardar credenciales |
 | Secrets | lectura/denegación por principal y versión; rotación; disable/destroy | Data Access logs pueden requerir activación y agregar costo/volumen; probar primero servicios críticos |
-| Identity Platform | signup/login failures, enrollment/recovery Admin, user disable/revoke y errores API | Confirmar disponibilidad de eventos exportables y manejo de PII; audit funcional Portal separado |
+| Identity Platform | fallos de signup/sign-in, verificación/recuperación de cuenta, altas/bajas, revocación de sesiones y errores API; eventos de MFA sólo si esa capacidad futura se habilita | Confirmar disponibilidad de eventos exportables y manejo de PII; separar eventos MFA condicionados del monitoreo base del MVP y mantener audit funcional Portal separado |
 | Token/API | issuer/audience/signature/expiry failures, identidad no vinculada y rechazo por cuenta/rol local | Registrar categoría y correlación, no bearer token ni credenciales |
 | WIF | principal/subject/ref/environment autorizado y denegado | Log de delegación debe permitir atribuir workflow y usuario; rotación/claim mapping revisados |
 | Workload/DB | acceso a secreto/DB denegado, credencial/pool failure | C1/C4 determinan métrica de conexión; evitar valores en error detail |
