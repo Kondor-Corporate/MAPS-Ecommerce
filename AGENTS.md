@@ -47,6 +47,8 @@ apps/api/src/main.ts · app.ts     entrypoint y composition root HTTP
 apps/api/src/http/                endpoints técnicos transversales (health)
 apps/api/src/modules/<modulo>/   identity · catalog · forms · requests · assignment · documents · audit
 apps/api/src/modules/notifications/   mecanismo transversal de outbox (ADR-SW-004)
+apps/api/src/read-composition/    lecturas que componen módulos, p. ej. historial (TDD-SW-007)
+packages/types/                   @maps/types: contratos de sólo tipos (AuditRecord, TDD-SW-007)
 apps/web/src/features/            auth · catalogo · solicitudes · admin · productor
 ```
 

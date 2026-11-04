@@ -1,4 +1,4 @@
-// Reglas de arquitectura de la API (ADR-SW-001, ADR-SW-002, ADR-SW-004).
+// Reglas de arquitectura de la API (ADR-SW-001, ADR-SW-002, ADR-SW-004, TDD-SW-006, TDD-SW-007).
 // Es una función para aplicar exactamente las mismas reglas al código real (eslint.config.mjs)
 // y a los fixtures de apps/api/tests/architecture, que prueban que bloquean lo prohibido.
 import { join } from 'node:path';
@@ -24,6 +24,13 @@ const MODULE_DEPENDENCIES = {
 // justificación (sólo librerías puras, sin I/O ni framework). Hoy: ninguna.
 const PURE_LIBRARIES = [];
 
+// Paquetes de sólo tipos que las capas puras importan únicamente con `import type`.
+const TYPE_ONLY_PACKAGES = ['@maps/types']; // TDD-SW-007: contrato AuditRecord compartido
+
+// Composición de lectura (TDD-SW-007, GetRequestHistory): fuera de los módulos, sin datos ni
+// escrituras; sólo consume estos ports/in y sólo la importa el composition root.
+const READ_COMPOSITION_DEPENDENCIES = ['audit', 'assignment', 'identity'];
+
 // Selectores de boundaries v7: una capa, opcionalmente del mismo módulo que el origen.
 const from = (...types) => ({ element: { types } });
 const to = (type) => ({ to: { element: { type } } });
@@ -32,32 +39,50 @@ const sameModule = (type) => ({
 });
 const ofModule = (type, module) => ({ to: { element: { type, captured: { module } } } });
 
-// Todo specifier que no sea relativo ni una librería pura permitida.
 // Los nombres se escapan para que un `.` o `+` del paquete no amplíe la excepción.
 const escapeRegex = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-const nonRelative = `^(?!\\.{1,2}/${PURE_LIBRARIES.map((lib) => `|${escapeRegex(lib)}(/|$)`).join('')})`;
+const packageName = (lib) => `${escapeRegex(lib)}(/|$)`;
+
+/** Regex de todo specifier que no sea relativo ni uno de `allowed` (exportada para sus tests). */
+export function notAllowedSpecifier(allowed = []) {
+  return `^(?!\\.{1,2}/${allowed.map((lib) => `|${packageName(lib)}`).join('')})`;
+}
+
+// Valores (import, require, import()): sólo relativos y librerías puras.
+const valueSpecifier = notAllowedSpecifier(PURE_LIBRARIES);
+// Tipos: además, los paquetes de sólo tipos.
+const typeSpecifier = notAllowedSpecifier([...PURE_LIBRARIES, ...TYPE_ONLY_PACKAGES]);
+const asSelectorRegex = (regex) => `/${regex.replaceAll('/', '\\/')}/`;
+
 const LAYER_MESSAGE =
-  'domain/, application/ y ports/ no importan librerías, frameworks ni infraestructura: eso va en adapters/ (ADR-SW-002).';
+  'domain/, application/, ports/ y read-composition/ no importan librerías, frameworks ni infraestructura: eso va en adapters/ (ADR-SW-002).';
+const TYPE_ONLY_MESSAGE = '@maps/types es de sólo tipos: importalo con `import type` (TDD-SW-007).';
 
 /**
- * @param {{ root?: string, tsconfig?: string }} [options]
- *   root: carpeta `src` de la API (relativa a la raíz del repo).
+ * @param {{ root?: string, tsconfig?: string, typesPackage?: string }} [options]
+ *   root: carpeta `src` de la API; typesPackage: carpeta de @maps/types (relativas a la raíz del repo).
  */
-export function apiArchitecture({ root = 'apps/api/src', tsconfig = 'apps/api/tsconfig.json' } = {}) {
+export function apiArchitecture({
+  root = 'apps/api/src',
+  tsconfig = 'apps/api/tsconfig.json',
+  typesPackage = 'packages/types',
+} = {}) {
   const MODULE = `${root}/modules/*`;
-  const pureLayers = ['domain', 'application', 'ports/in', 'ports/out'].map(
-    (layer) => `${MODULE}/${layer}/**/*.ts`,
-  );
+  const READ_COMPOSITION = `${root}/read-composition`;
+  const pureLayers = [
+    ...['domain', 'application', 'ports/in', 'ports/out'].map((layer) => `${MODULE}/${layer}/**/*.ts`),
+    `${READ_COMPOSITION}/**/*.ts`,
+  ];
 
   return [
     // Límites de módulos y capas (ADR-SW-001, ADR-SW-002).
     {
-      files: [`${root}/**/*.ts`],
+      files: [`${root}/**/*.ts`, `${typesPackage}/**/*.ts`],
       plugins: { boundaries },
       settings: {
         'boundaries/root-path': REPO_ROOT,
         'import/resolver': { typescript: { project: join(REPO_ROOT, tsconfig) } },
-        'boundaries/include': [`${root}/**/*.ts`],
+        'boundaries/include': [`${root}/**/*.ts`, `${typesPackage}/**/*.ts`],
         // También analiza import() dinámicos y tipos inline import('x').T, no sólo import/export.
         'boundaries/dependency-nodes': ['import', 'export', 'dynamic-import', 'require'],
         'boundaries/elements': [
@@ -69,9 +94,11 @@ export function apiArchitecture({ root = 'apps/api/src', tsconfig = 'apps/api/ts
           { type: 'adapter-out', pattern: `${MODULE}/adapters/out`, capture: ['module'] },
           // Archivos sueltos en la raíz de un módulo: nadie los importa (evita barrels que salteen capas).
           { type: 'module-root', pattern: MODULE, capture: ['module'] },
-          { type: 'platform', pattern: `${root}/!(modules)` },
+          { type: 'read-composition', pattern: READ_COMPOSITION },
+          { type: 'platform', pattern: `${root}/!(modules|read-composition)` },
           // Último: lo que queda directo en src/ (app.ts, main.ts).
           { type: 'composition-root', pattern: root },
+          { type: 'shared-types', pattern: typesPackage },
         ],
       },
       rules: {
@@ -113,10 +140,31 @@ export function apiArchitecture({ root = 'apps/api/src', tsconfig = 'apps/api/ts
                 from: { element: { type: 'adapter-out', captured: { module: 'documents' } } },
                 allow: [ofModule('port-out', 'requests')],
               },
+              // Composición de lectura (TDD-SW-007): sólo los ports/in que compone.
+              {
+                from: from('read-composition'),
+                allow: [to('read-composition'), ...READ_COMPOSITION_DEPENDENCIES.map((dep) => ofModule('port-in', dep))],
+              },
+              // Contratos compartidos de sólo tipos (TDD-SW-007): los usan puertos, casos de uso y
+              // adaptadores, no el dominio. El paquete no importa nada de la API.
+              {
+                from: from('port-in', 'port-out', 'application', 'adapter-in', 'adapter-out', 'read-composition', 'composition-root'),
+                allow: [to('shared-types')],
+              },
+              { from: from('shared-types'), allow: [to('shared-types')] },
               // Composition roots: app.ts y main.ts cablean todo; http/ y config/ son técnicos.
               {
                 from: from('composition-root'),
-                allow: ['composition-root', 'platform', 'application', 'port-in', 'port-out', 'adapter-in', 'adapter-out'].map(to),
+                allow: [
+                  'composition-root',
+                  'platform',
+                  'read-composition',
+                  'application',
+                  'port-in',
+                  'port-out',
+                  'adapter-in',
+                  'adapter-out',
+                ].map(to),
               },
               { from: from('platform'), allow: [to('platform')] },
             ],
@@ -125,25 +173,33 @@ export function apiArchitecture({ root = 'apps/api/src', tsconfig = 'apps/api/ts
       },
     },
 
-    // domain/, application/ y ports/ no importan librerías: sólo código propio por ruta relativa
-    // (ADR-SW-002). Cubre import, import type, export ... from, import x = require(), require(),
-    // import() dinámico y tipos inline import('x').T.
+    // domain/, application/, ports/ y read-composition/ no importan librerías: sólo código propio
+    // por ruta relativa (ADR-SW-002), y @maps/types sólo como tipo. Cubre import, import type,
+    // export ... from, import x = require(), require(), import() dinámico y tipos inline import('x').T.
     {
       files: pureLayers,
       rules: {
         '@typescript-eslint/no-restricted-imports': [
           'error',
-          { patterns: [{ regex: nonRelative, message: LAYER_MESSAGE }] },
+          {
+            patterns: [
+              { regex: typeSpecifier, message: LAYER_MESSAGE },
+              {
+                regex: `^(${TYPE_ONLY_PACKAGES.map(packageName).join('|')})`,
+                allowTypeImports: true,
+                message: TYPE_ONLY_MESSAGE,
+              },
+            ],
+          },
         ],
         'no-restricted-syntax': [
           'error',
-          ...[
-            'ImportExpression > Literal',
-            'TSImportType > TSLiteralType > Literal',
-            'TSImportType > Literal',
-            "CallExpression[callee.name='require'] > Literal",
-          ].map((node) => ({
-            selector: `${node}[value=/${nonRelative.replaceAll('/', '\\/')}/]`,
+          ...['ImportExpression > Literal', "CallExpression[callee.name='require'] > Literal"].map((node) => ({
+            selector: `${node}[value=${asSelectorRegex(valueSpecifier)}]`,
+            message: LAYER_MESSAGE,
+          })),
+          ...['TSImportType > TSLiteralType > Literal', 'TSImportType > Literal'].map((node) => ({
+            selector: `${node}[value=${asSelectorRegex(typeSpecifier)}]`,
             message: LAYER_MESSAGE,
           })),
           {
@@ -156,6 +212,35 @@ export function apiArchitecture({ root = 'apps/api/src', tsconfig = 'apps/api/ts
             selector: "CallExpression[callee.name='require'][arguments.0.type!='Literal']",
             message: 'require() sólo con un string literal (ADR-SW-002).',
           },
+        ],
+      },
+    },
+
+    // @maps/types: sólo declaraciones de tipos, sin código ejecutable ni dependencias (TDD-SW-007).
+    {
+      files: [`${typesPackage}/**/*.ts`],
+      rules: {
+        '@typescript-eslint/no-restricted-imports': [
+          'error',
+          { patterns: [{ regex: notAllowedSpecifier(), message: '@maps/types no importa librerías (TDD-SW-007).' }] },
+        ],
+        'no-restricted-syntax': [
+          'error',
+          ...[
+            'VariableDeclaration',
+            'FunctionDeclaration',
+            'ClassDeclaration',
+            'TSEnumDeclaration',
+            'TSModuleDeclaration',
+            'ExportDefaultDeclaration',
+            'ExpressionStatement',
+            "ImportDeclaration[importKind!='type']",
+            "ExportNamedDeclaration[source][exportKind!='type']",
+            "ExportAllDeclaration[exportKind!='type']",
+          ].map((selector) => ({
+            selector,
+            message: '@maps/types sólo declara `type` e `interface` (TDD-SW-007).',
+          })),
         ],
       },
     },

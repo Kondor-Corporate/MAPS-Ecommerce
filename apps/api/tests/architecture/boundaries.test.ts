@@ -1,4 +1,4 @@
-// Pruebas de las reglas de arquitectura (ADR-SW-001, ADR-SW-002, ADR-SW-004, TDD-SW-006).
+// Pruebas de las reglas de arquitectura (ADR-SW-001, ADR-SW-002, ADR-SW-004, TDD-SW-006, TDD-SW-007).
 // Lintea un archivo virtual con un import dentro del árbol de fixtures, usando las mismas
 // reglas que `npm run lint` aplica a apps/api/src (eslint/architecture.mjs).
 import { dirname, join, resolve } from 'node:path';
@@ -6,6 +6,8 @@ import { fileURLToPath } from 'node:url';
 
 import { ESLint } from 'eslint';
 import { describe, expect, it } from 'vitest';
+
+import { notAllowedSpecifier } from '../../../../eslint/architecture.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(here, '../../../..');
@@ -21,19 +23,23 @@ const LIBRARY = '@typescript-eslint/no-restricted-imports';
 const SYNTAX = 'no-restricted-syntax';
 
 type Case = {
-  /** Carpeta del archivo que importa, relativa a fixtures/src. */
+  /** Carpeta del archivo que importa, relativa a fixtures/src (o a la raíz del repo si `inRepo`). */
   from: string;
+  inRepo?: boolean;
   code: string;
   /** Reglas que tienen que fallar; vacío = el import está permitido. */
   fails: string[];
 };
 
-async function lint({ from, code }: Case): Promise<string[]> {
-  const filePath = join(fixturesSrc, from, '__case__.ts');
+async function lint({ from, code, inRepo }: Case): Promise<string[]> {
+  const filePath = join(inRepo ? repoRoot : fixturesSrc, from, '__case__.ts');
   const [result] = await eslint.lintText(code, { filePath });
   if (!result) throw new Error('ESLint no devolvió resultado');
-  return result.messages.map((m) => m.ruleId ?? `fatal: ${m.message}`);
+  // "regla: mensaje", para que una falla muestre por qué se bloqueó o se permitió.
+  return result.messages.map((m) => `${m.ruleId ?? 'fatal'}: ${m.message}`);
 }
+
+const rulesOf = (messages: string[]) => messages.map((m) => m.slice(0, m.indexOf(':')));
 
 const blocked: Record<string, Case> = {
   // ADR-SW-002: domain/, application/ y ports/ no importan frameworks, ORM ni infraestructura.
@@ -207,6 +213,86 @@ const blocked: Record<string, Case> = {
     code: "import { requestsRouter } from '../modules/requests/adapters/in/requestsRouter.js';",
     fails: [BOUNDARIES],
   },
+
+  // TDD-SW-007: @maps/types es un paquete de sólo tipos; desde las capas puras sólo con import type.
+  'application → valor de @maps/types': {
+    from: 'modules/requests/application',
+    code: "import { AuditRecord } from '@maps/types';\nexport const r = AuditRecord;",
+    fails: [LIBRARY],
+  },
+  'domain → @maps/types (el dominio no usa contratos compartidos)': {
+    from: 'modules/requests/domain',
+    code: "import type { AuditRecord } from '@maps/types';\nexport type R = AuditRecord;",
+    fails: [BOUNDARIES],
+  },
+  'application → export (valor) from @maps/types': {
+    from: 'modules/requests/application',
+    code: "export { AuditRecord } from '@maps/types';",
+    fails: [LIBRARY],
+  },
+  'application → import() dinámico de @maps/types': {
+    from: 'modules/requests/application',
+    code: "export const load = () => import('@maps/types');",
+    fails: [SYNTAX],
+  },
+  'application → paquete con nombre parecido (@maps/types-extra)': {
+    from: 'modules/requests/application',
+    code: "import type { X } from '@maps/types-extra';\nexport type Y = X;",
+    fails: [LIBRARY],
+  },
+  'packages/types → valor (const)': {
+    from: 'packages/types/src',
+    inRepo: true,
+    code: "export const AUDIT_ACTIONS = ['SUBMIT'];",
+    fails: [SYNTAX],
+  },
+  'packages/types → función': {
+    from: 'packages/types/src',
+    inRepo: true,
+    code: 'export function isAction(value: string): boolean { return value.length > 0; }',
+    fails: [SYNTAX],
+  },
+  'packages/types → clase': { from: 'packages/types/src', inRepo: true, code: 'export class AuditRecord {}', fails: [SYNTAX] },
+  'packages/types → enum': { from: 'packages/types/src', inRepo: true, code: 'export enum Category { NEGOCIO }', fails: [SYNTAX] },
+  'packages/types → librería (express)': {
+    from: 'packages/types/src',
+    inRepo: true,
+    code: "import type { Request } from 'express';\nexport type R = Request;",
+    fails: [LIBRARY],
+  },
+  'packages/types → código de la API': {
+    from: 'packages/types/src',
+    inRepo: true,
+    code: "import type { AuditPort } from '../../../apps/api/tests/architecture/fixtures/src/modules/audit/ports/in/AuditPort.js';\nexport type A = AuditPort;",
+    fails: [BOUNDARIES],
+  },
+
+  // TDD-SW-007: la composición de lectura (GetRequestHistory) está fuera de los módulos y ningún módulo la invoca.
+  'requests/application → read-composition': {
+    from: 'modules/requests/application',
+    code: "import { getRequestHistory } from '../../../read-composition/GetRequestHistory.js';\nexport const g = getRequestHistory;",
+    fails: [BOUNDARIES],
+  },
+  'requests/adapters/in → read-composition': {
+    from: 'modules/requests/adapters/in',
+    code: "import { getRequestHistory } from '../../../../read-composition/GetRequestHistory.js';\nexport const g = getRequestHistory;",
+    fails: [BOUNDARIES],
+  },
+  'read-composition → requests/ports/in (no fijado por TDD-SW-007)': {
+    from: 'read-composition',
+    code: "import type { RequestQueryPort } from '../modules/requests/ports/in/RequestQueryPort.js';\nexport type R = RequestQueryPort;",
+    fails: [BOUNDARIES],
+  },
+  'read-composition → audit/adapters/out': {
+    from: 'read-composition',
+    code: "import { auditEventRepository } from '../modules/audit/adapters/out/AuditEventRepositoryAdapter.js';\nexport const a = auditEventRepository;",
+    fails: [BOUNDARIES],
+  },
+  'read-composition → express': {
+    from: 'read-composition',
+    code: "import type { Request } from 'express';\nexport type R = Request;",
+    fails: [LIBRARY],
+  },
 };
 
 const allowed: Record<string, Case> = {
@@ -256,12 +342,55 @@ const allowed: Record<string, Case> = {
     ].join('\n'),
     fails: [],
   },
+
+  'ports/out → import type de @maps/types (AuditPort, TDD-SW-007)': {
+    from: 'modules/requests/ports/out',
+    code: "import type { AuditRecord } from '@maps/types';\nexport type AuditPort = { record(event: AuditRecord): Promise<void> };",
+    fails: [],
+  },
+  'application → export type from y tipo inline de @maps/types': {
+    from: 'modules/audit/application',
+    code: "export type { AuditRecord } from '@maps/types';\nexport type R = import('@maps/types').AuditRecord;",
+    fails: [],
+  },
+  'packages/types → sólo tipos e interfaces': {
+    from: 'packages/types/src',
+    inRepo: true,
+    code: "export type AuditCategory = 'NEGOCIO' | 'IDENTIDAD';\nexport interface AuditRecord { id: string; category: AuditCategory }\nexport type { AuditRecord as Record } from './index.js';",
+    fails: [],
+  },
+  'read-composition → ports/in de audit, assignment e identity (TDD-SW-007)': {
+    from: 'read-composition',
+    code: [
+      "import type { AuditPort } from '../modules/audit/ports/in/AuditPort.js';",
+      "import type { AssignmentQueryPort } from '../modules/assignment/ports/in/AssignmentQueryPort.js';",
+      "import type { AccessScopePort } from '../modules/identity/ports/in/AccessScopePort.js';",
+      'export type Deps = [AuditPort, AssignmentQueryPort, AccessScopePort];',
+    ].join('\n'),
+    fails: [],
+  },
+  'composition root → read-composition': {
+    from: '',
+    code: "import { getRequestHistory } from './read-composition/GetRequestHistory.js';\nexport const g = getRequestHistory;",
+    fails: [],
+  },
 };
 
 describe('reglas de arquitectura: imports prohibidos fallan', () => {
   it.each(Object.entries(blocked))('%s', async (_name, testCase) => {
-    const rules = await lint(testCase);
-    for (const rule of testCase.fails) expect(rules).toContain(rule);
+    const messages = await lint(testCase);
+    for (const rule of testCase.fails) expect(rulesOf(messages), messages.join('\n')).toContain(rule);
+  });
+});
+
+describe('reglas de arquitectura: lista permitida de librerías', () => {
+  it('escapa los nombres: una excepción "lodash.get" no abre "lodashXget"', () => {
+    const blocked = new RegExp(notAllowedSpecifier(['lodash.get']));
+    expect(blocked.test('lodash.get')).toBe(false);
+    expect(blocked.test('lodash.get/sub')).toBe(false);
+    expect(blocked.test('./relativo.js')).toBe(false);
+    expect(blocked.test('lodashXget')).toBe(true);
+    expect(blocked.test('lodash.getter')).toBe(true);
   });
 });
 

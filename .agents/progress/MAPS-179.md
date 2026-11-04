@@ -18,7 +18,7 @@
 - Tests escritos primero; fallaron por falta de implementación (`Cannot find module ../src/app.js`, `Failed to resolve ./HomePage`).
 - API Express 5 con `createApp()` + `main.ts`; carpetas hexagonales en los 8 módulos.
 - Web React + Vite con proxy `/api`; `HomePage` con estados cargando / ok / error.
-- Reglas de límites probadas con fixtures automatizados: `apps/api/tests/architecture/boundaries.test.ts` (36 prohibidos + 7 permitidos), que usan las mismas reglas que el lint (`eslint/architecture.mjs`). Contra las reglas anteriores fallaban 15 (librerías en application/ports, import() dinámico, require, tipos inline y `* → notifications/ports/in`).
+- Reglas de límites probadas con fixtures automatizados: `apps/api/tests/architecture/boundaries.test.ts` (52 prohibidos + 12 permitidos + 1 test del escape), que usan las mismas reglas que el lint (`eslint/architecture.mjs`). Contra las reglas anteriores fallaban 15 (librerías en application/ports, import() dinámico, require, tipos inline y `* → notifications/ports/in`).
 - Prueba manual: `npm run dev`, `curl :3000/health` y `:5173/api/v1/health` → 200 `{"status":"ok"}`; la página muestra "API operativa".
 - AGENTS.md §3/§4 y README actualizados.
 
@@ -46,7 +46,17 @@
     (coincide con la única excepción del lint hacia un `ports/out` ajeno).
   - Reglas extraídas a `eslint/architecture.mjs` (función) para aplicarlas igual a `src` y a los
     fixtures; `boundaries/root-path` fijo en la raíz del repo (no depende del cwd).
-  - CI nuevo: `.github/workflows/ci.yml` (typecheck, lint, build, test en PR y push a development/main).
+  - CI nuevo: `.github/workflows/ci.yml` (typecheck, lint, build, test en PR y push a development/main;
+    `actions/checkout` y `actions/setup-node` en v7, que ya no usan Node 20).
+- Pendientes declarados en la respuesta a la review, resueltos en este PR:
+  - TDD-SW-007: `@maps/types` (`packages/types`), paquete de sólo tipos (el lint rechaza valores,
+    funciones, clases, enums y librerías); las capas puras lo importan sólo con `import type` y el
+    dominio no lo usa. `apps/api/src/read-composition/` sólo consume `ports/in` de Audit, Assignment e
+    Identity y sólo la importa el composition root. TDD-SW-007 anota la ubicación en el código.
+  - Integración web ↔ API vía proxy automatizada: `apps/web/src/test/api-proxy.integration.test.ts`
+    levanta la API real (tsx, puerto libre) y el dev server de Vite con su config, y pide
+    `/api/v1/health` (200 `{ status: "ok" }`) y una ruta inexistente (404 de la API, no la SPA).
+  - Test del escape de la lista permitida (`notAllowedSpecifier`): `lodash.get` no abre `lodashXget`.
 - `engines.node` sube a `>=22.12`: Node 20 está fuera de soporte desde 2026-04 y Vitest/Vite actuales lo exigen. Actualiza AGENTS.md §3.
 - TypeScript 6.0 (typescript-eslint todavía no soporta 7.x).
 - `common/`, `database/`, `integrations/` de `apps/api/src` quedan intactos (A3 / fuera de alcance).
@@ -60,9 +70,8 @@
 ## Pendiente (fuera de esta historia)
 - `npm audit` reporta 12 vulnerabilidades moderadas en dependencias de desarrollo; sin tratar acá.
 - Logger/requestId y errores `problem+json` de TDD-SW-008 (hoy `BORRADOR`).
-- TDD-SW-007: el paquete de tipos compartido de `AuditRecord` y la capa de composición de lectura (`GetRequestHistory`) no tienen lugar en el lint todavía; se agregan con la historia de Audit.
-- Integración web↔API vía proxy automatizada: sólo verificación manual (mejora opcional de la review).
+- El contenido de `AuditRecord` en `@maps/types` y `GetRequestHistory` los implementa la historia de Audit (acá sólo su lugar y sus reglas).
 - Postgres/Prisma en A3.
 
 ## Próximo paso
-- Revisor sobre lo stageado → commit → push a `feat/MAPS-179-scaffold-api-web` → responder la review de Santiago y pedir re-review.
+- Responder la review de Santiago (general + 2 hilos inline) y pedir re-review del diff `b8591cb..HEAD`.
