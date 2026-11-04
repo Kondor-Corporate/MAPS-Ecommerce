@@ -135,7 +135,7 @@ RN-19 fija como decisión de alcance Kondor para el MVP que una DERIVADA afectad
 La invitación sigue vinculada por token de un solo uso y por email verificado igual al invitado, no sólo por email. Al aceptar:
 
 - **Identidad sin cuenta:** se crea la cuenta con rol `PRODUCTOR`, como antes.
-- **Identidad con cuenta `ACTIVA` que ya es `ADMIN` y no tiene `PRODUCTOR`:** se **agrega** el rol `PRODUCTOR` a esa cuenta y se vincula al `Producer`, en la misma operación que consume la invitación. No se crea otra cuenta ni se pide otro email.
+- **Identidad con cuenta `ACTIVA` que ya es `ADMIN` y no tiene `PRODUCTOR` activo:** se **agrega** (o se concede de nuevo, si estaba `RETIRADO`) el rol `PRODUCTOR` a esa cuenta y se vincula al `Producer`, en la misma operación que consume la invitación. No se crea otra cuenta ni se pide otro email.
 - **Cualquier otra identidad con cuenta** (`CLIENTE`, `PRODUCTOR` ya activo o cuenta en `BAJA`) no puede aceptar y recibe un error de dominio explícito; ninguna invitación convierte una cuenta de Cliente en otra cosa.
 
 ### 6. MFA del Portal fuera del MVP
@@ -176,7 +176,7 @@ Este ADR no elige proveedor de identidad, formato de token ni duración de sesi�
 | Alinear ADR-CLD-007 y TDD-CLD-006 (MFA de Admin, rol único, *spike* de MFA por rol) | Cloud + Software | Una vez aceptado este ADR, Cloud actualiza sus referencias; hasta entonces sus documentos contradicen esta propuesta |
 | Hito de revisión del riesgo de no tener MFA | Kondor + MAPS | Confirmar el hito propuesto (antes del primer despliegue con datos reales) |
 | Autoasignación de un Admin que también es Productor | Kondor + MAPS | Decidir si se permite, se registra con una marca de auditoría o se prohíbe; este ADR no la restringe, así que queda permitida por defecto |
-| Baja y reactivación de una cuenta con `ADMIN` (¿puede un Admin hacerlo a otro Admin o a sí mismo?) y quién solicita `create-admin` y su retiro | Kondor + MAPS | Sin política definida: deny by default hasta decidirlo | Decidir el procedimiento y registrarlo en TDD-SW-004 |
+| Baja y reactivación de una cuenta con `ADMIN` (¿puede un Admin hacerlo a otro Admin o a sí mismo?) y quién solicita `create-admin` y su retiro | Kondor + MAPS | Sin política definida (deny by default) hasta decidirlo; decidir el procedimiento y registrarlo en TDD-SW-004 |
 | Retiro o baja del último Admin activo | Kondor | Decidir si se bloquea; hoy TDD-SW-004 prevé dos o tres Admins y gestión por operación |
 | Procedimiento de operación para agregar y retirar `ADMIN` | Software + Cloud | Se detalla en TDD-SW-004 (`create-admin` y su complemento de retiro) |
 | Aceptación de este ADR | Joaquin Rodriguez + Santiago Talavera | Revisión cruzada Cloud/seguridad favorable y conformidad del owner |
@@ -187,7 +187,7 @@ Este ADR no elige proveedor de identidad, formato de token ni duración de sesi�
 
 ### Documentos que se ajustan al aceptar este ADR
 
-Mientras este ADR esté `PROPUESTO`, estos textos siguen en su redacción actual y deben revisarse al aceptarlo: [TDD-SW-003](../../tdd/MAPS-113-insurance-request-estados/TDD-SW-003-insurance-request-y-maquina-de-estados.md) (`APROBADO`; `PRODUCTOR_NO_DISPONIBLE`: la elegibilidad pasa a ser cuenta `ACTIVA` con rol `PRODUCTOR` `ACTIVO`) y [TDD-SW-006](../../tdd/MAPS-115-adjuntos-documentos/TDD-SW-006-adjuntos-y-documentos.md) (acceso del Productor a documentos, mismo criterio). TDD-SW-004, TDD-SW-005, TDD-SW-007 y TDD-SW-008 (`BORRADOR`) ya siguen esta propuesta, pero no pasan a `EN REVISIÓN` ni `APROBADO` hasta que este ADR esté `ACEPTADO`.
+Mientras este ADR esté `PROPUESTO`, estos textos siguen en su redacción actual y deben revisarse al aceptarlo: [TDD-SW-003](../../tdd/MAPS-113-insurance-request-estados/TDD-SW-003-insurance-request-y-maquina-de-estados.md) (`APROBADO`; `PRODUCTOR_NO_DISPONIBLE`: la elegibilidad pasa a ser cuenta `ACTIVA` con rol `PRODUCTOR` `ACTIVO`). TDD-SW-004, TDD-SW-005, TDD-SW-006, TDD-SW-007 y TDD-SW-008 (`BORRADOR`) ya siguen esta propuesta, pero no pasan a `EN REVISIÓN` ni `APROBADO` hasta que este ADR esté `ACEPTADO`.
 
 ## Criterios de revisión futura
 

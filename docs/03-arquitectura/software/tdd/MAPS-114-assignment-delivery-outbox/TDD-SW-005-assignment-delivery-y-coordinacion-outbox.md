@@ -74,7 +74,7 @@ Assignment (owner de Assignment y DeliveryAttempt)
     └── DeliveryAttemptRepository
 ```
 
-**Dirección de dependencias.** Assignment depende de Requests e Identity, que es la dirección fijada por [ADR-SW-001](../../adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-001-monolito-modular-y-limites.md). Requests **no** llama a Assignment (ver TDD-SW-003) e Identity tampoco. Identity es owner del estado de la cuenta del Productor. Assignment la consulta para la elegibilidad y, sólo en la baja guiada, pide pasarla a `BAJA` a través de un puerto de entrada de Identity, dentro de su unidad de trabajo ([TDD-SW-004](../MAPS-111-identidad-rbac-ownership/TDD-SW-004-identidad-rbac-y-ownership.md)).
+**Dirección de dependencias.** Assignment depende de Requests e Identity, que es la dirección fijada por [ADR-SW-001](../../adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-001-monolito-modular-y-limites.md). Requests **no** llama a Assignment (ver TDD-SW-003) e Identity tampoco. Identity es owner del estado de la cuenta del Productor. Assignment la consulta para la elegibilidad y, sólo en la baja guiada, pide retirar el rol `PRODUCTOR` (si la cuenta conserva `ADMIN` activo) o pasarla a `BAJA` (si era su único rol) a través de un puerto de entrada de Identity, dentro de su unidad de trabajo ([TDD-SW-004](../MAPS-111-identidad-rbac-ownership/TDD-SW-004-identidad-rbac-y-ownership.md)).
 
 **Iniciador de transacciones.** Assignment inicia `AssignProducer`, `ReassignProducer`, `CancelAssignment` y `DeactivateProducer`. Cada una abre una única unidad de trabajo que incluye las escrituras de Requests a través de su puerto, según el punto 4 de la decisión de [ADR-SW-003](../../adr/MAPS-108-persistencia-fronteras-transaccionales/ADR-SW-003-persistencia-y-fronteras-transaccionales.md). Assignment sólo escribe en Identity mediante `ProducerAccountCommandPort`, en la baja guiada.
 
@@ -359,7 +359,7 @@ De aplicación (con dobles de puertos):
 - Resultado de éxito con DERIVADA (reasignación): Assignment `EFECTIVO` y solicitud sin cambios.
 - Resultado de fallo: la solicitud permanece ASIGNADA o DERIVADA.
 - Resultado duplicado: segunda aplicación sin efecto.
-- Evento de Assignment cerrado o de Productor en `BAJA`: `DESCARTADO` sin llamar al proveedor.
+- Evento de Assignment cerrado, de Productor en `BAJA` o de una cuenta sin rol `PRODUCTOR` `ACTIVO` (por ejemplo, con el rol retirado y la cuenta `ACTIVA` como Admin): `DESCARTADO` sin llamar al proveedor.
 - Reasignar DERIVADA: el Productor anterior pierde acceso en el mismo commit; el nuevo no lo tiene hasta el éxito.
 - Cancelación aprobada de DERIVADA durante una reasignación pendiente: cierra el Assignment `PENDIENTE_ENTREGA`; un resultado posterior queda obsoleto y no restaura acceso.
 - Reintento manual crea intento y clave nuevos; no reactiva el evento agotado.
@@ -380,11 +380,11 @@ De integración, con base real y proveedor simulado:
 - Dos workers con el lease vencido sobre el mismo evento: sólo uno registra resultado; el otro queda descartado por el token de lease.
 - Dos acciones Admin concurrentes (reasignar y cancelar, o reintentar y reasignar): una sola tiene efecto.
 - Baja guiada concurrente con una cancelación del Cliente sobre uno de sus casos: la baja falla completa con `CONFLICTO_CONCURRENCIA` y la cuenta sigue `ACTIVA`.
-- Baja guiada contra `AssignProducer` hacia el mismo Productor: o la asignación confirma antes y la baja falla con `CONFLICTO_CONCURRENCIA` por el caso nuevo, o la baja confirma antes y la asignación recibe `PRODUCTOR_NO_DISPONIBLE`. En ningún orden queda un Assignment abierto hacia una cuenta `BAJA`.
+- Baja guiada contra `AssignProducer` hacia el mismo Productor: o la asignación confirma antes y la baja falla con `CONFLICTO_CONCURRENCIA` por el caso nuevo, o la baja confirma antes y la asignación recibe `PRODUCTOR_NO_DISPONIBLE`. En ningún orden queda un Assignment abierto hacia una cuenta `BAJA` ni hacia una cuenta sin rol `PRODUCTOR` `ACTIVO`.
 - Baja guiada contra `ReassignProducer` que elige al saliente como destino: mismo resultado.
 - Baja guiada contra `RecordDeliveryResult` sobre uno de sus casos: o el resultado queda obsoleto, o la baja falla completa.
 - Dos bajas cruzadas (A reasigna a B y B a A): una confirma, la otra falla sin cambios parciales y ninguna queda esperando indefinidamente.
-- Baja guiada contra la baja del Productor destino: ningún caso termina asignado a una cuenta `BAJA`.
+- Baja guiada contra la baja del Productor destino: ningún caso termina asignado a una cuenta `BAJA` ni a una sin rol `PRODUCTOR` `ACTIVO`.
 - Resultado de entrega que llega después de baja o cancelación: Assignment cerrado sin cambios; el resultado queda auditado.
 - Pruebas de integración contra base real. Las comprobaciones con locks locales al proceso no cuentan como evidencia.
 

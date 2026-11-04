@@ -112,7 +112,7 @@ Reglas de la invitación:
 
 - El token es de un solo uso y de alta entropía. Sólo se guarda su hash.
 - Vence a los 7 días como valor inicial configurable.
-- **Reemisión.** Reenviar emite un token nuevo e invalida el anterior en la misma operación. Editar el email del Productor con una invitación `PENDIENTE` también la invalida y emite una nueva a la dirección nueva. Una invitación vencida o invalidada sólo se reemplaza con una reemisión del Admin.
+- **Reemisión.** Reenviar emite un token nuevo e invalida el anterior en la misma operación. Editar el email del Productor con una invitación `PENDIENTE` también la invalida y emite una nueva a la dirección nueva. Una invitación vencida o invalidada sólo se reemplaza con una reemisión del Admin. Si el `Producer` ya tiene una `UserIdentity` vinculada cuyo rol `PRODUCTOR` está `RETIRADO`, la misma reemisión emite una invitación que lo concede de nuevo: sólo la cuenta ya vinculada puede aceptarla (otra identidad recibe `INVITACION_INVALIDA`) y el rol pasa a `ACTIVO` como una concesión nueva, con fecha y motivo.
 - **Normalización.** El email invitado y el email verificado se comparan sin espacios al inicio o al final y en minúsculas. No se aplican otras equivalencias (puntos, sufijos `+`), porque dependen de cada proveedor de correo.
 - Fuera de los dos casos del paso 4 no se acepta: una identidad con cuenta `CLIENTE` se rechaza con `ROL_INCOMPATIBLE` (el Cliente no se combina con otro rol); una cuenta que ya tiene `PRODUCTOR` `ACTIVO`, con `REGISTRO_YA_COMPLETO`; una cuenta en `BAJA`, con `CUENTA_INACTIVA`. Ninguna invitación convierte una cuenta existente en otra cosa que Admin + Productor.
 - Si el rol `PRODUCTOR` de la cuenta estaba `RETIRADO`, una invitación nueva del Admin lo **concede de nuevo** como acción explícita (ver [Roles de la cuenta](#roles-de-la-cuenta)).
@@ -182,7 +182,7 @@ Toda operación sin política declarada se rechaza con `ACCESO_DENEGADO`. La col
 | `ReassignDerived` | Admin | Sólo dentro de la baja guiada (`REASIGNACION_DERIVADA_NO_PERMITIDA` fuera de ella); sin cancelación `SOLICITADA` |
 | `MarkDerived` | Sistema | Entrega exitosa acreditada (TDD-SW-005); no es un actor humano |
 | ABM de categorías, productos y formularios | Admin | — |
-| ABM de Productores (alta con invitación, edición, baja guiada, reactivación) | Admin | La baja sigue el flujo guiado y retira el rol `PRODUCTOR` |
+| ABM de Productores (alta con invitación, edición, baja guiada, reactivación) | Admin | La baja sigue el flujo guiado: retira el rol `PRODUCTOR` si la cuenta conserva `ADMIN` activo, o da de baja la cuenta si era su único rol |
 | ABM de Clientes (edición, baja, reactivación) | Admin | No edita el email; sólo los datos permitidos |
 | Ver y editar Mi perfil | Cliente | Sólo el propio; campos pendientes de MAPS |
 | Conceder o retirar `ADMIN` | Kondor | Comandos de operación fuera del Portal; nunca sobre una cuenta `CLIENTE` |
@@ -238,7 +238,7 @@ Consecuencias:
 
 ### Reactivación de Productor
 
-La reactivación vuelve la cuenta a `ACTIVA` con auditoría y aviso, y recupera los roles que seguían `ACTIVO`. **No restaura roles `RETIRADO`**: si el rol `PRODUCTOR` fue retirado en una cuenta que seguía activa como Admin, se concede de nuevo con una invitación explícita. Una cuenta que sólo era Productor se reactiva con su rol `PRODUCTOR` `ACTIVO` (RN-19). No devuelve al Productor las solicitudes que ya fueron reasignadas; vuelve a ser elegible para nuevas asignaciones cuando su rol `PRODUCTOR` está `ACTIVO`.
+La reactivación vuelve la cuenta a `ACTIVA` con auditoría y aviso, y recupera los roles que seguían `ACTIVO`. **No restaura roles `RETIRADO`**: si el rol `PRODUCTOR` fue retirado en una cuenta que seguía activa como Admin, se concede de nuevo con una invitación explícita (la reemisión descrita arriba); pedir la reactivación de una cuenta que ya está `ACTIVA` se rechaza con `CUENTA_NO_EN_BAJA`. Una cuenta que sólo era Productor se reactiva con su rol `PRODUCTOR` `ACTIVO` (RN-19). No devuelve al Productor las solicitudes que ya fueron reasignadas; vuelve a ser elegible para nuevas asignaciones cuando su rol `PRODUCTOR` está `ACTIVO`.
 
 ### Códigos de error
 
@@ -250,6 +250,7 @@ La reactivación vuelve la cuenta a `ACTIVA` con auditoría y aviso, y recupera 
 | `REGISTRO_PENDIENTE` | Una identidad válida sin cuenta invoca un caso de uso que la requiere (definido en TDD-SW-008) |
 | `REGISTRO_YA_COMPLETO` | La identidad ya tiene cuenta y no corresponde crearla (registro del Cliente) ni agregarle el rol (invitación a una cuenta con `PRODUCTOR` `ACTIVO`) |
 | `ROL_INCOMPATIBLE` | Se intenta combinar `CLIENTE` con otro rol (invitación a una cuenta de Cliente, o `ADMIN` sobre una cuenta `CLIENTE`) |
+| `CUENTA_NO_EN_BAJA` | Se pide reactivar una cuenta que está `ACTIVA` (por ejemplo, para restaurar un rol retirado) |
 | `INVITACION_INVALIDA` | Token inexistente, usado, vencido o invalidado |
 | `EMAIL_NO_COINCIDE` | El email verificado no es el invitado |
 | `PRODUCTOR_NO_DISPONIBLE` | El Productor destino no es elegible: cuenta no `ACTIVA` o rol `PRODUCTOR` no `ACTIVO` (reutilizado de TDD-SW-005) |
@@ -268,7 +269,7 @@ El modelo lógico parte de [TDD-SW-001](../MAPS-109-modelo-dominio-datos/TDD-SW-
 | `UserIdentity` | `issuer`, `subject`, estado (`ACTIVA`, `BAJA`), fecha, Admin y motivo de baja o reactivación | Par `issuer + subject` único; una cuenta `ACTIVA` tiene al menos un rol `ACTIVO` |
 | `AccountRole` | `userIdentityId`, rol (`CLIENTE`, `PRODUCTOR`, `ADMIN`), estado (`ACTIVO`, `RETIRADO`), fechas de concesión y retiro, Admin u operación y motivo | A lo sumo un `ACTIVO` por (cuenta, rol); `CLIENTE` no coexiste con otro rol; sin vínculos a Customer/Producer para `ADMIN`; el `Producer` se vincula a la cuenta con rol `PRODUCTOR` |
 | `Customer` | Email (copia del verificado, sólo lectura), datos del perfil básico (campos a confirmar) | A lo sumo una `UserIdentity`; los datos sensibles de cada solicitud viven en sus respuestas y no en el perfil |
-| `Producer` | Datos, email, referencia a `UserIdentity` (vacía hasta aceptar la invitación) | A lo sumo una `UserIdentity` (índice único); sin `UserIdentity` activa no es asignable |
+| `Producer` | Datos, email, referencia a `UserIdentity` (vacía hasta aceptar la invitación) | A lo sumo una `UserIdentity` (índice único); sin cuenta `ACTIVA` vinculada con rol `PRODUCTOR` `ACTIVO` no es asignable |
 | `ProducerInvitation` | `producerId`, email invitado (normalizado), hash del token, `expiresAt`, estado | A lo sumo una `PENDIENTE` por Productor; el token no se guarda en claro |
 
 Invariantes:
@@ -325,7 +326,7 @@ Las pruebas de política se ejecutan sin infraestructura (ADR-SW-002); las de in
 - **Assignment y acceso:** `PENDIENTE_ENTREGA` y `CERRADO` no autorizan al Productor; un resultado de entrega tardío no revive un Assignment `CERRADO`.
 - **Registro:** doble `CompleteRegistration` concurrente crea una sola cuenta; una identidad sin cuenta no ejecuta otros comandos.
 - **Invitación:** token usado, vencido, invalidado o con email distinto es rechazado; reenviar o editar el email invalida la anterior; el email con mayúsculas o espacios distintos coincide; una identidad con cuenta `ADMIN` `ACTIVA` y sin `PRODUCTOR` acepta y recibe el rol en su misma cuenta; una cuenta `CLIENTE`, una con `PRODUCTOR` ya activo o una en `BAJA` no aceptan; el token viaja sólo en el fragmento y en el cuerpo, nunca en ruta, query ni logs; un email verificado cambiado en el proveedor después de la emisión falla con `EMAIL_NO_COINCIDE`.
-- **Invitación, integración con PostgreSQL real:** dos aceptaciones concurrentes del mismo token (misma identidad o identidades distintas) crean una sola cuenta; aceptar y reemitir en paralelo tiene un solo efecto.
+- **Invitación, integración con PostgreSQL real:** dos aceptaciones concurrentes del mismo token (misma identidad o identidades distintas) crean una sola cuenta; aceptar y reemitir en paralelo tiene un solo efecto; dos aceptaciones concurrentes sobre la misma cuenta Admin conceden un solo rol `PRODUCTOR` (índice único por cuenta y rol).
 - **Baja guiada:** con casos sin destino se rechaza; con `CancellationRequest` pendiente se rechaza; sin otro Productor habilitado se bloquea; ante conflicto de concurrencia no queda ningún cambio parcial; tras el commit el Productor pierde el acceso y el nuevo no lo obtiene hasta la entrega exitosa. Las carreras con asignaciones, reasignaciones y resultados de entrega se prueban contra PostgreSQL real (TDD-SW-005).
 - **Reactivación:** no devuelve solicitudes ya reasignadas.
 - **Auditoría:** cada evento del catálogo se registra sin datos personales innecesarios.
@@ -377,7 +378,7 @@ Revisión técnica Software de Santiago Talavera en la PR #27. La revisión cruz
 | --- | --- |
 | RN-19 / decisión funcional pendiente | [Aclaraciones](#aclaraciones-respecto-del-adr-sw-005), baseline y [Decisiones abiertas](#decisiones-abiertas): decisión de alcance Kondor sin validación de MAPS, pendiente funcional distinto de un defecto técnico; cierra con DEP-07/MAPS-167 y, si corresponde, cambio controlado de F1/F2 y del prototipo |
 | Concurrencia de baja guiada | [Baja guiada de Productor](#baja-guiada-de-productor): bloqueos de cuenta que aporta Identity por sus puertos; la serialización completa y las pruebas con PostgreSQL real, en [TDD-SW-005](../MAPS-114-assignment-delivery-outbox/TDD-SW-005-assignment-delivery-y-coordinacion-outbox.md#baja-de-productor) |
-| Contrato de revocación / IdP | [Resolución del actor](#resolución-del-actor-por-request): revocación inmediata por consulta local; MFA, bloqueo del cambio de email, revocación de sesiones y TTL de caché sin garantizar hasta ADR-CLD-007/TDD-CLD-006; una caché se registra como desvío aceptado |
+| Contrato de revocación / IdP | [Resolución del actor](#resolución-del-actor-por-request): revocación inmediata por consulta local; MFA (ahora fuera del MVP por ADR-SW-007), bloqueo del cambio de email, revocación de sesiones y TTL de caché sin garantizar hasta ADR-CLD-007/TDD-CLD-006; una caché se registra como desvío aceptado |
 | Invitaciones y consistencia | [Alta e invitación de Productor](#alta-e-invitación-de-productor): reemisión, normalización, cambio de email o recuperación antes de aceptar, concurrencia y pruebas de aceptación concurrente |
 
 ## Alineación con ADR-SW-007 (2026-11-04)

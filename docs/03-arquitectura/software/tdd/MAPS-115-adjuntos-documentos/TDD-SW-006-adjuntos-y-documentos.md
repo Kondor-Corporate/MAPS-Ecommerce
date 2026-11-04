@@ -146,7 +146,7 @@ La respuesta de un campo `file` en `RequestAnswer` (owner: Requests) es la lista
 1. Política según [TDD-SW-004](../MAPS-111-identidad-rbac-ownership/TDD-SW-004-identidad-rbac-y-ownership.md), sobre la solicitud del documento:
    - Cliente dueño: los documentos de su solicitud, en cualquier estado.
    - Admin: desde ENVIADA, sólo documentos referenciados por las respuestas enviadas.
-   - Productor: DERIVADA con Assignment `EFECTIVO` propio y cuenta `ACTIVA`, sólo documentos referenciados; lectura.
+   - Productor: DERIVADA con Assignment `EFECTIVO` propio, rol `PRODUCTOR` `ACTIVO` y cuenta `ACTIVA` (ADR-SW-007, `PROPUESTO`), sólo documentos referenciados; lectura.
 2. El documento debe estar `DISPONIBLE` (`DOCUMENTO_NO_DISPONIBLE` si no).
 3. Auditoría de cada apertura por Admin o Productor: actor, solicitud, documento y fecha, sin nombre de archivo.
 4. `ObjectStoragePort` emite una URL de lectura de pocos minutos, que entrega el archivo **como descarga** (no para mostrarse dentro de la página) y con el tipo detectado, no el declarado. El nombre de descarga es el original saneado.
