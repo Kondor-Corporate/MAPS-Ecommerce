@@ -56,7 +56,7 @@ Assignment (owner de Assignment y DeliveryAttempt)
 │   ├── ReassignProducer         reasignación de ASIGNADA y de DERIVADA
 │   ├── RetryDelivery            reintento manual del Admin
 │   ├── CancelAssignment         coordina cancelación de ASIGNADA y decisión sobre DERIVADA
-│   ├── DeactivateProducer       baja guiada de Productor: reasigna sus casos y retira el rol PRODUCTOR; la cuenta pasa a BAJA si era su único rol activo (iniciador)
+│   ├── DeactivateProducer       baja guiada de Productor: reasigna sus casos y retira el rol PRODUCTOR si la cuenta conserva ADMIN activo, o da de baja la cuenta con PRODUCTOR aún ACTIVO si era su único rol activo (iniciador)
 │   ├── RecordDeliveryResult     recibe el resultado del procesador y aplica la regla de entrega
 │   └── DerivationEventHandler   handler de delivery.derivation_requested.v1
 ├── ports/in/
@@ -65,7 +65,7 @@ Assignment (owner de Assignment y DeliveryAttempt)
 └── ports/out/
     ├── InsuranceRequestAssignmentPort   puerto de Requests (ports/in de Requests, TDD-SW-003)
     ├── ProducerAccountPort              consulta de elegibilidad de la cuenta de Productor (Identity, sólo lectura, con bloqueo compartido)
-    ├── ProducerAccountCommandPort       retira el rol PRODUCTOR dentro de la baja guiada, con la cuenta a BAJA si era su único rol activo (ports/in de Identity, TDD-SW-004)
+    ├── ProducerAccountCommandPort       retira el rol PRODUCTOR dentro de la baja guiada si la cuenta conserva ADMIN activo, o da de baja la cuenta con PRODUCTOR aún ACTIVO si era su único rol activo (ports/in de Identity, TDD-SW-004)
     ├── ProducerDeliveryContactPort      resuelve transitoriamente la dirección vigente y la referencia de contacto (Identity, sólo lectura)
     ├── EmailProviderPort                envío con clave de idempotencia (adaptador cloud)
     ├── OutboxPort                       escritura de OutboxEvent en la misma unidad de trabajo (ADR-SW-004)
