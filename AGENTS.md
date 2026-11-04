@@ -69,6 +69,15 @@ Un solo workspace: `npm test -w @maps/api` · `npm run dev -w @maps/web`.
 La web llama a la API por `/api/v1` (proxy de Vite en local, mismo host en los ambientes).
 `GET /health` y `GET /api/v1/health` responden `{ "status": "ok" }` sin dependencias.
 
+Base de datos local (Postgres en docker, puerto 5433; detalle en [apps/api/AGENTS.md](./apps/api/AGENTS.md)):
+
+```
+docker compose up -d --wait                 Postgres con las bases maps y maps_test
+npm run db:migrate -w @maps/api             aplica migraciones (necesita DATABASE_URL)
+npm run db:seed -w @maps/api                carga el catálogo semilla
+npm run test:integration -w @maps/api       migra y corre la integración (DATABASE_URL a maps_test)
+```
+
 ## 5. Reglas no negociables
 
 1. Un módulo no importa repositorios, modelos ni tablas de otro módulo: usa sus `ports/in` (ADR-SW-001).
@@ -113,6 +122,8 @@ Detalle paso a paso: skill `nueva-historia` (`.claude/skills/nueva-historia/SKIL
   configurable y declaralo en el PR.
 - No pushees a `main` ni a `development`, no fuerces push, no toques `.env`, no corras nada contra
   bases que no sean locales o de test. (Además está bloqueado en `.claude/settings.json`.)
+- Nunca instales dependencias con `latest` ni sin versión (`npm i paquete`, `paquete@latest`, `npx paquete`):
+  fijá siempre una versión estable explícita (`paquete@1.2.3`, sin `-rc`, `-beta`, `-next` ni `-dev`).
 
 ## 9. Definición de terminado
 

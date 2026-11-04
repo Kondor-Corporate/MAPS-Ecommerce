@@ -31,6 +31,17 @@ Identity · Audit recibe eventos de todos y nadie depende de Audit. Sin ciclos.
 - `adapters/in/` HTTP: tests de contrato de los endpoints (status, forma, permisos por rol).
 - Un test por cada ítem del criterio de aceptación, nombrado con ese ítem.
 
+## Base de datos (Prisma 7)
+
+- Esquema y migraciones en `prisma/`; configuración en `prisma.config.ts`. El cliente se genera en
+  `src/database/generated/` (no se commitea; `npm install` lo genera, o `npm run db:generate`).
+- `src/database/prisma.ts` crea el cliente con el driver `pg`. Sólo lo importan `adapters/out/`,
+  `main.ts`, el seed y los tests.
+- `DATABASE_URL` sale del entorno o de `apps/api/.env` (no se commitea). Con el `docker-compose.yml`
+  de la raíz: `postgresql://maps:maps@localhost:5433/maps` (desarrollo) y `.../maps_test` (tests).
+- La integración se niega a correr si `DATABASE_URL` no apunta a un host local.
+- Reglas que Prisma no expresa (CHECK, triggers) se agregan a mano en el `migration.sql`.
+
 ## Zonas sensibles
 
 - `requests/domain`: máquina de estados (TDD-SW-003). Probá también las transiciones **prohibidas**.
