@@ -30,6 +30,14 @@ Cuanto más se repite, más dura la corrección:
   shell, y bloqueaba algunas búsquedas o mensajes legítimos; la revisión superó tres rondas ·
   análisis de comandos, validación del índice en Git pre-commit para Codex y casos de regresión
   en `.codex/tests/flujo.test.mjs`.
+- 2026-11-04 · MAPS-183 · la rama se apiló sobre otra sin mergear (#39) que no tenía el flujo de
+  revisión previa (#40/#41); el agente siguió la skill vieja de su worktree, commiteó, pusheó y abrió
+  PR (#43) sin revisor previo · #43 cerrado y rehecho en `-v2`; #39 sincronizado con `development` ·
+  pendiente: la skill §2 debería pedir verificar que la base tenga el flujo vigente de `development`.
+- 2026-11-04 · MAPS-183 · el merge de sincronización de `development` en #39 no está contemplado
+  por el flujo (el hook lo habría bloqueado) y además rompió el lint (hooks `.mjs` sin globales de
+  Node) · lint corregido en #39 con revisión previa · pendiente: definir cómo se revisa un merge de
+  sincronización y lintear `.claude/` y `.codex/` en el PR que los agrega.
 
 ## Pendientes de evaluar
 
