@@ -143,7 +143,7 @@ El token por sí solo no alcanza: la aceptación exige también el email verific
 
 Una cuenta tiene un **conjunto de roles** (`CLIENTE`, `PRODUCTOR`, `ADMIN`), cada uno con su propio estado `ACTIVO` o `RETIRADO`, fecha, Admin u operación y motivo (ADR-SW-007 §1).
 
-- **Combinaciones válidas:** `{CLIENTE}`, `{PRODUCTOR}`, `{ADMIN}` y `{ADMIN, PRODUCTOR}`. `CLIENTE` no coexiste con otro rol: una persona que sea Cliente y además Admin o Productor usa otra cuenta y otro email. No existe el rol `ADMIN_PRODUCTOR`.
+- **Combinaciones válidas:** `{CLIENTE}`, `{PRODUCTOR}`, `{ADMIN}` y `{ADMIN, PRODUCTOR}`. `CLIENTE` no coexiste con ningún otro `AccountRole`, en ningún estado: una persona que sea Cliente y además Admin o Productor usa otra cuenta y otro email. No existe el rol `ADMIN_PRODUCTOR`.
 - **Invariante:** una cuenta `ACTIVA` tiene al menos un rol `ACTIVO`. **Un rol sólo se retira si la cuenta conserva otro rol activo.** Si es su único rol activo, la operación es la baja de cuenta, que deja el rol `ACTIVO` para que la reactivación lo recupere (RN-19: la baja es reversible).
 - **Un caso de uso exige un rol.** Con `{ADMIN, PRODUCTOR}` la política de un caso de uso de Productor sólo mira el rol `PRODUCTOR` y la de uno de Admin sólo el rol `ADMIN`. Tener un rol no habilita las capacidades del otro.
 
@@ -267,14 +267,14 @@ El modelo lógico parte de [TDD-SW-001](../MAPS-109-modelo-dominio-datos/TDD-SW-
 | Entidad | Datos relevantes | Restricciones |
 | --- | --- | --- |
 | `UserIdentity` | `issuer`, `subject`, estado (`ACTIVA`, `BAJA`), fecha, Admin y motivo de baja o reactivación | Par `issuer + subject` único; una cuenta `ACTIVA` tiene al menos un rol `ACTIVO` |
-| `AccountRole` | `userIdentityId`, rol (`CLIENTE`, `PRODUCTOR`, `ADMIN`), estado (`ACTIVO`, `RETIRADO`), fechas de concesión y retiro, Admin u operación y motivo | A lo sumo un `ACTIVO` por (cuenta, rol); `CLIENTE` no coexiste con otro rol; sin vínculos a Customer/Producer para `ADMIN`; el `Producer` se vincula a la cuenta con rol `PRODUCTOR` |
+| `AccountRole` | `userIdentityId`, rol (`CLIENTE`, `PRODUCTOR`, `ADMIN`), estado (`ACTIVO`, `RETIRADO`), fechas de concesión y retiro, Admin u operación y motivo | A lo sumo un `ACTIVO` por (cuenta, rol); `CLIENTE` no coexiste con ningún otro `AccountRole`, en ningún estado; sin vínculos a Customer/Producer para `ADMIN`; el `Producer` se vincula a la cuenta con rol `PRODUCTOR` |
 | `Customer` | Email (copia del verificado, sólo lectura), datos del perfil básico (campos a confirmar) | A lo sumo una `UserIdentity`; los datos sensibles de cada solicitud viven en sus respuestas y no en el perfil |
 | `Producer` | Datos, email, referencia a `UserIdentity` (vacía hasta aceptar la invitación) | A lo sumo una `UserIdentity` (índice único); sin cuenta `ACTIVA` vinculada con rol `PRODUCTOR` `ACTIVO` no es asignable |
 | `ProducerInvitation` | `producerId`, email invitado (normalizado), hash del token, `expiresAt`, estado | A lo sumo una `PENDIENTE` por Productor; el token no se guarda en claro |
 
 Invariantes:
 
-- `ADMIN` y `PRODUCTOR` pueden coexistir en una cuenta; `CLIENTE` no se combina con otro rol, así que una persona Cliente y además Admin o Productor usa dos cuentas y dos emails. No existe el rol `ADMIN_PRODUCTOR` (ADR-SW-007). El Portal es la fuente de verdad de roles: el proveedor autentica una sola identidad y sus claims no los definen.
+- `ADMIN` y `PRODUCTOR` pueden coexistir en una cuenta; `CLIENTE` no coexiste con ningún otro `AccountRole`, en ningún estado, así que una persona Cliente y además Admin o Productor usa dos cuentas y dos emails. No existe el rol `ADMIN_PRODUCTOR` (ADR-SW-007). El Portal es la fuente de verdad de roles: el proveedor autentica una sola identidad y sus claims no los definen.
 - El estado de cuenta (`ACTIVA` o `BAJA`) es independiente del estado de cualquier `InsuranceRequest`.
 - No se modela inhabilitación: la elegibilidad para asignar depende sólo de la cuenta `ACTIVA` con rol `PRODUCTOR` `ACTIVO`. Si MAPS mantiene RN-20, se incorpora en Identity sin cambiar los flujos de Assignment (decisión 7 de TDD-SW-005).
 - El email del Cliente no es editable en el Portal ni por el Cliente ni por el Admin. Un cambio excepcional lo resuelve Kondor con un procedimiento manual y auditado que actualiza el proveedor y el Portal juntos.
@@ -387,7 +387,7 @@ Cambio controlado de este borrador por las dos decisiones de alcance del MVP del
 
 | Punto | Cambio en este documento |
 | --- | --- |
-| Rol único por cuenta | Conjunto de roles (`AccountRole`); `ADMIN` y `PRODUCTOR` coexisten, `CLIENTE` no se combina; sin `ADMIN_PRODUCTOR` ([Roles de la cuenta](#roles-de-la-cuenta)) |
+| Rol único por cuenta | Conjunto de roles (`AccountRole`); `ADMIN` y `PRODUCTOR` coexisten, `CLIENTE` no coexiste con ningún otro `AccountRole`, en ningún estado; sin `ADMIN_PRODUCTOR` ([Roles de la cuenta](#roles-de-la-cuenta)) |
 | Autorización | Cada caso de uso exige un rol `ACTIVO` y el alcance no se suma ([Catálogo](#catálogo-de-políticas), [AccessScope](#accessscope)) |
 | Baja, retiro y reactivación | Retiro independiente de cada rol; la baja de Productor retira `PRODUCTOR` (con `ADMIN` activo) o da de baja la cuenta, y coordina Assignments; la reactivación no restaura roles `RETIRADO` ([Baja guiada](#baja-guiada-de-productor), [Reactivación](#reactivación-de-productor)) |
 | Invitación de Productor | Puede agregar `PRODUCTOR` a una cuenta `ADMIN` existente; `ROL_INCOMPATIBLE` para Cliente ([Alta e invitación](#alta-e-invitación-de-productor)) |
