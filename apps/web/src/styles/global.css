@@ -1,8 +1,10 @@
 :root {
   --color-bg: #f7f8fa;
+  --color-surface: #ffffff;
+  --color-border: #e3e7ee;
   --color-text: #1a2233;
   --color-muted: #5b6577;
-  --color-ok: #1d7a46;
+  --color-primary: #0d6b78;
   --color-error: #b42318;
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   color: var(--color-text);
@@ -13,24 +15,87 @@ body {
   margin: 0;
 }
 
-.home {
-  max-width: 40rem;
+/* PUB-01 Catálogo */
+.catalogo {
+  max-width: 72rem;
   margin: 0 auto;
-  padding: 3rem 1rem;
+  padding: 2.5rem 1rem 4rem;
 }
 
-.home__subtitle {
+.catalogo__header h1 {
+  margin: 0 0 0.25rem;
+}
+
+.catalogo__subtitle,
+.catalogo__info {
   color: var(--color-muted);
 }
 
-.status {
+.catalogo__error {
+  color: var(--color-error);
   font-weight: 600;
 }
 
-.status--ok {
-  color: var(--color-ok);
+.catalogo__categoria {
+  margin-top: 2.5rem;
 }
 
-.status--error {
-  color: var(--color-error);
+.catalogo__categoria h2 {
+  font-size: 1.25rem;
+  margin: 0 0 1rem;
+}
+
+.catalogo__grilla {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+}
+
+.producto {
+  height: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1.25rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+}
+
+.producto__categoria {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-primary);
+}
+
+.producto__nombre {
+  margin: 0;
+  font-size: 1.125rem;
+}
+
+.producto__resumen {
+  margin: 0;
+  flex: 1;
+  color: var(--color-muted);
+}
+
+.producto__precio {
+  margin: 0.5rem 0 0;
+  font-size: 1.375rem;
+  font-weight: 700;
+}
+
+.producto__precio-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--color-muted);
 }
