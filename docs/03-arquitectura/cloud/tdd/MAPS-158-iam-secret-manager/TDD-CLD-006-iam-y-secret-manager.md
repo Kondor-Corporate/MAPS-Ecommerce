@@ -293,8 +293,8 @@ No simular ninguna prueba. Criterios de salida futuros: fallos negativos son den
 5. Definir C8: WIF pool/provider, claim mapping y CEL conditions, build/deploy roles, direct access vs deployer SA, aprobaciones por environment y auditoría.
 6. Crear workload identities por responsabilidad; aplicar roles mínimos en recurso puntual; separar invoker y runtime.
 7. Configurar Secret Manager con separación por secret/ambiente, version pinning o volumen según consumer; verificar rotación y log hygiene.
-7. Ejecutar pruebas de acceso positivo/negativo y revocación; registrar evidencia real de prueba y no cerrar Jira por la sola existencia del documento.
-8. En despliegue progresivo, comprobar una muestra de bindings en staging y hacer revisión Cloud antes de promoción a producción.
+8. Ejecutar pruebas de acceso positivo/negativo y revocación; registrar evidencia real de prueba y no cerrar Jira por la sola existencia del documento.
+9. En despliegue progresivo, comprobar una muestra de bindings en staging y hacer revisión Cloud antes de promoción a producción.
 
 El orden exacto de IaC/pipeline pertenece a C8. No se crean recursos Cloud ni IAM bindings en esta entrega documental.
 
