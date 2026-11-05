@@ -92,7 +92,7 @@ La postura objetivo de C2 sigue [ADR-SW-007](../../../software/adr/MAPS-216-iden
 
 SW-007 documenta el riesgo de que el compromiso de email/password de una identidad con `ADMIN` habilite operaciones privilegiadas. Cloud lo registra y referencia; no acepta el riesgo funcional ni convierte la revisión previa al primer despliegue con datos reales en requisito MAPS confirmado.
 
-Si Software formaliza el target multirol y se requiere evaluar UX de step-up, la condición de spike `MULTIROL + MFA SPIKE` debe validar enrolamiento, sign-in, refresh/session, claims server-verificables, reauthentication, posibilidad real de step-up, UX, revocación y downgrade/remoción del rol Admin. En una identidad enrolada con MFA, el supuesto técnico conservador es completar el segundo factor durante el sign-in completo; operar como Productor no suprime MFA. Hasta que un spike demuestre lo contrario, no se presume step-up. Este spike no es criterio de salida para la MFA del MVP ni autoriza implementación.
+En una etapa futura, sólo si una decisión posterior explícita de Software/MAPS solicita evaluar MFA del Portal o step-up, podrá plantearse la evaluación `MULTIROL + MFA SPIKE`. Esa evaluación podrá cubrir enrolamiento, sign-in, refresh/session, claims server-verificables, reauthentication, posibilidad real de step-up, UX, revocación y downgrade/remoción del rol Admin. Si se habilitara MFA para una identidad, el supuesto técnico conservador es completar el segundo factor durante su autenticación completa; operar como Productor no lo suprimiría. Hasta validar una capacidad de step-up, no se presume. No es gate del MVP ni autoriza implementación.
 
 | Tipo | Alta | MFA del Portal en target | Condición de acceso |
 | --- | --- | --- | --- |
@@ -105,7 +105,10 @@ Si Software formaliza el target multirol y se requiere evaluar UX de step-up, la
 - Cliente puede iniciar su alta, pero el email debe verificarse y la cuenta local debe estar activa. La protección anti-enumeración se habilita; UX responde de forma genérica en login/recuperación y controla abusos. Identity Platform todavía puede devolver un error de email existente en algunos casos de signup; no se afirma que todos los endpoints eliminen toda señal.
 - Admin crea/invita a Productor mediante operación autorizada. No se marca email verificado por conveniencia; la persona debe completar verificación propia.
 - Admin se crea fuera del flujo público y queda localmente inactivo/no operativo hasta completar la vinculación controlada a `issuer + subject` y el alta/activación que defina Software. No se requiere enrollment TOTP para el MVP del target SW-007.
-- En baja de Cliente/Productor, Portal marca `BAJA` en su propia transacción y solicita deshabilitar identidad/revocar refresh tokens si corresponde. Fallo del IdP genera operación/reintento auditable; no revierte autorización local ya denegada.
+- **Baja completa de cuenta:** Software marca `BAJA` en su propia transacción; desde la siguiente request ningún rol puede operar. Cloud puede sincronizar la deshabilitación de la identidad externa o la revocación de sesiones/tokens según el procedimiento aplicable y las capacidades del IdP. Un fallo externo genera una operación/reintento auditable y no revierte la denegación local.
+- **Retiro de `PRODUCTOR` con `ADMIN` activo** (sólo bajo el target de SW-007 si se acepta): Software retira únicamente el rol `PRODUCTOR`; la cuenta sigue `ACTIVA` como Admin. No se deshabilita ni revoca la identidad externa compartida. Las capacidades Productor deben denegarse desde la siguiente request.
+- **Retiro de `ADMIN` con `PRODUCTOR` activo** (sólo bajo el target de SW-007 si se acepta): Software retira únicamente el rol `ADMIN`; la cuenta sigue `ACTIVA` como Productor y se preserva la identidad externa compartida.
+- **Cuenta con `ADMIN` como único rol activo:** su baja/desactivación completa sigue sujeta a las decisiones pendientes de Software/MAPS; C2 no la infiere como una operación de retiro de rol.
 - En reactivación, Portal sólo devuelve cuenta local a ACTIVA por acción Admin. IdP sólo se habilita conforme a un flujo controlado y no restaura Assignment ni ownership por sí mismo; si en el futuro se formalizan roles múltiples, tampoco se restituyen automáticamente roles retirados.
 - Bajo el target SW-007, una identidad externa `(issuer, subject)` se vincula a una sola `UserIdentity`, que puede tener varias entradas `AccountRole` locales. El Portal decide capacidades separadamente y Software define el retiro de rol y el tratamiento de Assignments. Este target rige sólo si SW-007 se acepta.
 - `allowDuplicateEmails=false` permanece política propuesta del IdP; no es identificador de autorización ni mecanismo de RBAC. Es compatible con ADMIN+PRODUCTOR en una misma identidad y no decide combinaciones de roles. Cliente permanece separado según el target Software. El vínculo estable sigue siendo `issuer + subject`; no se duplica la cuenta IdP ni se crea `ADMIN_PRODUCTOR`.
@@ -198,7 +201,7 @@ La documentación oficial vigente recomienda condiciones de atributos para restr
 
 ## Datos, consistencia y migraciones
 
-Este TDD no cambia tablas, transacciones, políticas RBAC ni migraciones de Software. El token verificado se transforma a un actor de aplicación por `issuer + subject`; `UserIdentity` local se consulta en cada request autenticada del MVP. La baja se confirma en PostgreSQL del Portal antes de intentar efectos externos; deshabilitar usuario/revocar refresh token en IdP es efecto posterior reintentable con Outbox si Software lo determina. Nunca se revierte `BAJA` local sólo porque el proveedor no respondió.
+Este TDD no cambia tablas, transacciones, políticas RBAC ni migraciones de Software. El token verificado se transforma a un actor de aplicación por `issuer + subject`; `UserIdentity` local se consulta en cada request autenticada del MVP. En la baja completa de una cuenta, Software confirma `BAJA` en PostgreSQL del Portal antes de cualquier efecto externo; Cloud puede sincronizar deshabilitación/revocación con el IdP si el procedimiento aplicable lo determina. El retiro de un rol que deja otro rol activo se refleja localmente y no deshabilita la identidad externa compartida. Nunca se revierte `BAJA` local sólo porque el proveedor no respondió.
 
 El orden y persistencia de eventos técnicos de sincronización/revocación pertenece a la implementación Software/Outbox y requerirá TDD-SW-004/005. C2 sólo fija que fallo de revocación externa no devuelve acceso al Portal.
 
@@ -259,6 +262,7 @@ Separar error de autenticación (identidad/token no válida) del error de autori
 | Productor administrado | API/procedimiento crea e invita; email se verifica por el usuario; permisos API sólo los necesarios | Autorregistro Producer; email marcado verificado sin prueba; runtime obtiene permisos de config global |
 | Admin controlado | Cuenta fuera del signup público, vinculada localmente y activada conforme al estado/capacidades de Software; bajo target SW-007 no se exige TOTP para el MVP | Admin opera sin cuenta local activa, por self-signup o por identidad no vinculada |
 | Identidad y roles locales | Un `(issuer, subject)` resuelve una `UserIdentity`; si SW-007 se acepta, ésta puede tener las combinaciones locales permitidas; retiro de rol impide la capacidad en la siguiente request | Email/claim IdP determina autorización, `ADMIN_PRODUCTOR` aparece, o rol retirado sigue habilitando capacidad |
+| Retiro de `PRODUCTOR` en cuenta multirol | Bajo el target SW-007 y con `{ADMIN, PRODUCTOR}` activos, retirar sólo `PRODUCTOR`; desde la siguiente request sus capacidades se deniegan, `ADMIN` continúa autorizado y la identidad externa no se deshabilita | La cuenta queda `BAJA`, `ADMIN` pierde acceso o la identidad externa compartida se deshabilita |
 | `allowDuplicateEmails=false` | La política IdP no impide la identidad ADMIN+PRODUCTOR; email no se utiliza para enlazar permisos | Se requieren cuentas IdP/email duplicadas para representar roles locales |
 | Token e identidad externa inválidos | Firma, expiración, `iss`, `aud`, `sub`, key rotation y resolución exacta de `(issuer, subject)` a `UserIdentity`; email no sustituye el vínculo | Token alterado, otro proyecto, expirado o par issuer-subject no vinculado es aceptado |
 | Cuenta BAJA con token firmado | Segunda request tras commit se deniega; el mismo JWT no recupera acceso | Caché autoriza luego de BAJA; estado local no consultado |
@@ -283,11 +287,12 @@ No simular ninguna prueba. Criterios de salida futuros: fallos negativos son den
 ## Implementación y handoff a F4
 
 1. Confirmar aceptación de ADR-CLD-007 y resolver revisión cruzada de Software.
-2. Verificar con spike Identity Platform OIDC token, TOTP enrollment/claim, cuenta por rol/email, email privacy y Admin SDK permissions.
-3. Decidir identidades y recursos por ambiente en C3/C4; no aplicar bindings hasta conocer esa jerarquía.
-4. Definir C8: WIF pool/provider, claim mapping y CEL conditions, build/deploy roles, direct access vs deployer SA, aprobaciones por environment y auditoría.
-5. Crear workload identities por responsabilidad; aplicar roles mínimos en recurso puntual; separar invoker y runtime.
-6. Configurar Secret Manager con separación por secret/ambiente, version pinning o volumen según consumer; verificar rotación y log hygiene.
+2. En el spike del target MVP, verificar OIDC, vinculación exacta por `issuer + subject`, resolución de `UserIdentity` y roles locales, privacidad/anti-enumeración, y permisos mínimos efectivos de Admin SDK.
+3. TOTP enrollment, claims de MFA y step-up quedan para una evaluación futura únicamente si una decisión posterior explícita de Software/MAPS requiere considerar MFA del Portal; no son requisito ni gate del spike MVP.
+4. Decidir identidades y recursos por ambiente en C3/C4; no aplicar bindings hasta conocer esa jerarquía.
+5. Definir C8: WIF pool/provider, claim mapping y CEL conditions, build/deploy roles, direct access vs deployer SA, aprobaciones por environment y auditoría.
+6. Crear workload identities por responsabilidad; aplicar roles mínimos en recurso puntual; separar invoker y runtime.
+7. Configurar Secret Manager con separación por secret/ambiente, version pinning o volumen según consumer; verificar rotación y log hygiene.
 7. Ejecutar pruebas de acceso positivo/negativo y revocación; registrar evidencia real de prueba y no cerrar Jira por la sola existencia del documento.
 8. En despliegue progresivo, comprobar una muestra de bindings en staging y hacer revisión Cloud antes de promoción a producción.
 
@@ -299,7 +304,7 @@ El orden exacto de IaC/pipeline pertenece a C8. No se crean recursos Cloud ni IA
 | --- | --- | --- | --- |
 | Aceptación de ADR-SW-007 | Software + MAPS | C2 mantiene baseline formal SW-005 y prepara target MFA fuera de MVP/multirol | Aceptación explícita de SW-007; hasta entonces su delta no reemplaza SW-005 |
 | MFA futuro del Portal | Software + MAPS + Cloud | Conservar capacidad futura del proveedor y riesgo documentado en SW-007 | Revisión antes del primer despliegue con datos reales según propuesta SW-007; no convertirla en requisito MAPS confirmado |
-| MULTIROL + MFA SPIKE | Software + Cloud, condicionado a formalizar multirol y decidir que step-up debe evaluarse | Validar enrolamiento, sign-in, refresh/session, claims verificables, reauthentication, step-up, UX, revocación y downgrade/remoción Admin | Hasta demostrar step-up, asumir MFA durante autenticación completa de identidad enrolada; el spike no es gate del MVP ni elige UX |
+| `MULTIROL + MFA SPIKE` | Software + Cloud, sólo ante decisión posterior explícita de evaluar MFA/step-up | Evaluar enrolamiento, sign-in, refresh/session, claims verificables, reauthentication, step-up, UX, revocación y downgrade/remoción Admin | No es parte del spike de MVP ni gate de salida; si se habilitara MFA, no presumir step-up antes de validarlo |
 | Identidad multirol local | Software | Identity Platform autentica una identidad; Software define AccountRole[] y capacidades | Aplicar sólo después de aceptación SW-007 y validar la frontera token → UserIdentity/roles |
 | RN-20 | MAPS | Principals/trust boundaries y baja RN-19 existente | MAPS define si existe efecto adicional de inhabilitación |
 | Campos Mi perfil | MAPS + Software | Identidad local/ownership y IAM Cloud | TDD-SW-004 recibe contrato de campos aprobado |
