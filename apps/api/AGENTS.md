@@ -43,6 +43,9 @@ Identity · Audit recibe eventos de todos y nadie depende de Audit. Sin ciclos.
 - `PUBLIC_RATE_LIMIT_PER_MINUTE` (opcional, default 120): límite por IP de las rutas públicas del
   catálogo. Default configurable hasta que exista el módulo de parámetros (MAPS-182).
 - Reglas que Prisma no expresa (CHECK, triggers) se agregan a mano en el `migration.sql`.
+- Una sola historia de migraciones: lo que agregue A3 (MAPS-180) u otra historia va como migración
+  **nueva** en `prisma/migrations/`, extendiendo las existentes; no se crea una inicialización paralela
+  ni se editan migraciones ya mergeadas. Prisma queda pendiente de ratificar en A3 (ADR-SW-003).
 
 ## Zonas sensibles
 

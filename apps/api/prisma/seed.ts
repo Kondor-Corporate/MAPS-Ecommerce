@@ -2,10 +2,18 @@ import { pathToFileURL } from 'node:url';
 
 import { createPrismaClient, type PrismaClient } from '../src/database/prisma.js';
 
-// Datos semilla del catálogo (MAPS-183), tomados del prototipo integrado sin imágenes.
-// Regla: sólo se cargan productos con formulario; sin formulario no se publican
-// (decisión de Joaquín Rodriguez, 2026-11-04). Por eso Responsabilidad Civil no está.
-// Publicación según el prototipo: Accidentes Personales está cargado pero no publicado.
+// CATÁLOGO SEMILLA DEMOSTRATIVO (MAPS-183), tomado del prototipo integrado sin imágenes.
+//
+// No es una publicación funcional válida: `published: true` se carga sin FormVersion persistida,
+// porque el módulo Forms todavía no existe, así que la precondición de publicación de TDD-SW-002
+// (versión utilizable) NO está verificada. Precios y publicaciones son los del prototipo:
+// demostrativos hasta que MAPS los valide, no tarifas comerciales confirmadas.
+// Reconciliación obligatoria al implementar Forms y antes de habilitar CreateDraft: ver TDD-SW-002,
+// "Implementado en MAPS-183".
+//
+// Sólo se cargan productos que en el prototipo tienen formulario (decisión de Kondor, Joaquín
+// Rodriguez, 2026-11-04): por eso Responsabilidad Civil no está. Accidentes Personales está cargado
+// pero no publicado, como en el prototipo.
 // Idempotente: sólo inserta lo que falta, nunca pisa cambios hechos después.
 
 const CATEGORIES = [

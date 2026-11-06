@@ -34,8 +34,9 @@ model Product {
   categoryId             String                 @map("category_id") @db.Uuid
   category               Category               @relation(fields: [categoryId], references: [id])
   published              Boolean                @default(false)
-  currentPriceRevisionId String?                @unique @map("current_price_revision_id") @db.Uuid
-  currentPriceRevision   ProductPriceRevision?  @relation("CurrentPrice", fields: [currentPriceRevisionId], references: [id])
+  currentPriceRevisionId String?                @map("current_price_revision_id") @db.Uuid
+  // FK compuesta: la revisión vigente tiene que ser de este mismo Product (no de otro).
+  currentPriceRevision   ProductPriceRevision?  @relation("CurrentPrice", fields: [currentPriceRevisionId, id], references: [id, productId], onDelete: Restrict)
   priceRevisions         ProductPriceRevision[] @relation("PriceHistory")
   attributes             ProductAttribute[]
   imageRef               String?                @map("image_ref")
@@ -43,6 +44,7 @@ model Product {
   createdAt              DateTime               @default(now()) @map("created_at")
   updatedAt              DateTime               @updatedAt @map("updated_at")
 
+  @@unique([currentPriceRevisionId, id])
   @@index([categoryId])
   @@map("product")
 }
@@ -61,7 +63,7 @@ model ProductAttribute {
 }
 
 // Revisión de precio inmutable: cambiar el precio inserta una nueva (TDD-SW-002, RN-09).
-// El trigger de la migración rechaza UPDATE; monto > 0 y moneda ARS por CHECK.
+// El trigger de las migraciones rechaza UPDATE y DELETE (historial inmutable); monto > 0 y moneda ARS por CHECK.
 model ProductPriceRevision {
   id            String   @id @default(uuid()) @db.Uuid
   productId     String   @map("product_id") @db.Uuid
@@ -73,6 +75,7 @@ model ProductPriceRevision {
   createdBy     String   @map("created_by")
   createdAt     DateTime @default(now()) @map("created_at")
 
+  @@unique([id, productId])
   @@index([productId])
   @@map("product_price_revision")
 }

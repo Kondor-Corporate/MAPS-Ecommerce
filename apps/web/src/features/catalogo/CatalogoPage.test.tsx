@@ -53,6 +53,17 @@ describe('MAPS-183 — un visitante ve los productos publicados con nombre, cate
     expect(screen.getByRole('article', { name: 'Seguro de Mascotas' })).toHaveTextContent('$ 15.000');
   });
 
+  it('cada tarjeta muestra la categoría de su producto', async () => {
+    stubFetch(async () => Response.json(respuesta));
+
+    render(<CatalogoPage />);
+
+    const combinado = await screen.findByRole('article', { name: 'Combinado Familiar' });
+    expect(within(combinado).getByText('Seguros Patrimoniales')).toBeInTheDocument();
+    const mascotas = screen.getByRole('article', { name: 'Seguro de Mascotas' });
+    expect(within(mascotas).getByText('Seguros de Personas')).toBeInTheDocument();
+  });
+
   it('agrupa los productos por categoría', async () => {
     stubFetch(async () => Response.json(respuesta));
 

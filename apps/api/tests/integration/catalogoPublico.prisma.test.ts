@@ -164,6 +164,33 @@ describe('MAPS-183 — consulta pública del catálogo (Postgres)', () => {
     }
   });
 
+  it('no se puede asociar como vigente una revisión de precio de otro producto', async () => {
+    const cat = await categoria('Seguros Patrimoniales', 'patrimoniales');
+    const incendio = await producto({ name: 'Seguro de Incendio', categoryId: cat.id, published: true, prices: ['10000'] });
+    const combinado = await producto({ name: 'Combinado Familiar', categoryId: cat.id, published: true, prices: ['30000'] });
+    const revisionDeCombinado = await prisma.productPriceRevision.findFirstOrThrow({ where: { productId: combinado.id } });
+
+    await expect(
+      prisma.product.update({ where: { id: incendio.id }, data: { currentPriceRevisionId: revisionDeCombinado.id } }),
+    ).rejects.toThrow();
+
+    const { items } = await adapter.listPublishedProducts(todo);
+    expect(items.find((i) => i.id === incendio.id)?.price.amount).toBe('10000.00');
+  });
+
+  it('una revisión de precio no se puede borrar, ni histórica ni vigente (TDD-SW-002)', async () => {
+    const cat = await categoria('Seguros de Personas', 'personas');
+    const p = await producto({ name: 'Seguro de Mascotas', categoryId: cat.id, published: true, prices: ['14000', '15000'] });
+    const [historica, vigente] = await prisma.productPriceRevision.findMany({
+      where: { productId: p.id },
+      orderBy: { effectiveFrom: 'asc' },
+    });
+
+    await expect(prisma.productPriceRevision.delete({ where: { id: historica!.id } })).rejects.toThrow();
+    await expect(prisma.productPriceRevision.delete({ where: { id: vigente!.id } })).rejects.toThrow();
+    expect(await prisma.productPriceRevision.count({ where: { productId: p.id } })).toBe(2);
+  });
+
   it('una revisión de precio no se puede modificar (inmutable, TDD-SW-002)', async () => {
     const cat = await categoria('Seguros de Personas', 'personas');
     await producto({ name: 'Seguro de Mascotas', categoryId: cat.id, published: true, prices: ['15000'] });
