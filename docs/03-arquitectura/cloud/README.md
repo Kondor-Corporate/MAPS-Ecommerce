@@ -1,6 +1,6 @@
 # F3 — Cloud y plataforma
 
-> **Estado:** GCP está adoptado para el MVP por `ADR-CLD-000` (`ACEPTADO`). Los artefactos Cloud de Wave 1 indicados abajo ya existen en `main`; cada uno mantiene su estado formal. Integración, revisión o relación con una PR no equivalen por sí solas a aceptación/aprobación ni aceptan servicios automáticamente.
+> **Estado:** GCP está adoptado para el MVP por `ADR-CLD-000` (`ACEPTADO`). Los artefactos Cloud de Wave 1 indicados abajo ya existen en `development`; cada uno mantiene su estado formal. Las PR #42 y #45 están integradas, pero su integración, revisión o relación con una PR no equivalen por sí solas a aceptación/aprobación ni aceptan servicios automáticamente.
 
 **Owner principal:** Santiago Talavera. El responsable software realiza revisión cruzada cuando la decisión afecta contratos, dominio, transacciones, seguridad de aplicación o entrega. La [baseline F0/F1/F2](../README.md) y la [trazabilidad](../traceability.md) rigen el alcance.
 

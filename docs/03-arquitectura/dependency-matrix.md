@@ -8,11 +8,11 @@ Owner de coordinación: Santiago Talavera
 
 Naturaleza: artefacto transversal de coordinación; no es ADR ni TDD
 
-Corte de estados consultados: 2026-11-03
+Corte de estados consultados: 2026-11-06
 
 `traceability.md` conserva la trazabilidad vertical F0/F1/F2 → ADR/TDD → F4. Esta matriz responde la pregunta horizontal: qué necesita cada frente de los demás para avanzar o cerrar sus diseños, qué puede continuar en paralelo y qué queda realmente condicionado. No reemplaza ni duplica la trazabilidad.
 
-La baseline es el contenido integrado en `main`; las PR abiertas son deltas y no se consideran baseline hasta integrarse. PR #20 y PR #24 ya están integradas. `TDD-SW-002` y `TDD-SW-005` forman parte de `main` y permanecen `BORRADOR`; su integración no implica aprobación. El estado Jira, el estado documental y el estado de una PR son registros distintos y no se sustituyen entre sí.
+La baseline es el contenido integrado en `development`; las PR abiertas son deltas y no se consideran baseline hasta integrarse. PR #20, #24, #42 y #45 ya están integradas. `TDD-SW-002` y `TDD-SW-005` forman parte de `development` y permanecen `BORRADOR`; su integración no implica aprobación. `ADR-SW-007` continúa `PROPUESTO` y `ADR-SW-005` conserva el estado formal vigente hasta su eventual aceptación. El estado Jira, el estado documental y el estado de una PR son registros distintos y no se sustituyen entre sí.
 
 Una dependencia abierta no implica por sí sola un bloqueo. Las filas identifican el artefacto concreto que queda condicionado; el trabajo que explícitamente puede avanzar se conserva en la columna correspondiente.
 
@@ -62,7 +62,7 @@ Seleccioná una dependencia para consultar sus contratos, decisiones, límites y
 
 | Aspecto | Detalle |
 | --- | --- |
-| Contrato / input Software | PostgreSQL nuevo del Portal; ACID, FK, ownership de tablas por módulo, UoW local y migraciones expand/contract. |
+| Contrato / input Software | PostgreSQL nuevo del Portal; ACID, FK, ownership de tablas por módulo, UoW local y migraciones expand/contract. `InsuranceRequest.number` se asigna en Submit, es único/inmutable/no reutilizable y usa una secuencia; una restauración productiva exige demostrar que la próxima asignación excede todos los números ya emitidos. El high-water mark debe ser durable frente al mismo escenario de recuperación, verificable e independiente de un snapshot potencialmente desactualizado; el mecanismo sigue pendiente y no se selecciona infraestructura adicional. Ajustar la secuencia requiere respetar `setval(..., HWM, true)` para que `nextval` dé HWM+1; `is_called=false` no sirve. |
 | Decisión / diseño Cloud | C1 evalúa Cloud SQL / PostgreSQL administrado, presupuesto de conexiones/pooling, ejecución de migraciones y backups/recovery cualitativos. |
 | Input funcional MAPS | RPO/RTO siguen sin definir; ver DEP-15. |
 | Owner actual | Cloud con revisión Software |
@@ -71,7 +71,7 @@ Seleccioná una dependencia para consultar sus contratos, decisiones, límites y
 | No bloquea | Evaluación del servicio de base y la mayor parte de TDD-CLD-003. |
 | ADR/TDD relacionados | [ADR-SW-003](./software/adr/MAPS-108-persistencia-fronteras-transaccionales/ADR-SW-003-persistencia-y-fronteras-transaccionales.md), [TDD-SW-001](./software/tdd/MAPS-109-modelo-dominio-datos/TDD-SW-001-modelo-de-dominio-y-datos.md), [TDD-SW-003](./software/tdd/MAPS-113-insurance-request-estados/TDD-SW-003-insurance-request-y-maquina-de-estados.md); [ADR-CLD-003](./cloud/adr/MAPS-148-runtime-api-worker-jobs-migraciones/ADR-CLD-003-runtime-api-worker-jobs-migraciones.md) (`PROPUESTO`), [TDD-CLD-003](./cloud/tdd/MAPS-155-cloud-sql-conexiones-backups-migraciones/TDD-CLD-003-cloud-sql-conexiones-backups-migraciones.md) (`BORRADOR`). |
 | Jira verificado (estado) | [MAPS-120 Cloud SQL (En curso)](https://santitalavera.atlassian.net/browse/MAPS-120), [MAPS-155 TDD-CLD-003 (En curso)](https://santitalavera.atlassian.net/browse/MAPS-155). |
-| Siguiente acción | Continuar sizing de conexiones, migraciones y recuperación cualitativa; mantener objetivos cuantificados condicionados a DEP-15. |
+| Siguiente acción | Continuar sizing y recuperación cualitativa; definir y verificar el mecanismo durable de high-water mark antes de reabrir producción tras restore. Mantener RPO/RTO condicionados a DEP-15. |
 
 <a id="dep-02"></a>
 ### DEP-02 — Monolito modular / hexagonal ↔ topología y runtime materializado
@@ -94,14 +94,14 @@ Seleccioná una dependencia para consultar sus contratos, decisiones, límites y
 
 | Aspecto | Detalle |
 | --- | --- |
-| Contrato / input Software | Outbox aceptado; entrega al menos una vez, claims/leases, fencing, retry y recuperación. `TDD-SW-005` está integrado en `main` con estado `BORRADOR`. |
+| Contrato / input Software | Outbox aceptado; entrega al menos una vez, claims/leases, fencing, retry y recuperación. `TDD-SW-005` está integrado en `development` con estado `BORRADOR`. |
 | Decisión / diseño Cloud | Runtime de worker, scheduler/jobs, leases, backoff, recuperación y señales operativas. |
 | Input funcional MAPS | El criterio de Delivery exitosa se separa en DEP-04. |
 | Owner actual | Software define semántica; Cloud materializa ejecución |
 | Puede avanzar | C1 puede avanzar el runtime Outbox y su coordinación transaccional; definir límites de concurrencia y recuperación. |
 | Bloquea | Cierre de la integración de envío depende del contrato de Delivery de DEP-04. |
 | No bloquea | El trabajo de runtime Outbox y el resto de C1. |
-| ADR/TDD relacionados | [ADR-SW-004](./software/adr/MAPS-110-asincronia-outbox-idempotencia/ADR-SW-004-outbox-asincronia-e-idempotencia.md), [TDD-SW-003](./software/tdd/MAPS-113-insurance-request-estados/TDD-SW-003-insurance-request-y-maquina-de-estados.md); [TDD-SW-005](./software/tdd/MAPS-114-assignment-delivery-outbox/TDD-SW-005-assignment-delivery-y-coordinacion-outbox.md) `BORRADOR` en `main`; [ADR-CLD-003](./cloud/adr/MAPS-148-runtime-api-worker-jobs-migraciones/ADR-CLD-003-runtime-api-worker-jobs-migraciones.md) (`PROPUESTO`); TDD-CLD-005 previsto para C6. |
+| ADR/TDD relacionados | [ADR-SW-004](./software/adr/MAPS-110-asincronia-outbox-idempotencia/ADR-SW-004-outbox-asincronia-e-idempotencia.md), [TDD-SW-003](./software/tdd/MAPS-113-insurance-request-estados/TDD-SW-003-insurance-request-y-maquina-de-estados.md); [TDD-SW-005](./software/tdd/MAPS-114-assignment-delivery-outbox/TDD-SW-005-assignment-delivery-y-coordinacion-outbox.md) `BORRADOR` en `development`; [ADR-CLD-003](./cloud/adr/MAPS-148-runtime-api-worker-jobs-migraciones/ADR-CLD-003-runtime-api-worker-jobs-migraciones.md) (`PROPUESTO`); TDD-CLD-005 previsto para C6. |
 | Jira verificado (estado) | [MAPS-114 Assignment/Delivery/Outbox (Listo)](https://santitalavera.atlassian.net/browse/MAPS-114), [MAPS-142 TDD-SW-005 (Listo)](https://santitalavera.atlassian.net/browse/MAPS-142), [MAPS-125 worker/email (Listo)](https://santitalavera.atlassian.net/browse/MAPS-125), [MAPS-157 TDD-CLD-005 (Listo)](https://santitalavera.atlassian.net/browse/MAPS-157). |
 | Siguiente acción | Diseñar claims, fencing, retry y recuperación como runtime; no asumir cerrada la semántica final de Delivery. |
 
@@ -117,7 +117,7 @@ Seleccioná una dependencia para consultar sus contratos, decisiones, límites y
 | Puede avanzar | Software + Cloud pueden evaluar proveedores, evidencia y callbacks en paralelo; MAPS + Kondor pueden resolver la decisión 6. El runtime Outbox de C1 sigue avanzando. |
 | Bloquea | La decisión 1 y las capacidades del proveedor bloquean que `TDD-SW-005` pase a `EN REVISIÓN` y el cierre de `TDD-CLD-005` / C6. Si se adopta A, la decisión funcional 6 de MAPS + Kondor también bloquea el cierre. |
 | No bloquea | Runtime Outbox de DEP-03, C1 y la máquina de estados aceptada; no se reabre DERIVADA. |
-| ADR/TDD relacionados | [ADR-SW-004](./software/adr/MAPS-110-asincronia-outbox-idempotencia/ADR-SW-004-outbox-asincronia-e-idempotencia.md); [TDD-SW-005](./software/tdd/MAPS-114-assignment-delivery-outbox/TDD-SW-005-assignment-delivery-y-coordinacion-outbox.md) `BORRADOR` en `main`; previsto TDD-CLD-005. |
+| ADR/TDD relacionados | [ADR-SW-004](./software/adr/MAPS-110-asincronia-outbox-idempotencia/ADR-SW-004-outbox-asincronia-e-idempotencia.md); [TDD-SW-005](./software/tdd/MAPS-114-assignment-delivery-outbox/TDD-SW-005-assignment-delivery-y-coordinacion-outbox.md) `BORRADOR` en `development`; previsto TDD-CLD-005. |
 | Jira verificado (estado) | [MAPS-114 (Listo)](https://santitalavera.atlassian.net/browse/MAPS-114), [MAPS-142 TDD-SW-005 (Listo)](https://santitalavera.atlassian.net/browse/MAPS-142), [MAPS-125 (Listo)](https://santitalavera.atlassian.net/browse/MAPS-125), [MAPS-157 (Listo)](https://santitalavera.atlassian.net/browse/MAPS-157), [MAPS-167 Ronda MAPS A (Por hacer)](https://santitalavera.atlassian.net/browse/MAPS-167). |
 | Siguiente acción | Software + Cloud validan la decisión 1 contra las capacidades del proveedor en `TDD-CLD-005`; MAPS + Kondor resuelven la decisión 6 si se adopta A. |
 
@@ -126,7 +126,7 @@ Seleccioná una dependencia para consultar sus contratos, decisiones, límites y
 
 | Aspecto | Detalle |
 | --- | --- |
-| Contrato / input Software | RBAC y ownership son reglas de aplicación; `IAM Cloud != RBAC de aplicación`. `TDD-SW-004` está integrado en `main` como `BORRADOR`; su identidad/MFA/multirol baseline está bajo reconciliación Software separada y debe sincronizarse antes de integrar esta matriz. |
+| Contrato / input Software | RBAC y ownership son reglas de aplicación; `IAM Cloud != RBAC de aplicación`. `ADR-SW-005` (`ACEPTADO`) sigue como baseline formal mientras `ADR-SW-007` continúe `PROPUESTO`; su target MFA fuera del MVP y Admin + Productor multirol fue reconciliado con Cloud por PR #45, sin cambio automático de estados Software. `TDD-SW-004` está integrado en `development` como `BORRADOR`. |
 | Decisión / diseño Cloud | C2 puede diseñar workload identities, service accounts, least privilege, Secret Manager como candidato, WIF/OIDC para workloads/pipelines cuando corresponda y trust boundaries. |
 | Input funcional MAPS | No se necesitan campos finales de perfil para diseñar IAM; ver DEP-06. |
 | Owner actual | Software para permisos funcionales; Cloud para seguridad/IAM |
@@ -158,14 +158,14 @@ Seleccioná una dependencia para consultar sus contratos, decisiones, límites y
 
 | Aspecto | Detalle |
 | --- | --- |
-| Contrato / input Software | RN-19 y `TDD-SW-005` (`BORRADOR`) proponen cerrar el Assignment anterior, conservar la solicitud `DERIVADA` y crear otro Assignment `PENDIENTE_ENTREGA`. La decisión 2, a cargo de Kondor + MAPS, bloquea `EN REVISIÓN`: falta confirmar el alcance/secuencia de baja frente a la respuesta de F1 (“informar a la Org para analizar cada caso”) y al bloqueo del prototipo. |
+| Contrato / input Software | RN-19 y `TDD-SW-005` (`BORRADOR`) proponen cerrar el Assignment anterior, conservar la solicitud `DERIVADA` y crear otro Assignment `PENDIENTE_ENTREGA`. La decisión 2, a cargo de Kondor + MAPS, bloquea `EN REVISIÓN`: falta confirmar alcance/secuencia de baja ante la respuesta de F1 (“informar a la Org para analizar cada caso”) y el bloqueo del prototipo. `TDD-SW-004` (`BORRADOR`) distingue baja completa de cuenta (Software marca `BAJA`; Cloud puede sincronizar deshabilitación/revocación según el procedimiento aplicable) del retiro de un rol cuando otro permanece activo: retirar PRODUCTOR con ADMIN activo o ADMIN con PRODUCTOR activo no deshabilita la identidad externa compartida. La baja Admin-only sigue sujeta a decisiones Software/MAPS. |
 | Decisión / diseño Cloud | Revocación/identidad se diseña sólo donde haya impacto de seguridad real; no condicionar toda la estrategia Cloud. |
 | Input funcional MAPS | Confirmar si RN-20 se mantiene en el MVP y qué efecto tiene sobre nuevas asignaciones. F1 registra que no habrá casos inhabilitados con solicitudes en curso; retirar RN-20 requiere cambio controlado de F1/F2. El alcance/secuencia RN-19 se resuelve conjuntamente con Kondor y no se delega a esta pregunta de MAPS-167. |
 | Owner actual | Kondor + MAPS definen alcance/secuencia funcional de baja RN-19; MAPS define RN-20; Software/Cloud resuelven sólo los mecanismos técnicos afectados. |
 | Puede avanzar | Mantener la baja lógica ya establecida y avanzar seguridad Cloud general; los mecanismos de revocación afectados se condicionan al cierre funcional. |
 | Bloquea | Confirmar alcance/secuencia de baja RN-19 (Kondor + MAPS) antes de `EN REVISIÓN`; el contrato aplicativo de RN-20 y los cambios de revocación que dependan de esa regla. |
-| No bloquea | Diseño base de C2 para IAM de workloads, secretos y trust boundaries; baja lógica ya establecida y diseños Cloud no afectados por la semántica de inhabilitación. Los mecanismos de revocación de identidad de usuario quedan sujetos al contrato aplicativo de RN-20 y a la corrección Software de MFA/multirol aún no integrada. |
-| ADR/TDD relacionados | [ADR-SW-005](./software/adr/MAPS-111-identidad-autorizacion/ADR-SW-005-identidad-y-autorizacion.md), [TDD-SW-003](./software/tdd/MAPS-113-insurance-request-estados/TDD-SW-003-insurance-request-y-maquina-de-estados.md), [TDD-SW-005](./software/tdd/MAPS-114-assignment-delivery-outbox/TDD-SW-005-assignment-delivery-y-coordinacion-outbox.md) (`BORRADOR` en `main`); [ADR-CLD-007](./cloud/adr/MAPS-152-seguridad-cloud/ADR-CLD-007-seguridad-cloud.md) (`PROPUESTO`) y [TDD-CLD-006](./cloud/tdd/MAPS-158-iam-secret-manager/TDD-CLD-006-iam-y-secret-manager.md) (`BORRADOR`). |
+| No bloquea | Diseño base de C2 para IAM de workloads, secretos y trust boundaries; diseños Cloud no afectados por la semántica de inhabilitación. Los mecanismos de revocación de identidad de usuario quedan sujetos al contrato aplicativo de RN-20 y al ciclo de vida de roles/cuentas definido por Software. |
+| ADR/TDD relacionados | [ADR-SW-005](./software/adr/MAPS-111-identidad-autorizacion/ADR-SW-005-identidad-y-autorizacion.md), [TDD-SW-003](./software/tdd/MAPS-113-insurance-request-estados/TDD-SW-003-insurance-request-y-maquina-de-estados.md), [TDD-SW-005](./software/tdd/MAPS-114-assignment-delivery-outbox/TDD-SW-005-assignment-delivery-y-coordinacion-outbox.md) (`BORRADOR` en `development`); [ADR-CLD-007](./cloud/adr/MAPS-152-seguridad-cloud/ADR-CLD-007-seguridad-cloud.md) (`PROPUESTO`) y [TDD-CLD-006](./cloud/tdd/MAPS-158-iam-secret-manager/TDD-CLD-006-iam-y-secret-manager.md) (`BORRADOR`). |
 | Jira verificado (estado) | [MAPS-98 baja/inhabilitación (En revisión)](https://santitalavera.atlassian.net/browse/MAPS-98), [MAPS-123 seguridad/IAM (En curso)](https://santitalavera.atlassian.net/browse/MAPS-123), [MAPS-142 TDD-SW-005 (Listo)](https://santitalavera.atlassian.net/browse/MAPS-142). |
 | Siguiente acción | Llevar sólo RN-20 a MAPS-167; confirmar RN-19 conjuntamente con Kondor + MAPS antes de pasar `TDD-SW-005` a `EN REVISIÓN`. |
 
@@ -174,14 +174,14 @@ Seleccioná una dependencia para consultar sus contratos, decisiones, límites y
 
 | Aspecto | Detalle |
 | --- | --- |
-| Contrato / input Software | `TDD-SW-008` está integrado en `main` como `BORRADOR`; el contrato API y los aspectos de caché/headers deben coordinarse con `TDD-SW-002`. La corrección Software de MFA/multirol pendiente debe integrarse antes de consolidar la frontera de identidad de usuario. |
+| Contrato / input Software | `TDD-SW-008` está integrado en `development` como `BORRADOR`; el contrato API y los aspectos de caché/headers deben coordinarse con `TDD-SW-002`. El target MFA fuera del MVP/multirol se registra en `ADR-SW-007` (`PROPUESTO`) y fue reconciliado con Cloud por PR #45; su integración no cambia estados formales. |
 | Decisión / diseño Cloud | C3 define hosting frontend, public entry, DNS/TLS, routing/exposición, aislamiento de dev/staging/prod e integración de identities/secrets por ambiente con C2; promotion strategy a nivel de ambientes. C4 materializa topología en TDD-CLD-001/002. |
 | Input funcional MAPS | Ninguno para estrategia general; formularios reales afectan sólo detalles de caché, ver DEP-09. |
 | Owner actual | Cloud; coordinación C2/C4 y revisión Software |
 | Puede avanzar | C3 puede avanzar estrategia pública y de ambientes, límites de exposición y promoción; definir constraints para C4. |
 | Bloquea | Cierre de cache/headers y comportamiento API que dependan del contrato Software; topología materializada queda a C4. |
 | No bloquea | Continuar el diseño propuesto de public entry, DNS/TLS, routing, aislamiento y promoción; ADR-CLD-001/002 siguen `PROPUESTO` y no equivalen a aceptación. |
-| ADR/TDD relacionados | [TDD-SW-008](./software/tdd/MAPS-115-contrato-api/TDD-SW-008-contrato-api.md) (`BORRADOR`), [ADR-CLD-001](./cloud/adr/MAPS-146-hosting-frontend-entrada-publica/ADR-CLD-001-hosting-frontend-y-entrada-publica.md) y [ADR-CLD-002](./cloud/adr/MAPS-147-estrategia-ambientes/ADR-CLD-002-estrategia-de-ambientes-aislamiento-y-promocion.md) (`PROPUESTO`); [TDD-SW-002](./software/tdd/MAPS-112-product-category-formularios/TDD-SW-002-product-category-y-formversion.md) `BORRADOR` en `main`; TDD-CLD-001/002 previstos para C4. |
+| ADR/TDD relacionados | [TDD-SW-008](./software/tdd/MAPS-115-contrato-api/TDD-SW-008-contrato-api.md) (`BORRADOR`), [ADR-CLD-001](./cloud/adr/MAPS-146-hosting-frontend-entrada-publica/ADR-CLD-001-hosting-frontend-y-entrada-publica.md) y [ADR-CLD-002](./cloud/adr/MAPS-147-estrategia-ambientes/ADR-CLD-002-estrategia-de-ambientes-aislamiento-y-promocion.md) (`PROPUESTO`); [TDD-SW-002](./software/tdd/MAPS-112-product-category-formularios/TDD-SW-002-product-category-y-formversion.md) `BORRADOR` en `development`; TDD-CLD-001/002 previstos para C4. |
 | Jira verificado (estado) | [MAPS-116 entrada pública (En curso)](https://santitalavera.atlassian.net/browse/MAPS-116), [MAPS-117 ambientes (En curso)](https://santitalavera.atlassian.net/browse/MAPS-117), [MAPS-146 ADR-CLD-001 (En curso)](https://santitalavera.atlassian.net/browse/MAPS-146), [MAPS-147 ADR-CLD-002 (En curso)](https://santitalavera.atlassian.net/browse/MAPS-147), [MAPS-139 TDD-SW-002 (Listo)](https://santitalavera.atlassian.net/browse/MAPS-139), [MAPS-153 TDD-CLD-001 (Listo)](https://santitalavera.atlassian.net/browse/MAPS-153), [MAPS-154 TDD-CLD-002 (Listo)](https://santitalavera.atlassian.net/browse/MAPS-154). |
 | Siguiente acción | Avanzar C3 en public entry y environments; luego C4 integra constraints de C1/C2/C3 y materializa topología. |
 
@@ -190,14 +190,14 @@ Seleccioná una dependencia para consultar sus contratos, decisiones, límites y
 
 | Aspecto | Detalle |
 | --- | --- |
-| Contrato / input Software | `TDD-SW-002` está integrado en `main` con estado `BORRADOR`; debe concretar esquema, validaciones, versionado y retiro. La obligatoriedad/cardinalidad Product–FormVersion no está cerrada. |
+| Contrato / input Software | `TDD-SW-002` está integrado en `development` con estado `BORRADOR`; debe concretar esquema, validaciones, versionado y retiro. La obligatoriedad/cardinalidad Product–FormVersion no está cerrada. |
 | Decisión / diseño Cloud | Impacto indirecto sobre catálogo público y caché; no define selección de plataforma ni runtime general. |
 | Input funcional MAPS | MAPS debe resolver si todo Product publicado requiere FormVersion/formulario o si Products informativos como Incendio/Retiro pueden publicarse sin formulario; además validar 1–2 formularios reales. |
 | Owner actual | MAPS define/valida; Software diseña |
 | Puede avanzar | Puede avanzar el mecanismo de versionado, inmutabilidad, retiro y modelado del catálogo; obligatoriedad/cardinalidad Product–FormVersion queda condicionada a la decisión sobre Products sin formulario. |
 | Bloquea | Regla final de publicación/cardinalidad Product–FormVersion, propiedades/validaciones finales del formulario y detalles de caché que dependan de ellas. |
 | No bloquea | Selección de plataforma, runtime, topología y estrategia general de public entry. |
-| ADR/TDD relacionados | ADR-SW-001/003; [TDD-SW-002](./software/tdd/MAPS-112-product-category-formularios/TDD-SW-002-product-category-y-formversion.md) `BORRADOR` en `main`; [ADR-CLD-001](./cloud/adr/MAPS-146-hosting-frontend-entrada-publica/ADR-CLD-001-hosting-frontend-y-entrada-publica.md) (`PROPUESTO`); TDD-CLD-001 previsto para C4 sólo por impacto indirecto. |
+| ADR/TDD relacionados | ADR-SW-001/003; [TDD-SW-002](./software/tdd/MAPS-112-product-category-formularios/TDD-SW-002-product-category-y-formversion.md) `BORRADOR` en `development`; [ADR-CLD-001](./cloud/adr/MAPS-146-hosting-frontend-entrada-publica/ADR-CLD-001-hosting-frontend-y-entrada-publica.md) (`PROPUESTO`); TDD-CLD-001 previsto para C4 sólo por impacto indirecto. |
 | Jira verificado (estado) | [MAPS-96 formularios reales (En curso)](https://santitalavera.atlassian.net/browse/MAPS-96), [MAPS-112 Product/formularios (Listo)](https://santitalavera.atlassian.net/browse/MAPS-112), [MAPS-139 TDD-SW-002 (Listo)](https://santitalavera.atlassian.net/browse/MAPS-139). |
 | Siguiente acción | Llevar ambas preguntas —Products sin formulario como Incendio/Retiro y 1–2 formularios reales— a MAPS-167; no inferir una regla hasta validar el contrato funcional. |
 
@@ -238,7 +238,7 @@ Seleccioná una dependencia para consultar sus contratos, decisiones, límites y
 
 | Aspecto | Detalle |
 | --- | --- |
-| Contrato / input Software | `TDD-SW-007` está integrado en `main` como `BORRADOR`; separar auditoría de negocio, eventos de producto y telemetría operacional. |
+| Contrato / input Software | `TDD-SW-007` está integrado en `development` como `BORRADOR`; separar auditoría de negocio, eventos de producto y telemetría operacional. |
 | Decisión / diseño Cloud | Cloud puede definir métricas, logs, trazas, alertas, retención técnica y controles de PII operativa. |
 | Input funcional MAPS | No se requieren nuevos eventos de negocio para diseñar telemetría operacional. |
 | Owner actual | Software define eventos de negocio; Cloud telemetría |
@@ -277,7 +277,7 @@ Seleccioná una dependencia para consultar sus contratos, decisiones, límites y
 | Puede avanzar | Instrumentación, retry y manejo técnico pueden diseñarse sin fijar SLA. |
 | Bloquea | Umbrales/alertas de incumplimiento de negocio y cierre operacional de Delivery que dependan del SLA. |
 | No bloquea | Runtime Outbox, mecanismo de retry y observabilidad base. |
-| ADR/TDD relacionados | ADR-SW-004; [TDD-SW-005](./software/tdd/MAPS-114-assignment-delivery-outbox/TDD-SW-005-assignment-delivery-y-coordinacion-outbox.md) `BORRADOR` en `main`; previstos TDD-CLD-005/TDD-CLD-007. |
+| ADR/TDD relacionados | ADR-SW-004; [TDD-SW-005](./software/tdd/MAPS-114-assignment-delivery-outbox/TDD-SW-005-assignment-delivery-y-coordinacion-outbox.md) `BORRADOR` en `development`; previstos TDD-CLD-005/TDD-CLD-007. |
 | Jira verificado (estado) | [MAPS-99 F1 — Definir retención, eliminación y SLA operativo de derivación (Por hacer)](https://santitalavera.atlassian.net/browse/MAPS-99), [MAPS-125 worker/email (Listo)](https://santitalavera.atlassian.net/browse/MAPS-125), [MAPS-157 TDD-CLD-005 (Listo)](https://santitalavera.atlassian.net/browse/MAPS-157). |
 | Siguiente acción | Preguntar expectativa temporal y consecuencias de incumplimiento en MAPS-167; mantener los retries sin un SLA inventado. |
 
@@ -310,7 +310,7 @@ Seleccioná una dependencia para consultar sus contratos, decisiones, límites y
 ## Trabajo que puede avanzar ahora
 
 - **C1 — Runtime + Database (ADR-CLD-003 `PROPUESTO` / TDD-CLD-003 `BORRADOR`):** evaluar alternativas de runtime API/worker/jobs y Cloud SQL / PostgreSQL administrado; avanzar ejecución Outbox, concurrency/leases/fencing, conexiones/pooling, migraciones y backups/recovery cualitativo. C1 puede producir constraints para topología, pero no es el paquete de topología.
-- **C2 — Security / IAM (ADR-CLD-007 `PROPUESTO` / TDD-CLD-006 `BORRADOR`):** avanzar workload identities, service accounts, least privilege, Secret Manager como candidato, WIF/OIDC para workloads/pipelines cuando corresponda y trust boundaries. La baseline de identidad de usuario sigue bajo reconciliación Software separada; esto no reabre el diseño base de IAM de workloads. No asignar a C2 promotion ni estrategia de ambientes.
+- **C2 — Security / IAM (ADR-CLD-007 `PROPUESTO` / TDD-CLD-006 `BORRADOR`):** avanzar workload identities, service accounts, least privilege, Secret Manager como candidato, WIF/OIDC para workloads/pipelines cuando corresponda y trust boundaries. La reconciliación Cloud de la baseline objetivo de identidad está integrada por PR #45; `ADR-SW-007` sigue `PROPUESTO` y `ADR-SW-005` sigue vigente hasta una aceptación formal. No asignar a C2 promotion ni estrategia de ambientes.
 - **C3 — Public Entry + Environments (ADR-CLD-001/002 `PROPUESTO`):** avanzar frontend/public entry, DNS/TLS, routing, exposición, aislamiento dev/staging/prod, identities/secrets separados por ambiente en coordinación con C2 y promotion strategy de ambientes.
 - **C4 — Topology + materialized runtime (TDD-CLD-001 / TDD-CLD-002):** puede avanzar cuando integre principalmente constraints de C1, C2 y C3; materializa la topología, sin reinterpretar límites del monolito modular.
 
@@ -330,4 +330,4 @@ No se pregunta a MAPS por selección de servicios Cloud: las preguntas de esta r
 
 ## Regla de mantenimiento
 
-Actualizar esta matriz cuando se integre un ADR/TDD relevante; cambie su estado documental; MAPS resuelva un input; aparezca, cambie o se cierre una dependencia dura; antes de la revisión cruzada Cloud Wave 1 de [MAPS-165 (Listo)](https://santitalavera.atlassian.net/browse/MAPS-165); y antes del gate F3 → F4 Tranche 1 de [MAPS-169 (Listo)](https://santitalavera.atlassian.net/browse/MAPS-169). Al actualizar, revisar `main` como baseline, tratar las PR abiertas sólo como deltas hasta su integración y verificar por separado los estados Jira y documentales.
+Actualizar esta matriz cuando se integre un ADR/TDD relevante; cambie su estado documental; MAPS resuelva un input; aparezca, cambie o se cierre una dependencia dura; antes de la revisión cruzada Cloud Wave 1 de [MAPS-165 (Listo)](https://santitalavera.atlassian.net/browse/MAPS-165); y antes del gate F3 → F4 Tranche 1 de [MAPS-169 (Listo)](https://santitalavera.atlassian.net/browse/MAPS-169). Al actualizar, revisar `development` como baseline, tratar las PR abiertas sólo como deltas hasta su integración y verificar por separado los estados Jira y documentales.

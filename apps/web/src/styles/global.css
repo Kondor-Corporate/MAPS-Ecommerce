@@ -1,0 +1,36 @@
+:root {
+  --color-bg: #f7f8fa;
+  --color-text: #1a2233;
+  --color-muted: #5b6577;
+  --color-ok: #1d7a46;
+  --color-error: #b42318;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  color: var(--color-text);
+  background: var(--color-bg);
+}
+
+body {
+  margin: 0;
+}
+
+.home {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 3rem 1rem;
+}
+
+.home__subtitle {
+  color: var(--color-muted);
+}
+
+.status {
+  font-weight: 600;
+}
+
+.status--ok {
+  color: var(--color-ok);
+}
+
+.status--error {
+  color: var(--color-error);
+}

@@ -1,0 +1,16 @@
+{
+  "name": "@maps/types",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Contratos compartidos de sólo tipos entre módulos de la API (TDD-SW-007). Sin código ejecutable.",
+  "type": "module",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  }
+}
