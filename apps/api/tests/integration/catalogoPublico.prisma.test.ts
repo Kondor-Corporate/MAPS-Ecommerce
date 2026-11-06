@@ -47,6 +47,17 @@ async function producto(opts: {
 
 const todo = { page: 1, pageSize: 100 };
 
+// El rechazo tiene que venir de la regla de la base (FK o trigger), no de otra causa.
+function errorDeBase(originalCode: string, texto: string) {
+  return {
+    meta: {
+      driverAdapterError: {
+        cause: { originalCode, originalMessage: expect.stringContaining(texto) },
+      },
+    },
+  };
+}
+
 beforeEach(async () => {
   await clearCatalog(prisma);
 });
@@ -172,7 +183,7 @@ describe('MAPS-183 — consulta pública del catálogo (Postgres)', () => {
 
     await expect(
       prisma.product.update({ where: { id: incendio.id }, data: { currentPriceRevisionId: revisionDeCombinado.id } }),
-    ).rejects.toThrow();
+    ).rejects.toMatchObject(errorDeBase('23503', 'product_current_price_revision_id_id_fkey'));
 
     const { items } = await adapter.listPublishedProducts(todo);
     expect(items.find((i) => i.id === incendio.id)?.price.amount).toBe('10000.00');
@@ -186,8 +197,8 @@ describe('MAPS-183 — consulta pública del catálogo (Postgres)', () => {
       orderBy: { effectiveFrom: 'asc' },
     });
 
-    await expect(prisma.productPriceRevision.delete({ where: { id: historica!.id } })).rejects.toThrow();
-    await expect(prisma.productPriceRevision.delete({ where: { id: vigente!.id } })).rejects.toThrow();
+    await expect(prisma.productPriceRevision.delete({ where: { id: historica!.id } })).rejects.toMatchObject(errorDeBase('P0001', 'inmutable'));
+    await expect(prisma.productPriceRevision.delete({ where: { id: vigente!.id } })).rejects.toMatchObject(errorDeBase('P0001', 'inmutable'));
     expect(await prisma.productPriceRevision.count({ where: { productId: p.id } })).toBe(2);
   });
 
@@ -195,6 +206,6 @@ describe('MAPS-183 — consulta pública del catálogo (Postgres)', () => {
     const cat = await categoria('Seguros de Personas', 'personas');
     await producto({ name: 'Seguro de Mascotas', categoryId: cat.id, published: true, prices: ['15000'] });
 
-    await expect(prisma.productPriceRevision.updateMany({ data: { amount: '1' } })).rejects.toThrow();
+    await expect(prisma.productPriceRevision.updateMany({ data: { amount: '1' } })).rejects.toMatchObject(errorDeBase('P0001', 'inmutable'));
   });
 });
