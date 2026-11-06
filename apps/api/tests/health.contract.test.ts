@@ -4,7 +4,12 @@ import { describe, expect, it } from 'vitest';
 import { createApp } from '../src/app.js';
 
 describe('MAPS-179 — GET /health responde OK', () => {
-  const app = createApp();
+  // /health no consulta módulos: la consulta del catálogo nunca se llama.
+  const app = createApp({
+    catalogPublicQuery: {
+      listPublishedProducts: () => Promise.reject(new Error('no se usa en /health')),
+    },
+  });
 
   it('GET /health responde 200 con { status: "ok" }', async () => {
     const res = await request(app).get('/health');

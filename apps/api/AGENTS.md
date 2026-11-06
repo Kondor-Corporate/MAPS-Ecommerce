@@ -31,6 +31,22 @@ Identity · Audit recibe eventos de todos y nadie depende de Audit. Sin ciclos.
 - `adapters/in/` HTTP: tests de contrato de los endpoints (status, forma, permisos por rol).
 - Un test por cada ítem del criterio de aceptación, nombrado con ese ítem.
 
+## Base de datos (Prisma 7)
+
+- Esquema y migraciones en `prisma/`; configuración en `prisma.config.ts`. El cliente se genera en
+  `src/database/generated/` (no se commitea; `npm install` lo genera, o `npm run db:generate`).
+- `src/database/prisma.ts` crea el cliente con el driver `pg`. Sólo lo importan `adapters/out/`,
+  `main.ts`, el seed y los tests.
+- `DATABASE_URL` sale del entorno o de `apps/api/.env` (no se commitea). Con el `docker-compose.yml`
+  de la raíz: `postgresql://maps:maps@localhost:5433/maps` (desarrollo) y `.../maps_test` (tests).
+- La integración se niega a correr (y a migrar) si `DATABASE_URL` no apunta a un host local.
+- `PUBLIC_RATE_LIMIT_PER_MINUTE` (opcional, default 120): límite por IP de las rutas públicas del
+  catálogo. Default configurable hasta que exista el módulo de parámetros (MAPS-182).
+- Reglas que Prisma no expresa (CHECK, triggers) se agregan a mano en el `migration.sql`.
+- Una sola historia de migraciones: lo que agregue A3 (MAPS-180) u otra historia va como migración
+  **nueva** en `prisma/migrations/`, extendiendo las existentes; no se crea una inicialización paralela
+  ni se editan migraciones ya mergeadas. Prisma queda pendiente de ratificar en A3 (ADR-SW-003).
+
 ## Zonas sensibles
 
 - `requests/domain`: máquina de estados (TDD-SW-003). Probá también las transiciones **prohibidas**.

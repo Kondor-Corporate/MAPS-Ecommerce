@@ -39,7 +39,7 @@ No fija:
 | Retiro urgente deja el Product no disponible hasta publicar reemplazo | F2 §10 — CONFIRMADO | Disponibilidad derivada sin escritura cruzada entre módulos |
 | Precio cambiado con BORRADOR se informa y reconfirma; ENVIADA conserva el precio confirmado | RN-09, RF-SOL-04 — CONFIRMADO | Revisión de precio con referencia estable (ver [Precio](#precio)) |
 | Tipos y propiedades de campos | F1 §4 — preliminar/candidato; `PENDIENTE FUNCIONAL MAPS` | Se modelan tipos del contrato candidato y estructura de versionado; las propiedades finales quedan condicionadas |
-| Enlatados del prototipo integrado mediante PR #19: Combinado Familiar, Incendio, Mascotas y Retiro | PR #19 — integrado en `main` | El conflicto de productos publicados sin formulario propio sigue abierto; ver [Decisiones abiertas](#decisiones-abiertas) |
+| Enlatados del prototipo integrado mediante PR #19: Combinado Familiar, Incendio, Mascotas y Seguro de Ahorro (id `retiro`) | PR #19 — integrado en `main` | Conflicto de productos sin formulario cerrado por Kondor (2026-11-04), pendiente de conformidad de MAPS: sin formulario no se publican; ver [Decisiones abiertas](#decisiones-abiertas) |
 | Listado público sólo de productos activos, sin autenticación, ordenado por nombre | Antecedente TDD-0001 (MAPS-55, rama `docs/MAPS-55-tdd-catalogo-productos-enlatados`, sin merge) | Sólo antecedente. La baseline vigente es F2 §7 (PUB-01): catálogo público de Products publicados con categoría, precio y disponibilidad. Paginación, búsqueda y filtro se detallan en TDD-SW-008 |
 | PostgreSQL histórico de MAPS descartado como dependencia | [ADR-SW-003](../../adr/MAPS-108-persistencia-fronteras-transaccionales/ADR-SW-003-persistencia-y-fronteras-transaccionales.md) | Catálogo y formularios viven en la base nueva del Portal |
 
@@ -344,12 +344,22 @@ Secuencia sugerida: validador de esquema y máquina de estados de `FormVersion` 
 
 Dependencias: TDD-SW-006 para campos `file`; TDD-SW-004 para RBAC; TDD-SW-008 para el contrato HTTP. No se definen Epic ni Issues F4 en este documento.
 
+**Implementado en [MAPS-183](https://santitalavera.atlassian.net/browse/MAPS-183) (consulta pública):**
+
+- Nombres en código, base y API en inglés (convención de TDD-SW-008). Correspondencia: `nombre` → `name`, `resumenComercial` → `summary`, `publicado` → `published`, `imagenRef` → `imageRef`, `monto` / `moneda` → `amount` / `currency`, `vigenteDesde` / `creadoPor` → `effectiveFrom` / `createdBy`; ProductAttribute `orden` → `sortOrder`.
+- Tablas `category`, `product`, `product_attribute` y `product_price_revision`. `product_price_revision` con `CHECK` de monto > 0 y moneda `ARS`, y un trigger que rechaza `UPDATE` y `DELETE`: el historial de precios es inmutable y se retiene completo en el MVP.
+- **Precio vigente propio:** FK compuesta `product (current_price_revision_id, id)` → `product_price_revision (id, product_id)`. La base rechaza apuntar como vigente una revisión de otro Product; no depende de la convención del adaptador. Borrar la revisión vigente también se rechaza (`ON DELETE RESTRICT`).
+- La consulta pública lista Products `published` **con precio vigente**, ordenados por nombre. Todavía **no expone `disponible`**: depende de Forms, que no existe. El indicador y el estado "no disponible" de PUB-01 se suman con el módulo Forms.
+- **Catálogo semilla demostrativo, no publicación funcional válida.** Los datos semilla toman del prototipo integrado los Products que allí tienen formulario, con su publicación (`active`): Combinado Familiar, Seguro de Incendio, Seguro de Mascotas y Seguro de Ahorro publicados; Accidentes Personales cargado sin publicar; Responsabilidad Civil no se carga (sin formulario). Esos `published = true` se cargan **sin FormVersion persistida**, así que la precondición de publicación (versión utilizable) **no está verificada** en este estado. Precios y publicaciones son demostrativos hasta que MAPS los valide.
+- **Reconciliación obligatoria al implementar Forms**, antes de habilitar `CreateDraft`: (1) cargar o crear la FormVersion PUBLICADA de cada Product publicado; (2) verificar con la regla de disponibilidad que todo Product `published` tenga versión utilizable; (3) despublicar (o no habilitar) los que no la tengan; (4) recién entonces exponer `disponible` en la consulta pública y habilitar `CreateDraft`. Hasta ese punto, ningún flujo debe tratar a un Product del catálogo semilla como disponible para iniciar una solicitud.
+- **Handoff a A3 ([MAPS-180](https://santitalavera.atlassian.net/browse/MAPS-180)):** el esquema de catálogo y sus migraciones viven en `apps/api/prisma/`. A3 **extiende** esa historia de migraciones (agrega las tablas base restantes como migraciones nuevas) y no crea una inicialización paralela. La adopción de Prisma 7 que hace B1 queda para ratificar en A3; hasta entonces ADR-SW-003 la mantiene como candidata.
+
 ## Decisiones abiertas
 
 | Tema | Responsable | Qué puede avanzar | Condición de cierre |
 | --- | --- | --- | --- |
 | Propiedades definitivas de los campos de formulario | MAPS + Kondor | Tipos, versionado, `key` estable y referencia de respuestas | Validar 1–2 formularios reales (`PENDIENTE FUNCIONAL MAPS`) |
-| Productos sin formulario en el prototipo (Incendio y Retiro) frente a "publicado requiere versión utilizable" (F2 §10). **Bloqueante de `EN REVISIÓN`** | MAPS | Modelo de disponibilidad y consulta pública | MAPS decide si esos productos tienen formulario, o se publican sólo como informativos (sin iniciar `InsuranceRequest`). Cambiaría la regla de publicación; se alinean F1/F2, prototipo y este TDD según la elección |
+| Productos sin formulario frente a "publicado requiere versión utilizable" (F2 §10). **Cerrada por Kondor el 2026-11-04, pendiente de conformidad de MAPS** | Joaquín Rodriguez (Kondor) | — | Todo Product necesita formulario para publicarse; no hay productos sólo informativos. Se mantiene la precondición de publicación, así que F1/F2 no cambian. Decisión tomada por Kondor; no hay conformidad explícita de MAPS registrada. Nota: en el prototipo integrado actual Incendio y Retiro sí tienen formulario; el único sin formulario es Responsabilidad Civil, que no se carga en los datos semilla (MAPS-183) |
 | Dependencia Catalog → Forms para calcular disponibilidad | Software | Puertos y regla derivada | **Registrada** en la [enmienda 2026-10-15 de ADR-SW-001](../../adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-001-monolito-modular-y-limites.md#enmienda-2026-10-15-dependencia-catalog--forms) (sólo lectura). Pendiente la conformidad de la revisión cruzada de Santiago |
 | `estado` de Category y "conflicto de uso" (F2 ADM-06) | Kondor (F2) + MAPS | Crear, editar y renombrar | Definir valores del estado y su efecto sobre los Products de la categoría |
 | Products publicados y no disponibles en el catálogo público | Kondor (F2) | Indicador `disponible` en la consulta | Decidir si se listan con la marca "no disponible" o se ocultan |
@@ -371,7 +381,7 @@ Revisión de Santiago Talavera en la PR #20 (Software–Cloud, TDD-SW-002). Cada
 
 | # | Punto | Respuesta en este documento |
 | --- | --- | --- |
-| 1 | Productos sin formulario | Decisión MAPS registrada como bloqueante en [Decisiones abiertas](#decisiones-abiertas); no se asume resuelta |
+| 1 | Productos sin formulario | Cerrada por Kondor el 2026-11-04 (Joaquín Rodriguez), pendiente de conformidad de MAPS: sin formulario no se publican. Ver [Decisiones abiertas](#decisiones-abiertas) |
 | 2 | Dependencia Catalog → Forms | Registrada en la [enmienda 2026-10-15 de ADR-SW-001](../../adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-001-monolito-modular-y-limites.md#enmienda-2026-10-15-dependencia-catalog--forms); ADR-SW-001 no se reescribe |
 | 3 | Publicación vs disponibilidad | Precondición e invariante separadas en Product; métrica reformulada en [Operación](#operación-y-observabilidad) |
 | 4 | Concurrencia Submit vs cambios | [Garantías de consistencia entre módulos](#garantías-de-consistencia-entre-módulos): bloqueos, orden de bloqueo y pruebas de carrera |

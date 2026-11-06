@@ -36,6 +36,24 @@ Cuanto más se repite, más dura la corrección:
   fijaba. Las reglas de límites se probaban a mano · escalón 3: lista permitida por capa y
   fixtures en `apps/api/tests/architecture/boundaries.test.ts`, que corren en CI. Toda excepción
   de lint cita el ADR/TDD-SW que la fija y tiene un caso positivo y uno negativo.
+- 2026-11-04 · MAPS-183 · la rama se apiló sobre otra sin mergear (#39) que no tenía el flujo de
+  revisión previa (#40/#41); el agente siguió la skill vieja de su worktree, commiteó, pusheó y abrió
+  PR (#43) sin revisor previo · #43 cerrado y rehecho en `-v2`; #39 sincronizado con `development` ·
+  pendiente: la skill §2 debería pedir verificar que la base tenga el flujo vigente de `development`.
+- 2026-11-04 · MAPS-183 · el merge de sincronización de `development` en #39 no está contemplado
+  por el flujo (el hook lo habría bloqueado) y además rompió el lint (hooks `.mjs` sin globales de
+  Node) · lint corregido en #39 con revisión previa · pendiente: definir cómo se revisa un merge de
+  sincronización y lintear `.claude/` y `.codex/` en el PR que los agrega.
+- 2026-11-06 · MAPS-183 · la review humana de #44 encontró lo que tres rondas del `revisor`
+  aprobaron: el precio vigente podía apuntar a una revisión de otro producto (FK simple), el
+  historial de precios se podía borrar (el trigger sólo cubría UPDATE), el seed publicaba sin
+  FormVersion persistida y el texto afirmaba que la invariante se cumplía, y faltaba el handoff de
+  migraciones con A3. Los tests negativos usaban `rejects.toThrow()` sin decir qué error esperaban ·
+  FK compuesta, trigger UPDATE OR DELETE, seed declarado demostrativo con reconciliación y handoff
+  en TDD-SW-002; tests negativos que afirman el código de la base · pendiente (escalón 2): checklist
+  del revisor para persistencia — integridad referencial entre filas relacionadas (no sólo
+  existencia), operaciones prohibidas probadas en todas sus variantes (UPDATE, DELETE), datos
+  semilla frente a las invariantes del dominio, y tests negativos que verifiquen la causa del error.
 
 ## Pendientes de evaluar
 

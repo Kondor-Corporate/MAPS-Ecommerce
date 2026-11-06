@@ -14,6 +14,8 @@ export default tseslint.config(
       'docs/**',
       // Fixtures de las pruebas de arquitectura: los lintea su test con sus propias reglas.
       'apps/api/tests/architecture/fixtures/**',
+      // Cliente Prisma generado (npm run db:generate -w @maps/api).
+      'apps/api/src/database/generated/**',
     ],
   },
   js.configs.recommended,

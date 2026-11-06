@@ -47,7 +47,9 @@ describe('integración web ↔ API vía proxy de Vite', () => {
     const apiPort = await freePort();
     api = spawn(process.execPath, ['--import', 'tsx', join(apiRoot, 'src/main.ts')], {
       cwd: apiRoot,
-      env: { ...process.env, PORT: String(apiPort) },
+      // La API exige DATABASE_URL al arrancar (MAPS-183), pero /health no la usa: Prisma conecta
+      // en la primera consulta. Un valor inalcanzable alcanza para este test.
+      env: { ...process.env, PORT: String(apiPort), DATABASE_URL: 'postgresql://sin-uso@127.0.0.1:1/sin-uso' },
       stdio: 'ignore',
     });
     await waitUntilUp(`http://127.0.0.1:${apiPort}/health`);
