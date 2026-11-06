@@ -22,7 +22,7 @@ parece necesitar algo de eso, frená y preguntá. Alcance completo: [README](./R
 | Estructura interna (hexagonal) | [ADR-SW-002](./docs/03-arquitectura/software/adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-002-arquitectura-hexagonal-y-capas.md) |
 | Persistencia y transacciones | [ADR-SW-003](./docs/03-arquitectura/software/adr/MAPS-108-persistencia-fronteras-transaccionales/ADR-SW-003-persistencia-y-fronteras-transaccionales.md) |
 | Outbox, asincronía, idempotencia | [ADR-SW-004](./docs/03-arquitectura/software/adr/MAPS-110-asincronia-outbox-idempotencia/ADR-SW-004-outbox-asincronia-e-idempotencia.md) |
-| Identidad y autorización | [ADR-SW-005](./docs/03-arquitectura/software/adr/MAPS-111-identidad-autorizacion/ADR-SW-005-identidad-y-autorizacion.md) |
+| Identidad y autorización | [ADR-SW-005](./docs/03-arquitectura/software/adr/MAPS-111-identidad-autorizacion/ADR-SW-005-identidad-y-autorizacion.md) (vigente) y [ADR-SW-007](./docs/03-arquitectura/software/adr/MAPS-216-identidad-multirol-mfa/ADR-SW-007-identidad-multirol-y-mfa-fuera-del-mvp.md) (`PROPUESTO`, lo reemplaza: roles múltiples, MFA fuera del MVP) |
 | Modelo de dominio y datos | [TDD-SW-001](./docs/03-arquitectura/software/tdd/MAPS-109-modelo-dominio-datos/TDD-SW-001-modelo-de-dominio-y-datos.md) |
 | Product, Category, FormVersion | [TDD-SW-002](./docs/03-arquitectura/software/tdd/MAPS-112-product-category-formularios/TDD-SW-002-product-category-y-formversion.md) |
 | InsuranceRequest y máquina de estados | [TDD-SW-003](./docs/03-arquitectura/software/tdd/MAPS-113-insurance-request-estados/TDD-SW-003-insurance-request-y-maquina-de-estados.md) |
@@ -47,11 +47,14 @@ apps/api/src/main.ts · app.ts     entrypoint y composition root HTTP
 apps/api/src/http/                endpoints técnicos transversales (health)
 apps/api/src/modules/<modulo>/   identity · catalog · forms · requests · assignment · documents · audit
 apps/api/src/modules/notifications/   mecanismo transversal de outbox (ADR-SW-004)
+apps/api/src/read-composition/    lecturas que componen módulos, p. ej. historial (TDD-SW-007)
+packages/types/                   @maps/types: contratos de sólo tipos (AuditRecord, TDD-SW-007)
 apps/web/src/features/            auth · catalogo · solicitudes · admin · productor
 ```
 
-Los límites entre módulos y capas se controlan en el lint (`eslint.config.mjs`, `eslint-plugin-boundaries`):
-un import que rompe ADR-SW-001/002 hace fallar `npm run lint`.
+Los límites entre módulos y capas se controlan en el lint (`eslint/architecture.mjs`, `eslint-plugin-boundaries`),
+con casos permitidos y prohibidos probados en `apps/api/tests/architecture/`. Un import que rompe
+ADR-SW-001/002 hace fallar `npm run lint`.
 
 Reglas específicas: [apps/api/AGENTS.md](./apps/api/AGENTS.md) · [apps/web/AGENTS.md](./apps/web/AGENTS.md).
 
@@ -84,7 +87,7 @@ npm run test:integration -w @maps/api       migra y corre la integración (DATAB
 2. `domain/` no importa Express, Prisma, SDKs ni nada de infraestructura (ADR-SW-002).
 3. Las transiciones de `InsuranceRequest` sólo ocurren por la máquina de estados de TDD-SW-003.
 4. Todo efecto externo (email) sale por outbox, idempotente (ADR-SW-004).
-5. Toda lectura de solicitudes filtra por ownership/rol (ADR-SW-005).
+5. Toda lectura de solicitudes filtra por ownership/rol (ADR-SW-005; ADR-SW-007 si se acepta: el alcance es el del rol que exige el caso de uso, no el de la cuenta).
 6. Valores de negocio que MAPS no definió (retención, límites, reintentos) van al módulo de
    parámetros configurables (MAPS-182), nunca hardcodeados.
 7. Sin datos personales en logs ni en eventos de analítica.

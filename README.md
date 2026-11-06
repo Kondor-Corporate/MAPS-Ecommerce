@@ -35,19 +35,27 @@ La web muestra "API operativa" cuando llega a `GET /api/v1/health`. Verificacion
 apps/api/src/
 ├── main.ts · app.ts       entrypoint y composition root HTTP
 ├── http/ · config/        health y configuración técnica
+├── read-composition/      lecturas que componen varios módulos (GetRequestHistory, TDD-SW-007)
 └── modules/<modulo>/      identity · catalog · forms · requests · assignment · documents · audit · notifications
     ├── domain/            reglas de negocio, sin librerías
     ├── application/       casos de uso
     ├── ports/in · out     lo que el módulo ofrece / lo que necesita
     └── adapters/in · out  HTTP, persistencia, proveedores
+packages/types/            @maps/types: contratos compartidos de sólo tipos (AuditRecord, TDD-SW-007)
 apps/web/src/              React + Vite; llama a la API por /api/v1
 ```
 
-`npm run lint` hace cumplir los límites de [ADR-SW-001](./docs/03-arquitectura/software/adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-001-monolito-modular-y-limites.md) y [ADR-SW-002](./docs/03-arquitectura/software/adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-002-arquitectura-hexagonal-y-capas.md) (`eslint.config.mjs`):
+`npm run lint` hace cumplir los límites de [ADR-SW-001](./docs/03-arquitectura/software/adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-001-monolito-modular-y-limites.md) y [ADR-SW-002](./docs/03-arquitectura/software/adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-002-arquitectura-hexagonal-y-capas.md) (reglas en `eslint/architecture.mjs`):
 
-- Dentro de un módulo, las dependencias van hacia adentro y `domain/` no importa librerías.
-- Entre módulos sólo se usa `ports/in`, en la dirección que fijan los documentos: Requests → Catalog, Forms, Identity · Catalog → Forms · Assignment → Requests, Identity · Documents → Requests, Identity · cualquiera → Notifications (outbox). Nadie importa Audit.
+- Dentro de un módulo, las dependencias van hacia adentro.
+- `domain/`, `application/`, `ports/` y `read-composition/` no importan librerías, frameworks ni infraestructura (Express, Prisma, `node:*`…): sólo código propio por ruta relativa. Vale para `import`, `import type`, `export … from`, `require()` e `import()` (que sólo aceptan un string literal) y tipos inline `import('x').T`. Las librerías van en `adapters/`.
+- Entre módulos sólo se usa `ports/in`, en la dirección que fijan los documentos: Requests → Catalog, Forms, Identity · Catalog → Forms · Assignment → Requests, Identity · Documents → Requests, Identity.
+- Única excepción hacia el `ports/out` de otro módulo: `documents/adapters/out` implementa `AttachmentCheckPort` de Requests ([TDD-SW-006](./docs/03-arquitectura/software/tdd/MAPS-115-adjuntos-documentos/TDD-SW-006-adjuntos-y-documentos.md)).
+- Ningún módulo importa Audit ni Notifications. Cada módulo declara `OutboxPort` en su propio `ports/out` ([ADR-SW-004](./docs/03-arquitectura/software/adr/MAPS-110-asincronia-outbox-idempotencia/ADR-SW-004-outbox-asincronia-e-idempotencia.md)) y la implementación se cablea en `app.ts`/`main.ts`, que son los únicos que importan todo.
+- Audit ([TDD-SW-007](./docs/03-arquitectura/software/tdd/MAPS-115-auditoria-analytics/TDD-SW-007-auditoria-y-analytics.md)): el contrato `AuditRecord` va en `@maps/types` (`packages/types`), que sólo declara `type`/`interface` y no importa nada. Puertos, casos de uso y adaptadores lo importan sólo con `import type`; el dominio no lo usa. `read-composition/` sólo consume los `ports/in` de Audit, Assignment e Identity, y sólo la importa el composition root: ningún módulo la invoca.
 - Una dirección nueva se agrega a `MODULE_DEPENDENCIES` en el mismo PR que actualiza el ADR/TDD-SW que la justifica.
+
+Cada regla tiene casos permitidos y prohibidos en `apps/api/tests/architecture/boundaries.test.ts`, y la integración web ↔ API por el proxy de Vite se prueba en `apps/web/src/test/api-proxy.integration.test.ts`. Los dos corren con `npm test` y en CI (`.github/workflows/ci.yml`).
 
 ## Documentación vigente
 

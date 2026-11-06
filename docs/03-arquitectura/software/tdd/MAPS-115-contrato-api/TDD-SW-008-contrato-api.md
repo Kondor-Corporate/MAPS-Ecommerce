@@ -11,8 +11,8 @@
 | Work item | [MAPS-115](https://santitalavera.atlassian.net/browse/MAPS-115) · subtarea [MAPS-145](https://santitalavera.atlassian.net/browse/MAPS-145) |
 | URL del work item | https://santitalavera.atlassian.net/browse/MAPS-115 |
 | Fase origen | [F1 RF-SOL-01 a 05, RF-ADM-01, RF-CAT-01, RF-PROD-01, RF-FORM-01, RF-CLI-01, RF-PRODUCER-01/02/03, RF-DELIVERY-01, RNF-SEC-01](../../../../01-producto/Fase_1__Discovery_y_Relevamiento.md), [F2 §3/5/6/10/13/14](../../../../02-diseno/Fase_2__Design_Handoff.md) |
-| Decisiones relacionadas | [ADR-SW-001](../../adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-001-monolito-modular-y-limites.md), [ADR-SW-002](../../adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-002-arquitectura-hexagonal-y-capas.md), [ADR-SW-003](../../adr/MAPS-108-persistencia-fronteras-transaccionales/ADR-SW-003-persistencia-y-fronteras-transaccionales.md), [ADR-SW-004](../../adr/MAPS-110-asincronia-outbox-idempotencia/ADR-SW-004-outbox-asincronia-e-idempotencia.md), [ADR-SW-005](../../adr/MAPS-111-identidad-autorizacion/ADR-SW-005-identidad-y-autorizacion.md) (`ACEPTADO`); [TDD-SW-001](../MAPS-109-modelo-dominio-datos/TDD-SW-001-modelo-de-dominio-y-datos.md), [TDD-SW-003](../MAPS-113-insurance-request-estados/TDD-SW-003-insurance-request-y-maquina-de-estados.md) (`APROBADO`); [TDD-SW-002](../MAPS-112-product-category-formularios/TDD-SW-002-product-category-y-formversion.md), [TDD-SW-005](../MAPS-114-assignment-delivery-outbox/TDD-SW-005-assignment-delivery-y-coordinacion-outbox.md) (`BORRADOR`); TDD-SW-004 (`BORRADOR`, [PR #27](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/27)); ADR-SW-006 (`PROPUESTO`) y TDD-SW-006 (`BORRADOR`, [PR #28](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/28)); ADR-CLD-001 (`PROPUESTO`, [PR #31](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/31)); ADR-CLD-007 y TDD-CLD-006 ([PR #30](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/30)) |
-| Depende de | Contrato definitivo de formularios (MAPS-96) y campos de Mi perfil (MAPS-97): `PENDIENTE FUNCIONAL MAPS`. Routing `/api/*` de ADR-CLD-001 y proveedor de identidad/transporte del token de ADR-CLD-007, ambos `PROPUESTO`. TDD-SW-004 y TDD-SW-006 en PR abiertas. Autenticación de webhooks en TDD-CLD-005 (previsto) |
+| Decisiones relacionadas | [ADR-SW-001](../../adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-001-monolito-modular-y-limites.md), [ADR-SW-002](../../adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-002-arquitectura-hexagonal-y-capas.md), [ADR-SW-003](../../adr/MAPS-108-persistencia-fronteras-transaccionales/ADR-SW-003-persistencia-y-fronteras-transaccionales.md), [ADR-SW-004](../../adr/MAPS-110-asincronia-outbox-idempotencia/ADR-SW-004-outbox-asincronia-e-idempotencia.md), [ADR-SW-005](../../adr/MAPS-111-identidad-autorizacion/ADR-SW-005-identidad-y-autorizacion.md) (`ACEPTADO`), [ADR-SW-007](../../adr/MAPS-216-identidad-multirol-mfa/ADR-SW-007-identidad-multirol-y-mfa-fuera-del-mvp.md) (`PROPUESTO`, lo reemplaza); [TDD-SW-001](../MAPS-109-modelo-dominio-datos/TDD-SW-001-modelo-de-dominio-y-datos.md), [TDD-SW-003](../MAPS-113-insurance-request-estados/TDD-SW-003-insurance-request-y-maquina-de-estados.md) (`APROBADO`); [TDD-SW-002](../MAPS-112-product-category-formularios/TDD-SW-002-product-category-y-formversion.md), [TDD-SW-005](../MAPS-114-assignment-delivery-outbox/TDD-SW-005-assignment-delivery-y-coordinacion-outbox.md) (`BORRADOR`); TDD-SW-004 (`BORRADOR`, [PR #27](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/27)); ADR-SW-006 (`PROPUESTO`) y TDD-SW-006 (`BORRADOR`, [PR #28](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/28)); ADR-CLD-001 (`PROPUESTO`, [PR #31](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/31)); ADR-CLD-007 y TDD-CLD-006 ([PR #30](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/30)) |
+| Depende de | Contrato definitivo de formularios (MAPS-96) y campos de Mi perfil (MAPS-97): `PENDIENTE FUNCIONAL MAPS`. [ADR-SW-007](../../adr/MAPS-216-identidad-multirol-mfa/ADR-SW-007-identidad-multirol-y-mfa-fuera-del-mvp.md) (`PROPUESTO`, reemplaza a ADR-SW-005): una cuenta puede tener varios roles; este TDD no pasa a `EN REVISIÓN` ni `APROBADO` hasta que esté `ACEPTADO`. Routing `/api/*` de ADR-CLD-001 y proveedor de identidad/transporte del token de ADR-CLD-007, ambos `PROPUESTO`. TDD-SW-004 y TDD-SW-006 en PR abiertas. Autenticación de webhooks en TDD-CLD-005 (previsto) |
 | Reemplaza | No aplica |
 | Reemplazado por | No aplica |
 
@@ -108,7 +108,7 @@ Admin, Cliente y Productor usan prefijos separados (`/admin`, `/me`, `/producer`
 
 - **Propuesta:** la SPA obtiene el token del proveedor de identidad y lo envía en `Authorization: Bearer <token>` en cada request. ADR-CLD-007 (`PROPUESTO`) propone Google Cloud Identity Platform; el formato y la validación los fija TDD-CLD-006.
 - CSRF no aplica sólo bajo este supuesto: autenticación exclusivamente por encabezado Bearer, sin cookies de sesión ni otras credenciales ambientales que el navegador envíe solo. Si se eligiera un BFF con cookie de sesión, el contrato debe agregar protección CSRF y la decisión vuelve a revisión cruzada. Compartir origen evita CORS, pero no protege por sí mismo de solicitudes maliciosas.
-- Cada request autenticada valida el token y relee el estado de cuenta en el Portal (ADR-SW-005, TDD-SW-004): una cuenta en `BAJA` se rechaza desde la siguiente request aunque el token siga vigente.
+- Cada request autenticada valida el token y relee el estado de cuenta y los roles en el Portal (ADR-SW-005, ADR-SW-007, TDD-SW-004): una cuenta en `BAJA`, o un rol retirado para el caso de uso que lo exige, se rechaza desde la siguiente request aunque el token siga vigente.
 - Los tokens nunca viajan en una parte de la URL que llegue al servidor ni se registran en logs. El token de invitación de Productor llega a la SPA en el fragmento del enlace y a la API en el cuerpo (ver abajo).
 
 ### Token de invitación de Productor
@@ -118,7 +118,7 @@ El token es una credencial temporal de un solo uso. Su recorrido es:
 1. El email contiene `https://<host>/invitacion#token=<token>`. El fragmento no se envía en las requests HTTP ni en `Referer`, así que no llega al CDN, al balanceador ni a la API.
 2. La SPA lo lee al arrancar en esa ruta, antes de inicializar diagnóstico o analytics, y lo borra de la barra y del historial con `history.replaceState`.
 3. Lo conserva en memoria y, sólo si el login redirige fuera de la SPA, en `sessionStorage`. Lo elimina al recibir la respuesta de la aceptación o un error definitivo.
-4. Lo envía una vez, en el cuerpo de `POST /api/v1/producer-invitations/acceptance`. Los logs de la API no registran cuerpos.
+4. Lo envía una vez, en el cuerpo de `POST /api/v1/producer-invitations/acceptance`, con la identidad ya autenticada: sin cuenta, o con una cuenta de Admin a la que la aceptación agrega el rol `PRODUCTOR` (reglas de dominio en [TDD-SW-004](../MAPS-111-identidad-rbac-ownership/TDD-SW-004-identidad-rbac-y-ownership.md#recorrido-del-token-de-invitación)). Los logs de la API no registran cuerpos.
 
 Controles de la ruta `/invitacion`: `Referrer-Policy: no-referrer`, sin analytics ni recursos de terceros, y reportes de error sin URL completa ni `sessionStorage`. La plantilla del email se envía sin seguimiento de clics, porque el proveedor reescribiría el enlace y vería el fragmento (TDD-CLD-005).
 
@@ -129,8 +129,8 @@ Riesgo residual: un script malicioso en la SPA podría leer el token mientras ex
 | Clase | Rutas | Regla |
 | --- | --- | --- |
 | Pública anónima | `GET /api/v1/catalog/*`, `POST .../views` | Sin sesión; límites de frecuencia en la API y en el borde |
-| Autenticada sin cuenta | `GET /api/v1/me`, `POST /registrations`, `POST /producer-invitations/acceptance` | Únicos endpoints, además de los públicos, que admiten una identidad sin `UserIdentity` |
-| Autenticada con cuenta | `/api/v1/me/*`, `/api/v1/admin/*`, `/api/v1/producer/*`, `/api/v1/documents/*` | Política del caso de uso y `AccessScope`. Una identidad sin cuenta recibe `403 REGISTRO_PENDIENTE` |
+| Autenticada, admite identidad sin cuenta | `GET /api/v1/me`, `POST /registrations`, `POST /producer-invitations/acceptance` | Únicos endpoints, además de los públicos, que admiten una identidad válida sin `UserIdentity`; no son exclusivos de ella. Cada caso de uso decide: el registro exige no tener cuenta (`REGISTRO_YA_COMPLETO`), la aceptación de la invitación admite una identidad sin cuenta o una cuenta Admin a la que agrega `PRODUCTOR`, y `/me` responde a ambas |
+| Autenticada, requiere cuenta | `/api/v1/me/*`, `/api/v1/admin/*`, `/api/v1/producer/*`, `/api/v1/documents/*` | Política del caso de uso y `AccessScope`. Una identidad sin cuenta recibe `403 REGISTRO_PENDIENTE` |
 | Máquina a máquina | `POST /api/v1/webhooks/*` | Sin sesión de usuario; autenticidad del mensaje según TDD-CLD-005 |
 | Operativa | Health checks y diagnóstico | Fuera de este contrato (TDD-CLD-002). Ningún endpoint de diagnóstico público expone configuración, topología ni conectividad detallada |
 
@@ -151,9 +151,9 @@ Una ruta no declarada aquí no se publica. La protección de borde complementa l
 
 | Método y ruta | Caso de uso | Notas |
 | --- | --- | --- |
-| `GET /api/v1/me` | Resolver actor | Rol, estado de cuenta y datos mínimos para la navegación de la SPA. No devuelve una lista de permisos: la UI oculta acciones por UX y la API decide. Identidad válida sin cuenta: `200` con `{ "accountStatus": "SIN_CUENTA", "role": null }`, para iniciar el registro o la aceptación de la invitación. Token ausente o inválido: `401 NO_AUTENTICADO`. Cuenta en `BAJA`: `403 CUENTA_INACTIVA` |
+| `GET /api/v1/me` | Resolver actor | Roles `ACTIVO` de la cuenta (`roles: [...]`, por ejemplo `["ADMIN", "PRODUCTOR"]`), estado de cuenta y datos mínimos para la navegación de la SPA. No devuelve una lista de permisos ni asume un único rol: la UI muestra la navegación de cada rol por UX y la API decide, caso de uso por caso de uso, con el rol que éste exige. Identidad válida sin cuenta: `200` con `{ "accountStatus": "SIN_CUENTA", "roles": [] }`, para iniciar el registro o la aceptación de la invitación. Token ausente o inválido: `401 NO_AUTENTICADO`. Cuenta en `BAJA`: `403 CUENTA_INACTIVA` |
 | `POST /api/v1/registrations` | `CompleteRegistration` | Identidad autenticada sin cuenta; crea rol `CLIENTE`. Datos del cuerpo condicionados a MAPS-97 |
-| `POST /api/v1/producer-invitations/acceptance` | `AcceptProducerInvitation` | Cuerpo `{ "token" }`, según [Token de invitación](#token-de-invitación-de-productor); errores `INVITACION_INVALIDA`, `EMAIL_NO_COINCIDE` |
+| `POST /api/v1/producer-invitations/acceptance` | `AcceptProducerInvitation` | Cuerpo `{ "token" }`, según [Token de invitación](#token-de-invitación-de-productor). Crea la cuenta con rol `PRODUCTOR` o, si la identidad ya es Admin, agrega el rol a su cuenta (TDD-SW-004). Errores `INVITACION_INVALIDA`, `EMAIL_NO_COINCIDE`, `ROL_INCOMPATIBLE`, `REGISTRO_YA_COMPLETO`, `CUENTA_INACTIVA` |
 | `GET /api/v1/me/profile` · `PATCH /api/v1/me/profile` | Ver y editar Mi perfil | Sólo Cliente. Esquema condicionado a MAPS-97 |
 
 **Cliente — solicitudes**
@@ -212,13 +212,13 @@ La lista de consentimientos y su texto dependen del contrato de formularios (MAP
 | Clientes | `GET /api/v1/admin/customers`, `GET/PATCH /api/v1/admin/customers/{id}`, `POST .../{id}/deactivation`, `POST .../{id}/reactivation` | Campos editables: MAPS-97. No hay alta por Admin ni edición de email (TDD-SW-004) |
 | Productores | `GET/POST /api/v1/admin/producers` (alta con invitación), `PATCH /api/v1/admin/producers/{id}`, `POST .../{id}/invitation-resend`, `GET .../{id}/deactivation-impact`, `POST .../{id}/deactivation`, `POST .../{id}/reactivation` | — |
 
-La baja guiada usa dos pasos. `GET .../deactivation-impact` lista las ASIGNADAS y DERIVADAS afectadas y las `CancellationRequest` pendientes. `POST .../deactivation` recibe `{ reason, dispositions: [{ requestId, targetProducerId, reason }] }` y ejecuta todo en una unidad de trabajo, o falla completa con `SIN_PRODUCTOR_DISPONIBLE`, `DISPOSICION_INCOMPLETA`, `CANCELACION_PENDIENTE` o `CONFLICTO_CONCURRENCIA` (TDD-SW-004).
+La baja guiada usa dos pasos. `GET .../deactivation-impact` lista las ASIGNADAS y DERIVADAS afectadas y las `CancellationRequest` pendientes. `POST .../deactivation` recibe `{ reason, dispositions: [{ requestId, targetProducerId, reason }] }` y ejecuta todo en una unidad de trabajo, o falla completa con `SIN_PRODUCTOR_DISPONIBLE`, `DISPOSICION_INCOMPLETA`, `CANCELACION_PENDIENTE` o `CONFLICTO_CONCURRENCIA` (TDD-SW-004). Según la cuenta, retira el rol `PRODUCTOR` (si conserva `ADMIN` activo) o la da de baja (si era su único rol). `POST .../reactivation` reactiva una cuenta en `BAJA` y recupera sus roles `ACTIVO`; sobre una cuenta `ACTIVA` con el rol `PRODUCTOR` `RETIRADO` responde `409 CUENTA_NO_EN_BAJA` y no lo restaura. Para conceder de nuevo `PRODUCTOR` se usa `POST .../invitation-resend`, que emite una invitación nueva cuando el `Producer` ya tiene una cuenta vinculada con el rol retirado (TDD-SW-004).
 
 **Productor — sólo lectura**
 
 | Método y ruta | Consulta | Notas |
 | --- | --- | --- |
-| `GET /api/v1/producer/requests` | Mis solicitudes del Productor | Sólo DERIVADAS con Assignment `EFECTIVO` propio y cuenta `ACTIVA`; filtros `productId`, `q`; paginado |
+| `GET /api/v1/producer/requests` | Mis solicitudes del Productor | Sólo DERIVADAS con Assignment `EFECTIVO` propio, rol `PRODUCTOR` `ACTIVO` y cuenta `ACTIVA`; filtros `productId`, `q`; paginado |
 | `GET /api/v1/producer/requests/{requestId}` | Expediente read-only | Fuera del alcance responde `404`. Cada `GET` registra `EXPEDIENTE_ABIERTO` antes de responder; si el registro falla, responde `503` sin contenido (TDD-SW-007). Adjuntos por `GetDocumentLink` |
 
 El Productor no tiene endpoints de escritura sobre solicitudes. El enlace del email de derivación apunta a la ruta del Portal de ese expediente, sin token: abrirlo exige iniciar sesión (ADR-SW-005).
@@ -263,9 +263,9 @@ Se propone [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457) (`application/prob
 | --- | --- |
 | `400` | `PETICION_INVALIDA` (JSON mal formado, tipos incorrectos, propiedades desconocidas, filtro u orden no permitido) |
 | `401` | `NO_AUTENTICADO` (con `WWW-Authenticate: Bearer`) |
-| `403` | `CUENTA_INACTIVA`; `REGISTRO_PENDIENTE` cuando una identidad válida sin cuenta invoca un endpoint que la requiere; `ACCESO_DENEGADO` cuando el actor puede ver el recurso pero no ejecutar la operación |
+| `403` | `CUENTA_INACTIVA`; `REGISTRO_PENDIENTE` cuando una identidad válida sin cuenta invoca un endpoint que la requiere; `ACCESO_DENEGADO` cuando el actor puede ver el recurso pero no ejecutar la operación, o no tiene activo el rol que el caso de uso exige |
 | `404` | `NO_ENCONTRADO`: recurso inexistente **o fuera del `AccessScope`** del actor; no se revela su existencia (TDD-SW-003, TDD-SW-004) |
-| `409` | `TRANSICION_INVALIDA`, `BORRADOR_NO_UTILIZABLE`, `PRECIO_NO_CONFIRMADO`, `PRODUCTO_NO_DISPONIBLE`, `PRODUCTOR_NO_DISPONIBLE`, `CANCELACION_YA_SOLICITADA`, `CANCELACION_PENDIENTE`, `REASIGNACION_DERIVADA_NO_PERMITIDA`, `SIN_PRODUCTOR_DISPONIBLE`, `REGISTRO_YA_COMPLETO`, `PRODUCTO_SIN_VERSION_UTILIZABLE`, `PRECIO_NO_CONFIGURADO`, `DOCUMENTO_NO_DISPONIBLE`; `CONFLICTO_CONCURRENCIA` en endpoints que no exigen `If-Match` cuando la escritura detecta un cambio concurrente, o cuando hay una ejecución en curso con la misma clave de idempotencia |
+| `409` | `TRANSICION_INVALIDA`, `BORRADOR_NO_UTILIZABLE`, `PRECIO_NO_CONFIRMADO`, `PRODUCTO_NO_DISPONIBLE`, `PRODUCTOR_NO_DISPONIBLE`, `CANCELACION_YA_SOLICITADA`, `CANCELACION_PENDIENTE`, `REASIGNACION_DERIVADA_NO_PERMITIDA`, `SIN_PRODUCTOR_DISPONIBLE`, `REGISTRO_YA_COMPLETO`, `ROL_INCOMPATIBLE`, `CUENTA_NO_EN_BAJA`, `PRODUCTO_SIN_VERSION_UTILIZABLE`, `PRECIO_NO_CONFIGURADO`, `DOCUMENTO_NO_DISPONIBLE`; `CONFLICTO_CONCURRENCIA` en endpoints que no exigen `If-Match` cuando la escritura detecta un cambio concurrente, o cuando hay una ejecución en curso con la misma clave de idempotencia |
 | `412` | `CONFLICTO_CONCURRENCIA` cuando alguna versión de `If-Match` no coincide con la vigente, al validar o al escribir |
 | `413` | `CARGA_EXCEDIDA` (cuerpo mayor al límite) |
 | `415` | `TIPO_CONTENIDO_NO_SOPORTADO` |
@@ -275,7 +275,7 @@ Se propone [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457) (`application/prob
 | `500` | `ERROR_INTERNO`, sin detalle |
 | `503` | `SERVICIO_NO_DISPONIBLE` (base o proveedor de identidad no disponible), con `Retry-After` cuando se conozca |
 
-`NO_ENCONTRADO`, `PETICION_INVALIDA`, `CARGA_EXCEDIDA`, `TIPO_CONTENIDO_NO_SOPORTADO`, `PRECONDICION_REQUERIDA`, `LIMITE_FRECUENCIA`, `ERROR_INTERNO` y `SERVICIO_NO_DISPONIBLE` son códigos de la capa HTTP. `LIMITE_FRECUENCIA` se incorporó con [MAPS-183](https://santitalavera.atlassian.net/browse/MAPS-183), que implementa el primer límite de rutas públicas. En `PETICION_INVALIDA` por parámetros de consulta, `errors` usa `{ "field": "<parámetro>", "code": "CAMPO_INVALIDO" }`. `REGISTRO_PENDIENTE` es nuevo y se incorpora a TDD-SW-004 (ver [Decisiones abiertas](#decisiones-abiertas)). El resto proviene de TDD-SW-002/003/004/005/006 sin cambios. Para `IDEMPOTENCIA_CONFLICTO` (`422`) y la ejecución concurrente con la misma clave (`409`) se sigue el borrador IETF del encabezado `Idempotency-Key`. `CONFLICTO_CONCURRENCIA` usa `412` sólo cuando falla la precondición `If-Match` (RFC 9110) y `409` en los demás conflictos; la UI reacciona por `code`, no por `status` (decisión del owner del 2026-10-29).
+`NO_ENCONTRADO`, `PETICION_INVALIDA`, `CARGA_EXCEDIDA`, `TIPO_CONTENIDO_NO_SOPORTADO`, `PRECONDICION_REQUERIDA`, `LIMITE_FRECUENCIA`, `ERROR_INTERNO` y `SERVICIO_NO_DISPONIBLE` son códigos de la capa HTTP. `LIMITE_FRECUENCIA` se incorporó con [MAPS-183](https://santitalavera.atlassian.net/browse/MAPS-183), que implementa el primer límite de rutas públicas. En `PETICION_INVALIDA` por parámetros de consulta, `errors` usa `{ "field": "<parámetro>", "code": "CAMPO_INVALIDO" }`. `REGISTRO_PENDIENTE`, `ROL_INCOMPATIBLE` y `CUENTA_NO_EN_BAJA` están incorporados a la tabla de errores de TDD-SW-004. El resto proviene de TDD-SW-002/003/004/005/006 sin cambios. Para `IDEMPOTENCIA_CONFLICTO` (`422`) y la ejecución concurrente con la misma clave (`409`) se sigue el borrador IETF del encabezado `Idempotency-Key`. `CONFLICTO_CONCURRENCIA` usa `412` sólo cuando falla la precondición `If-Match` (RFC 9110) y `409` en los demás conflictos; la UI reacciona por `code`, no por `status` (decisión del owner del 2026-10-29).
 
 ### Idempotencia
 
@@ -385,7 +385,8 @@ Toda escritura sobre un Assignment no cerrado o sobre sus `DeliveryAttempt`, inc
 
 - **Contrato:** cada ruta implementada está en OpenAPI y viceversa; las respuestas validan contra sus esquemas; CI falla ante un cambio incompatible no declarado.
 - **Errores:** cada código de la tabla produce su status y un cuerpo `problem+json` válido; un error inesperado produce `500` sin detalle.
-- **Identidad sin cuenta:** `GET /me` responde `200` con `SIN_CUENTA` y `role: null`; token inválido responde `401`; cuenta en `BAJA`, `403 CUENTA_INACTIVA`; cualquier endpoint que requiere cuenta, `403 REGISTRO_PENDIENTE`.
+- **Roles múltiples:** `GET /me` de una cuenta `{ADMIN, PRODUCTOR}` devuelve ambos roles; en `/producer/*` ve sólo lo de un Productor y en `/admin/*` sólo lo de un Admin; tras retirar un rol, sus endpoints responden `403 ACCESO_DENEGADO` y los del otro rol siguen autorizados.
+- **Identidad sin cuenta:** `GET /me` responde `200` con `SIN_CUENTA` y `roles: []`; token inválido responde `401`; cuenta en `BAJA`, `403 CUENTA_INACTIVA`; cualquier endpoint que requiere cuenta, `403 REGISTRO_PENDIENTE`.
 - **Invitación:** la SPA borra el fragmento antes de cualquier request a la API o a terceros, el token no aparece en logs ni en reportes de error, y la ruta responde con `Referrer-Policy: no-referrer`.
 - **`CreateDraft`:** con la respuesta perdida después del commit, la SPA encuentra el BORRADOR y ofrece retomarlo sin crear otro; un duplicado se puede descartar.
 - **Autorización por endpoint:** matriz endpoint × actor derivada del catálogo de políticas de TDD-SW-004. El Productor recibe `403` en cualquier escritura y `404` sobre solicitudes fuera de su alcance. Un Cliente recibe `404` sobre solicitudes ajenas.
@@ -418,7 +419,7 @@ La revisión cruzada del 2026-10-30 es favorable al enfoque. Lo que afecta al co
 | Tema | Artefacto |
 | --- | --- |
 | Routing, TLS, encabezados reenviados, caché por ruta, CORS y antiabuso | ADR-CLD-001, TDD-CLD-001 |
-| Validación de tokens, sesión de la SPA, MFA y coordinación de invitaciones | ADR-CLD-007, TDD-CLD-006 |
+| Validación de tokens, sesión de la SPA y coordinación de invitaciones (el MFA del Portal está fuera del MVP, ADR-SW-007) | ADR-CLD-007, TDD-CLD-006 |
 | Límites de borde y aplicación, timeouts, concurrencia, presupuesto de latencia, health checks, despliegue y rollback | ADR-CLD-003, TDD-CLD-002 |
 | Suficiencia de 24 horas, purga, índices y crecimiento del registro de idempotencia | TDD-CLD-003 |
 | Autenticidad, repetición, orden y reintentos del webhook; plantilla sin seguimiento de clics | TDD-CLD-005 |
@@ -432,7 +433,8 @@ La revisión cruzada del 2026-10-30 es favorable al enfoque. Lo que afecta al co
 | Esquema de respuestas, consentimientos y edición de FormVersion | `PENDIENTE FUNCIONAL MAPS` (MAPS-96) | Rutas, comandos y errores | Contrato de formularios validado con 1–2 formularios reales |
 | Campos de registro, Mi perfil y edición de Clientes por Admin | `PENDIENTE FUNCIONAL MAPS` (MAPS-97) | Rutas y autorización | Lista de campos visibles/editables/obligatorios de MAPS |
 | Atributo `number` en el modelo y su formato | Software + UX | Contrato de la API con `number` | Integración y ratificación de la enmienda de TDD-SW-001/003 ([PR #34](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/34)); formato acordado con UX |
-| Alineación de TDD-SW-004 con este contrato | Software | Este contrato define `REGISTRO_PENDIENTE`, la respuesta `SIN_CUENTA` y el recorrido del token | Al integrarse [PR #27](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/27): agregar el código a su tabla de errores y enlazar este recorrido desde el alta e invitación de Productor |
+| Alineación de TDD-SW-004 con este contrato | Software | Resuelta en [MAPS-216](https://santitalavera.atlassian.net/browse/MAPS-216): TDD-SW-004 incorpora `REGISTRO_PENDIENTE`, la respuesta `SIN_CUENTA` y el recorrido del token | Queda sujeta a la revisión de TDD-SW-004, que sigue en `BORRADOR` |
+| Contrato de roles múltiples (`roles: [...]`) | Software | `GET /me` devuelve la lista de roles `ACTIVO`; los endpoints no asumen un único rol | Aceptación de [ADR-SW-007](../../adr/MAPS-216-identidad-multirol-mfa/ADR-SW-007-identidad-multirol-y-mfa-fuera-del-mvp.md) (`PROPUESTO`) |
 | Retención de claves (24 h) y límite de cuerpo (1 MiB) | Cloud | Contrato con esos valores | Confirmación en la revisión cruzada Cloud |
 | Mensaje al usuario ante `412` en `SaveDraft` | UX | Contrato del error | Texto y comportamiento de F2 ([MAPS-106](https://santitalavera.atlassian.net/browse/MAPS-106)) |
 | Contadores de bandeja (`/summary`) | Software + UX | Endpoint propuesto | Confirmar con F2 qué contadores muestra la bandeja ([MAPS-106](https://santitalavera.atlassian.net/browse/MAPS-106)) |
@@ -454,7 +456,8 @@ La revisión cruzada del 2026-10-30 es favorable al enfoque. Lo que afecta al co
 | --- | --- | --- |
 | `ETag` del detalle de Admin | Compuesto por la versión de la solicitud y la del Assignment; `RetryDelivery` y los resultados de entrega incrementan `Assignment.version` | Un reintento no toca `InsuranceRequest.version`; con una sola versión, el comando podría aplicarse sobre una pantalla desactualizada |
 | Token de invitación | Fragmento del enlace, borrado por la SPA y enviado en el cuerpo | El fragmento no llega a servidores ni a `Referer` |
-| Identidad sin cuenta | `/me` responde `200` con `SIN_CUENTA`; los demás endpoints que requieren cuenta, `403 REGISTRO_PENDIENTE` | Distingue el onboarding de un token inválido, sin inventar rol ni permisos |
+| Identidad sin cuenta | `/me` responde `200` con `SIN_CUENTA` y `roles: []`; los demás endpoints que requieren cuenta, `403 REGISTRO_PENDIENTE` | Distingue el onboarding de un token inválido, sin inventar rol ni permisos |
+| Roles de la cuenta | `/me` devuelve `roles: [...]`, no un rol singular | Una cuenta puede ser Admin y Productor (ADR-SW-007); cada caso de uso exige un rol |
 | Recuperación de `CreateDraft` | Se mantiene sin idempotencia; la SPA busca el BORRADOR antes de crear otro | Respeta TDD-SW-003 y cubre la respuesta perdida, que la UI no puede evitar |
 
 ## Seguimiento de revisión PR #33

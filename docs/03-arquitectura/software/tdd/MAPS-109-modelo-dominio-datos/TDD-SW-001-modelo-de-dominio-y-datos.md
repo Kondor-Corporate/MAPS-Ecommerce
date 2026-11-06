@@ -46,7 +46,8 @@ No fija nombres definitivos de tablas ni el esquema de campos de formularios, qu
 
 | Entidad | Módulo owner | Responsabilidad |
 | --- | --- | --- |
-| UserIdentity | Identity | Cuenta, credenciales/sesión, rol (Cliente, Admin, Productor) y estado de cuenta |
+| UserIdentity | Identity | Cuenta, credenciales/sesión, rol (Cliente, Admin, Productor; la [enmienda 2026-11-04](#enmienda-2026-11-04-roles-de-la-cuenta) lo traslada a un conjunto de `AccountRole` y no rige hasta aceptar ADR-SW-007) y estado de cuenta |
+| AccountRole | Identity | Rol concedido a una cuenta (`CLIENTE`, `PRODUCTOR`, `ADMIN`), con estado `ACTIVO`/`RETIRADO` y registro de concesión y retiro. Propuesta: [enmienda 2026-11-04](#enmienda-2026-11-04-roles-de-la-cuenta), no rige hasta aceptar ADR-SW-007 |
 | Customer | Identity | Datos del Cliente y perfil autogestionable habilitado |
 | Producer | Identity | Datos del Productor, email verificado y disponibilidad para nuevas asignaciones |
 | Category | Catalog | Agrupación de productos (ABM) |
@@ -63,13 +64,14 @@ No fija nombres definitivos de tablas ni el esquema de campos de formularios, qu
 | AuditEvent | Audit | Registro de acciones de negocio relevantes (actor, acción, entidad, fecha) |
 | OutboxEvent | Componente técnico Outbox ([ADR-SW-004](../../adr/MAPS-110-asincronia-outbox-idempotencia/ADR-SW-004-outbox-asincronia-e-idempotencia.md)) | Intención de efecto externo registrada en la misma transacción del cambio. El componente Outbox es el único owner de su tabla y repositorio; los módulos registran eventos sólo mediante su puerto |
 
-El rol Admin es un rol de `UserIdentity`, no una entidad aparte. No se modelan Lead, Policy, Payment ni Contract ([F0 §0.2](../../../../00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md)).
+El rol Admin es un rol de `UserIdentity`, no una entidad aparte (con la [enmienda 2026-11-04](#enmienda-2026-11-04-roles-de-la-cuenta), `ADMIN` es un valor de `AccountRole`, tampoco una entidad aparte). No se modelan Lead, Policy, Payment ni Contract ([F0 §0.2](../../../../00-proyecto/Fase_0__Kickoff__Gobierno_del_proyecto_.md)).
 
 ## Relaciones y cardinalidades
 
 ```text
 UserIdentity 1 ── 0..1 Customer
 UserIdentity 1 ── 0..1 Producer
+UserIdentity 1 ── 1..* AccountRole       (propuesta: enmienda 2026-11-04)
 Category     1 ── *    Product
 Product      1 ── 0..1 FormDefinition        (obligatorio para publicar Product)
 FormDefinition 1 ── * FormVersion
@@ -214,6 +216,17 @@ Durante el diseño del contrato API (TDD-SW-008, [PR #33](https://github.com/Kon
 - **Alternativa descartada:** código alfanumérico aleatorio. Evita revelar el volumen aproximado de solicitudes, pero exige reintentos ante colisiones y es menos natural para buscar y para el soporte telefónico. El volumen que revela una secuencia no se considera información sensible para el MVP.
 - **Trazabilidad:** la asignación en `Submit` se registra en la [enmienda 2026-10-29 de TDD-SW-003](../MAPS-113-insurance-request-estados/TDD-SW-003-insurance-request-y-maquina-de-estados.md#enmienda-2026-10-29-número-de-solicitud); el contrato HTTP y la búsqueda, en TDD-SW-008 ([PR #33](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/33)), cuya dependencia del atributo resuelve esta enmienda. Registrada bajo [MAPS-115](https://santitalavera.atlassian.net/browse/MAPS-115).
 - **Ratificación:** Joaquin Rodriguez, responsable de Software, ratifica esta enmienda el 2026-10-30 en la [conversación de PR #34](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/34), donde se solicita además la conformidad de la revisión cruzada. El historial de aprobación original se conserva y el documento no vuelve a `BORRADOR`.
+
+## Enmienda 2026-11-04: roles de la cuenta
+
+Este TDD describe el rol de `UserIdentity` en singular. [ADR-SW-007](../../adr/MAPS-216-identidad-multirol-mfa/ADR-SW-007-identidad-multirol-y-mfa-fuera-del-mvp.md) (`PROPUESTO`, [MAPS-216](https://santitalavera.atlassian.net/browse/MAPS-216)) decide, por una decisión de alcance del MVP del owner del 2026-11-01 ([PR #30](https://github.com/Kondor-Corporate/MAPS-Ecommerce/pull/30)), que una cuenta puede tener más de un rol. Esta enmienda lo registra: agrega la entidad `AccountRole` y la relación `UserIdentity 1 ── 1..* AccountRole`; no cambia las demás relaciones ni los estados de `InsuranceRequest`.
+
+- **Qué cambia:** `UserIdentity` pasa de tener un rol a tener un **conjunto de roles** (`CLIENTE`, `PRODUCTOR`, `ADMIN`), cada uno `ACTIVO` o `RETIRADO`. `ADMIN` y `PRODUCTOR` pueden coexistir; `CLIENTE` no coexiste con ningún otro `AccountRole`, en ningún estado. No existe un rol `ADMIN_PRODUCTOR`.
+- **Entidad y relación:** `AccountRole` (módulo owner Identity) tiene un registro por cada rol concedido a la cuenta, con estado `ACTIVO` o `RETIRADO` y registro de su concesión y su retiro. La cardinalidad `UserIdentity 1 ── 1..* AccountRole` es `1..*` porque no existe una `UserIdentity` sin al menos un registro de rol: la identidad sin cuenta no tiene `UserIdentity`; toda creación de cuenta (`CompleteRegistration`, `AcceptProducerInvitation`, comando `create-admin`) concede un rol en la misma operación; y los registros de rol no se eliminan, retirar un rol cambia su estado a `RETIRADO`, de modo que una cuenta en `BAJA` conserva sus roles.
+- **Invariantes:** `ADMIN` y `PRODUCTOR` pueden coexistir; `CLIENTE` no coexiste con ningún otro `AccountRole`, en ningún estado; hay a lo sumo un `AccountRole` `ACTIVO` por (`UserIdentity`, rol); una cuenta `ACTIVA` tiene al menos un rol `ACTIVO`.
+- **Qué no cambia:** las cardinalidades con Customer y Producer: `UserIdentity 1 ── 0..1 Customer` y `UserIdentity 1 ── 0..1 Producer` ya admitían ambos vínculos. `ADMIN` sigue sin vínculo con Customer ni Producer; el vínculo con `Producer` lo aporta el rol `PRODUCTOR`. El estado de cuenta (`ACTIVA`, `BAJA`) sigue siendo independiente del de cualquier `InsuranceRequest`.
+- **Detalle:** el modelo de `AccountRole` y sus restricciones están en [TDD-SW-004](../MAPS-111-identidad-rbac-ownership/TDD-SW-004-identidad-rbac-y-ownership.md#datos-consistencia-y-migraciones).
+- **Estado:** pendiente de ratificación del owner de Software y de conformidad de la revisión cruzada. Hasta que se acepte ADR-SW-007, esta enmienda no rige. El historial de aprobación original se conserva y el documento no vuelve a `BORRADOR`.
 
 ## Referencias y trazabilidad
 

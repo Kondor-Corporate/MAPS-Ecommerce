@@ -30,6 +30,12 @@ Cuanto más se repite, más dura la corrección:
   shell, y bloqueaba algunas búsquedas o mensajes legítimos; la revisión superó tres rondas ·
   análisis de comandos, validación del índice en Git pre-commit para Codex y casos de regresión
   en `.codex/tests/flujo.test.mjs`.
+- 2026-11-04 · MAPS-179 · la review humana (PR #39) encontró lo que dos rondas del `revisor`
+  aprobaron o dejaron en menor: sólo `domain/` bloqueaba librerías (application/ y ports/ podían
+  usar Prisma o Express) y una excepción de lint (`* → notifications/ports/in`) que ningún ADR
+  fijaba. Las reglas de límites se probaban a mano · escalón 3: lista permitida por capa y
+  fixtures en `apps/api/tests/architecture/boundaries.test.ts`, que corren en CI. Toda excepción
+  de lint cita el ADR/TDD-SW que la fija y tiene un caso positivo y uno negativo.
 - 2026-11-04 · MAPS-183 · la rama se apiló sobre otra sin mergear (#39) que no tenía el flujo de
   revisión previa (#40/#41); el agente siguió la skill vieja de su worktree, commiteó, pusheó y abrió
   PR (#43) sin revisor previo · #43 cerrado y rehecho en `-v2`; #39 sincronizado con `development` ·

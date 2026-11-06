@@ -57,20 +57,21 @@ Documents (owner de Document)
 │   ├── GetDocumentLink          aplica la política y emite la URL de lectura de corta duración
 │   └── CleanupUnusedDocuments   job: elimina lo que nunca quedó guardado o dejó de estarlo
 ├── ports/in/
-│   ├── AttachmentCheckAdapter   implementa el puerto de Requests que verifica y sincroniza referencias
 │   └── DocumentQueryPort        metadatos de documentos de una solicitud (Admin, Cliente, Productor)
-└── ports/out/
-    ├── RequestDocumentContextPort   dueño, estado, FormVersion y reglas del campo (Requests)
-    ├── ObjectStoragePort            URL de subida y de lectura, metadatos, lectura de los primeros bytes, copia con precondición, borrado (adaptador cloud)
-    ├── FileTypeDetectorPort         detección del tipo real por firma (librería mantenida)
-    ├── AuditPort
-    ├── DocumentRepository
-    └── Clock
+├── ports/out/
+│   ├── RequestDocumentContextPort   dueño, estado, FormVersion y reglas del campo (Requests)
+│   ├── ObjectStoragePort            URL de subida y de lectura, metadatos, lectura de los primeros bytes, copia con precondición, borrado (adaptador cloud)
+│   ├── FileTypeDetectorPort         detección del tipo real por firma (librería mantenida)
+│   ├── AuditPort
+│   ├── DocumentRepository
+│   └── Clock
+└── adapters/out/
+    └── AttachmentCheckAdapter   implementa AttachmentCheckPort de Requests: verifica y sincroniza referencias
 ```
 
 **Dirección de dependencias.** [ADR-SW-001](../../adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-001-monolito-modular-y-limites.md) fija que Documents depende de Requests e Identity. Documents consulta a Requests mediante `RequestDocumentContextPort`; las reglas del campo `file` llegan por ese mismo puerto, que Requests resuelve con Forms, para no agregar una dependencia Documents → Forms.
 
-Requests necesita verificar adjuntos al guardar y al enviar sin depender de Documents. Para eso **Requests define** un puerto de salida, `AttachmentCheckPort`, y **Documents lo implementa** (`AttachmentCheckAdapter`). Es inversión de dependencias: en el código Requests no importa nada de Documents, y la conexión se hace al componer la aplicación. Esta solución se somete a la revisión del límite entre módulos.
+Requests necesita verificar adjuntos al guardar y al enviar sin depender de Documents. Para eso **Requests define** un puerto de salida, `AttachmentCheckPort`, y **Documents lo implementa** (`AttachmentCheckAdapter`). Es inversión de dependencias: en el código Requests no importa nada de Documents, y la conexión se hace al componer la aplicación. `AttachmentCheckAdapter` vive en `adapters/out` de Documents, porque implementa un puerto de salida ([ADR-SW-002](../../adr/MAPS-107-estilo-arquitectonico-limites/ADR-SW-002-arquitectura-hexagonal-y-capas.md)); es la única dependencia hacia el `ports/out` de otro módulo que admiten las reglas de lint (`eslint/architecture.mjs`). Esta solución se somete a la revisión del límite entre módulos.
 
 **Responsabilidades y contrato del puerto.** Cada invariante tiene un único dueño:
 
@@ -146,7 +147,7 @@ La respuesta de un campo `file` en `RequestAnswer` (owner: Requests) es la lista
 1. Política según [TDD-SW-004](../MAPS-111-identidad-rbac-ownership/TDD-SW-004-identidad-rbac-y-ownership.md), sobre la solicitud del documento:
    - Cliente dueño: los documentos de su solicitud, en cualquier estado.
    - Admin: desde ENVIADA, sólo documentos referenciados por las respuestas enviadas.
-   - Productor: DERIVADA con Assignment `EFECTIVO` propio y cuenta `ACTIVA`, sólo documentos referenciados; lectura.
+   - Productor: DERIVADA con Assignment `EFECTIVO` propio, rol `PRODUCTOR` `ACTIVO` y cuenta `ACTIVA` (ADR-SW-007, `PROPUESTO`), sólo documentos referenciados; lectura.
 2. El documento debe estar `DISPONIBLE` (`DOCUMENTO_NO_DISPONIBLE` si no).
 3. Auditoría de cada apertura por Admin o Productor: actor, solicitud, documento y fecha, sin nombre de archivo.
 4. `ObjectStoragePort` emite una URL de lectura de pocos minutos, que entrega el archivo **como descarga** (no para mostrarse dentro de la página) y con el tipo detectado, no el declarado. El nombre de descarga es el original saneado.

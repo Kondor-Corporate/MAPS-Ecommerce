@@ -1,0 +1,32 @@
+name: CI
+
+# Verificaciones de AGENTS.md §9 en cada PR: typecheck, lint (incluye los límites de
+# arquitectura de ADR-SW-001/002), build y tests (incluye las pruebas de esos límites).
+on:
+  pull_request:
+    branches: [development, main]
+  push:
+    branches: [development, main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22 # mínimo soportado (engines.node >= 22.12)
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run build
+      - run: npm test
